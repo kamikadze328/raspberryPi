@@ -1,28 +1,33 @@
 #! /usr/bin/env python
+# coding=utf-8
+from random import randint
 
-print ('hello')
-import datetime
+import DB
+import datetime as d
 
-now = datetime.datetime.now()
+server1 = DB.Server('VH246.spaceweb.ru', 'carbondvru_DB',
+                 '12345678Db', 'carbondvru_DB')
+server1.load_data()
+server1.delete_all()
+data_1 = (randint(1, 100), d.datetime.now(), randint(1000, 1000000))
+data_2 = (randint(1, 100), d.datetime.now(), randint(1000, 1000000))
+data_3 = (randint(1, 100), d.datetime.now(), randint(1000, 1000000))
+print ""
+server1.load_data()
+print ""
+server1.insert_data(data_1)
+server1.load_data()
+print ""
 
-print
-print "Текущая дата и время с использованием метода str:"
-print str(now)
+data = [
+    (randint(1, 100), d.datetime.now(), randint(1000, 1000000)),
+    (randint(1, 100), d.datetime.now(), randint(1000, 1000000)),
+    (randint(1, 100), d.datetime.now(), randint(1000, 1000000)),
+]
+server1.insert_many(data)
 
-print
-print "Текущая дата и время с использованием атрибутов:"
-print "Текущий год: %d" % now.year
-print "Текущий месяц: %d"% now.month
-print "Текущий день: %d" % now.day
-print "Текущий час: %d" % now.hour
-print "Текущая минута: %d" % now.minute
-print "Текущая секунда: %d" % now.second
-print "Текущая микросекунда: %d" % now.microsecond
+server1.load_data()
+print ""
+#server1.insert_and_load(data_3)
 
-print
-print "Текущая дата и время с использованием strftime:"
-print now.strftime("%d-%m-%Y %H:%M")
 
-print
-print "Текущая дата и время с использованием isoformat:"
-print now.isoformat()
