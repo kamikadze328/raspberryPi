@@ -5,9 +5,8 @@
       <paths name="raspberry">
         <serverdata>
           <mappings>
-            <mapping deploy="/sk" local="$PROJECT_DIR$/../" web="/" />
-            <mapping deploy="/sk/synctime" local="$PROJECT_DIR$/../Synchro_time" web="/" />
-            <mapping deploy="/sk/firstdaemon" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/sk/synctime/" local="$PROJECT_DIR$/synctime" web="/" />
+            <mapping deploy="/sk/firstdaemon/" local="$PROJECT_DIR$/firstdaemon" web="/" />
           </mappings>
         </serverdata>
       </paths>

@@ -121,13 +121,13 @@ def send_packet_tcp(ip_address, send_byte_arr, transact_id, expected_number_byte
     received_byte_arr = bytearray()
     time_socket_open = time.time()
 
-    connect_info_str = Logger.time() + (u'Connection to (host: %s, port: %d) ==> '% ip_address)
+    connect_info_str = Logger.time() + (u'Connection to (host: %s, port: %d) ==> \n'% ip_address)
     ip_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ip_socket.settimeout(timeout)
     socket_error = ip_socket.connect_ex(ip_address)
 
     if socket_error == 0:
-        connect_info_str += u'[OK] %4.1fms' % ((time.time() - time_socket_open) * 1000)
+        connect_info_str += Logger.time() + u'[OK] %4.1fms' % ((time.time() - time_socket_open) * 1000)
         try:
             ip_socket.send(send_byte_arr)
             err_code = -2
@@ -150,22 +150,22 @@ def send_packet_tcp(ip_address, send_byte_arr, transact_id, expected_number_byte
     ip_socket.close()
     return err_code, received_byte_arr, connect_info_str
 
-def make_send_packet(**data):
-    """
-    Manage calling in accordance with a type of interface
-    :param data: params to calling method
-    :return: return something from calling function
-    """
-    interface_type = data.pop('interface_type')
-    if interface_type == InterfaceType.TCP_IP:
-         return make_send_packet_tcp(**data)
+# def make_send_packet(**data):
+#     """
+#     Manage calling in accordance with a type of interface
+#     :param data: params to calling method
+#     :return: return something from calling function
+#     """
+#     interface_type = data.pop('interface_type')
+#     if interface_type == InterfaceType.TCP_IP:
+#          return make_send_packet_tcp(**data)
 
-def send_packet(**data):
-    """
-    Manage calling in accordance with a type of interface
-    :param data: params to calling method
-    :return: return something from calling function
-    """
-    interface_type = data.pop('interface_type')
-    if interface_type == InterfaceType.TCP_IP:
-        return send_packet_tcp(**data)
+# def send_packet(**data):
+#     """
+#     Manage calling in accordance with a type of interface
+#     :param data: params to calling method
+#     :return: return something from calling function
+#     """
+#     interface_type = data.pop('interface_type')
+#     if interface_type == InterfaceType.TCP_IP:
+#         return send_packet_tcp(**data)
