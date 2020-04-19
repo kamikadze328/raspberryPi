@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-import time
 import json
 import os
 import sys
+import time
+
 import ntplib
+
 import Logger
 import ModBusAPI
 

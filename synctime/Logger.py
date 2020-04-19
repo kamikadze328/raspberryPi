@@ -1,6 +1,6 @@
+import codecs
 import os
 from datetime import datetime as d
-import codecs
 
 
 def time():

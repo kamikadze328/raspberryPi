@@ -3,9 +3,11 @@
 import socket
 import time
 from random import randint
+
 from enum import Enum
 
 import Logger
+
 """
 API with function for ModBus protoloc
 """
