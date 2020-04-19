@@ -6,7 +6,9 @@ from random import randint
 from enum import Enum
 
 import Logger
-
+"""
+API with function for ModBus protoloc
+"""
 class InterfaceType(Enum):
     """
     Enumeration of interface type for ModBus protocol

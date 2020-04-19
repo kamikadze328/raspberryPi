@@ -14,6 +14,7 @@ import ModBusAPI
 reload(sys)
 sys.setdefaultencoding('utf8')
 
+#log and config files
 current_path = os.path.dirname(os.path.abspath(__file__))
 log_file = current_path + "/sync_time.log"
 config_file = current_path + "/sync_time.conf.json"
@@ -35,24 +36,34 @@ def calculate_oven_time(time_arr):
     return datetime.datetime(2000, 1, 1) + datetime.timedelta(seconds=date_time_seconds)
 
 def get_ethernet_time():
+    """
+    Try to get time from network
+    :return: Unix time in seconds if success
+        or None
+    :rtype: float
+    """
     ntp_client = ntplib.NTPClient()
     time_info_str = Logger.time() + u'Checking network time ==> '
     try:
         start_check_time = time.time()
         response = ntp_client.request('pool.ntp.org')
-        Logger.write(log_file, time_info_str + u'[OK] %4.1fms' % ((time.time() - start_check_time) * 1000),
-                     with_time=False)
+        Logger.write(log_file, time_info_str + u'[OK] %4.1fms' % ((time.time() - start_check_time) * 1000), with_time=False)
         return response.tx_time
     except ntplib.NTPException:
         Logger.write(log_file, time_info_str + u'[WARNING]: No internet connection', with_time=False)
 
 
 def set_system_time(new_time, name_time_source):
+    """
+    If difference between new and system time more than 1s, set new time(sudo date -s %Y-%m-%d %H:%M:%S)
+    :param new_time: Setting time
+    :type new_time: datetime.datetime or int or float
+    :param name_time_source: The name of source of time
+    :type name_time_source: unicode or str
+    """
     if isinstance(new_time, int) or isinstance(new_time, float):
         new_time = datetime.datetime.fromtimestamp(new_time)
-    print datetime.datetime.now()
-    print new_time
-    print (datetime.datetime.now() - new_time).total_seconds()
+
     if abs(datetime.datetime.now() - new_time).total_seconds() < 1:
         Logger.write(log_file, u'The system time is correct')
     else:
@@ -61,6 +72,13 @@ def set_system_time(new_time, name_time_source):
         os.system('sudo date -s "' + new_time + '"')
 
 def send_request_to_units(units):
+    """
+    Make packet and send it via protocol ModBus.
+    :param units: list of unit from json config
+    :type units: list
+    :return: list units, which had error during getting time
+    :rtype: list
+    """
     error_codes = []
     for unit in units:
         interface = ModBusAPI.InterfaceType[str(unit.get('sInterface'))]
@@ -98,16 +116,13 @@ def send_request_to_units(units):
                 Logger.write(log_file, u'The decoding time of %s = ' % unit.get('sModelName')
                              + unit_time.strftime('%Y-%m-%d %H:%M:%S'))
         elif interface==ModBusAPI.InterfaceType.RS_485:
+            # Надо дописать методы в ModBusAPI для работы с этим протоколом. И объединить код с tcp
             pass
-    #end cycle
     return [unit_with_error for index, unit_with_error in enumerate(units) if error_codes[index] < 0]
 
 def median(array):
     n = len(array)
-    if n < 1:
-        return None
-    else:
-        return sorted(array)[n / 2 + n % 2]
+    return sorted(array)[n / 2 + n % 2]
 
 # -------------------------------------------------------------------------------------------------
 time.sleep(1)
