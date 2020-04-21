@@ -1,12 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="raspberry">
+  <component name="PublishConfigData" autoUpload="Always" serverName="raspberryDad">
     <serverData>
       <paths name="raspberry">
         <serverdata>
           <mappings>
             <mapping deploy="/sk/synctime/" local="$PROJECT_DIR$/synctime" web="/" />
             <mapping deploy="/sk/firstdaemon/" local="$PROJECT_DIR$/firstdaemon" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="raspberryDad">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/sk" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="raspberryDad (1)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/pi/sk" local="$PROJECT_DIR$" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/.gitignore" />
+            <excludedPath local="true" path="$PROJECT_DIR$/raspberryPi.iml" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="raspberryDad (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/pi/sk" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="raspberryDad (3)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/pi/sk" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
