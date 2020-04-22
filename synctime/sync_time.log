@@ -1,0 +1,897 @@
+2020-04-19 03:30:02:	Start
+2020-04-19 03:30:10:	Start
+2020-04-19 03:30:16:	Start
+2020-04-19 03:30:50:	Start
+2020-04-19 03:31:16:	Start
+2020-04-19 03:31:53:	Start
+2020-04-19 03:31:53:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 03:31:53:	request  (12 bytes) => (HEX) 07 EE 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 03:31:53:	response (0 bytes) => (HEX)
+2020-04-19 03:31:53:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 03:31:53:	request  (12 bytes) => (HEX) 55 3E 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 03:31:53:	response (0 bytes) => (HEX)
+2020-04-19 03:31:53:	END
+2020-04-19 03:32:27:	Start
+2020-04-19 03:32:27:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 03:32:28:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 03:32:28:	END
+2020-04-19 12:04:47:	Start
+2020-04-19 12:04:47:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 20.8ms
+2020-04-19 12:04:47:	request  (12 bytes) => (HEX) 44 1F 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:04:47:	response (15 bytes) => (HEX) 44 1F 00 00 00 09 01 03 06 D0 54 26 2E 00 B4
+2020-04-19 12:04:47:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:03:16
+2020-04-19 12:04:47:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.6ms
+2020-04-19 12:04:47:	ERROR: Socket Timeout
+2020-04-19 12:04:47:	request  (12 bytes) => (HEX) D7 CC 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:04:47:	response (0 bytes) => (HEX)
+2020-04-19 12:04:47:	END
+2020-04-19 12:04:58:	Start
+2020-04-19 12:04:58:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 14.1ms
+2020-04-19 12:04:58:	request  (12 bytes) => (HEX) E4 54 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:04:58:	response (15 bytes) => (HEX) E4 54 00 00 00 09 01 03 06 D0 60 26 2E 00 B4
+2020-04-19 12:04:58:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:03:28
+2020-04-19 12:04:58:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  0.9ms
+2020-04-19 12:04:59:	ERROR: Socket Timeout
+2020-04-19 12:04:59:	request  (12 bytes) => (HEX) BC 2E 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:04:59:	response (0 bytes) => (HEX)
+2020-04-19 12:04:59:	END
+2020-04-19 12:07:01:	Start
+2020-04-19 12:07:01:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 14.9ms
+2020-04-19 12:07:01:	request  (12 bytes) => (HEX) 30 E3 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:07:01:	response (15 bytes) => (HEX) 30 E3 00 00 00 09 01 03 06 D0 DA 26 2E 00 B4
+2020-04-19 12:07:01:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:05:30
+2020-04-19 12:07:01:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.4ms
+2020-04-19 12:07:01:	ERROR: Socket Timeout
+2020-04-19 12:07:01:	request  (12 bytes) => (HEX) 20 AA 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:07:01:	response (0 bytes) => (HEX)
+2020-04-19 12:07:01:	END
+2020-04-19 12:07:14:	Start
+2020-04-19 12:07:14:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 13.8ms
+2020-04-19 12:07:14:	request  (12 bytes) => (HEX) 26 B1 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:07:14:	response (15 bytes) => (HEX) 26 B1 00 00 00 09 01 03 06 D0 E7 26 2E 00 B4
+2020-04-19 12:07:14:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:05:43
+2020-04-19 12:07:14:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  0.9ms
+2020-04-19 12:07:14:	ERROR: Socket Timeout
+2020-04-19 12:07:14:	request  (12 bytes) => (HEX) 30 1C 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:07:14:	response (0 bytes) => (HEX)
+2020-04-19 12:07:14:	END
+2020-04-19 12:09:56:	Start
+2020-04-19 12:09:56:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 13.8ms
+2020-04-19 12:09:56:	request  (12 bytes) => (HEX) AF BA 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:09:56:	response (15 bytes) => (HEX) AF BA 00 00 00 09 01 03 06 D1 89 26 2E 00 B4
+2020-04-19 12:09:56:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:08:25
+2020-04-19 12:09:56:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  0.9ms
+2020-04-19 12:09:56:	ERROR: Socket Timeout
+2020-04-19 12:09:56:	request  (12 bytes) => (HEX) 67 EC 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:09:56:	response (0 bytes) => (HEX)
+2020-04-19 12:09:56:	END
+2020-04-19 12:12:37:	Start
+2020-04-19 12:12:37:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 13.5ms
+2020-04-19 12:12:37:	request  (12 bytes) => (HEX) 6A BD 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:12:37:	response (15 bytes) => (HEX) 6A BD 00 00 00 09 01 03 06 D2 2A 26 2E 00 B4
+2020-04-19 12:12:37:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:11:06
+2020-04-19 12:12:37:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.0ms
+2020-04-19 12:12:37:	ERROR: Socket Timeout
+2020-04-19 12:12:37:	request  (12 bytes) => (HEX) 29 4F 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:12:37:	response (0 bytes) => (HEX)
+2020-04-19 12:12:37:	END
+2020-04-19 12:13:14:	Start
+2020-04-19 12:13:14:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 13.5ms
+2020-04-19 12:13:14:	request  (12 bytes) => (HEX) 56 05 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:13:14:	response (15 bytes) => (HEX) 56 05 00 00 00 09 01 03 06 D2 50 26 2E 00 B4
+2020-04-19 12:13:14:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:11:44
+2020-04-19 12:13:14:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  0.9ms
+2020-04-19 12:13:14:	ERROR: Socket Timeout
+2020-04-19 12:13:14:	request  (12 bytes) => (HEX) 3F 41 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:13:14:	response (0 bytes) => (HEX)
+2020-04-19 12:13:14:	END
+2020-04-19 12:14:15:	Start
+2020-04-19 12:14:23:	Start
+2020-04-19 12:15:33:	Start
+2020-04-19 12:15:39:	Start
+2020-04-19 12:15:45:	Start
+2020-04-19 12:15:45:	Start
+2020-04-19 12:15:46:	Start
+2020-04-19 12:15:47:	Start
+2020-04-19 12:15:48:	Start
+2020-04-19 12:15:49:	Start
+2020-04-19 12:15:50:	Start
+2020-04-19 12:15:50:	Start
+2020-04-19 12:15:51:	Start
+2020-04-19 12:16:05:	Start
+2020-04-19 12:18:12:	Start
+2020-04-19 12:19:57:	Start
+2020-04-19 12:19:57:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:19:57:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:19:57:	END
+2020-04-19 12:20:14:	Start
+2020-04-19 12:20:14:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:20:14:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:20:14:	END
+2020-04-19 12:20:28:	Start
+2020-04-19 12:20:28:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:20:28:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:20:28:	END
+2020-04-19 12:20:37:	Start
+2020-04-19 12:20:37:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:20:37:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:20:37:	END
+2020-04-19 12:24:00:	Start
+2020-04-19 12:24:19:	Start
+2020-04-19 12:24:19:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 13.8ms
+2020-04-19 12:24:19:	request  (12 bytes) => (HEX) 4C 90 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:24:19:	response (15 bytes) => (HEX) 4C 90 00 00 00 09 01 03 06 D4 E7 26 2E 00 B4
+2020-04-19 12:24:19:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:22:47
+2020-04-19 12:24:19:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.3ms
+2020-04-19 12:24:19:	ERROR: Socket Timeout
+2020-04-19 12:24:19:	request  (12 bytes) => (HEX) 14 37 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:24:19:	response (0 bytes) => (HEX)
+2020-04-19 12:24:19:	END
+2020-04-19 12:28:44:	Start
+2020-04-19 12:28:44:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:28:44:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:28:44:	END
+2020-04-19 12:28:47:	Start
+2020-04-19 12:28:47:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:28:48:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 12:28:48:	END
+2020-04-19 12:29:50:	Start
+2020-04-19 12:29:51:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 22.9ms
+2020-04-19 12:29:51:	request  (12 bytes) => (HEX) 43 49 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:29:51:	response (15 bytes) => (HEX) 43 49 00 00 00 09 01 03 06 D6 33 26 2E 00 B4
+2020-04-19 12:29:51:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:28:19
+2020-04-19 12:29:51:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.8ms
+2020-04-19 12:29:51:	ERROR: Socket Timeout
+2020-04-19 12:29:51:	request  (12 bytes) => (HEX) 7D A0 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:29:51:	response (0 bytes) => (HEX)
+2020-04-19 12:29:51:	END
+2020-04-19 12:32:02:	Start
+2020-04-19 12:32:02:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 14.1ms
+2020-04-19 12:32:02:	request  (12 bytes) => (HEX) 87 28 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:32:02:	response (15 bytes) => (HEX) 87 28 00 00 00 09 01 03 06 D6 B6 26 2E 00 B4
+2020-04-19 12:32:02:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:30:30
+2020-04-19 12:32:02:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.0ms
+2020-04-19 12:32:03:	ERROR: Socket Timeout
+2020-04-19 12:32:03:	request  (12 bytes) => (HEX) CE 3D 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:32:03:	response (0 bytes) => (HEX)
+2020-04-19 12:32:03:	END
+2020-04-19 12:32:21:	Start
+2020-04-19 12:32:21:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 25.3ms
+2020-04-19 12:32:22:	request  (12 bytes) => (HEX) 14 2D 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 12:32:22:	response (15 bytes) => (HEX) 14 2D 00 00 00 09 01 03 06 D6 C9 26 2E 00 B4
+2020-04-19 12:32:22:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 12:30:49
+2020-04-19 12:32:22:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.4ms
+2020-04-19 12:32:22:	ERROR: Socket Timeout
+2020-04-19 12:32:22:	request  (12 bytes) => (HEX) E2 CC 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 12:32:22:	response (0 bytes) => (HEX)
+2020-04-19 12:32:22:	END
+2020-04-19 12:32:34:	Start
+2020-04-19 13:43:06:	Start
+2020-04-19 13:43:06:	Checking network time ==> 
+2020-04-19 13:43:06:	[OK] 264.4ms
+2020-04-19 13:43:06:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 39.2ms
+2020-04-19 13:43:06:	request  (12 bytes) => (HEX) 2B 65 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 13:43:06:	response (15 bytes) => (HEX) 2B 65 00 00 00 09 01 03 06 E7 5E 26 2E 00 B4
+2020-04-19 13:43:06:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 13:41:34
+2020-04-19 13:43:06:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.7ms
+2020-04-19 13:43:06:	ERROR: Socket Timeout
+2020-04-19 13:43:06:	request  (12 bytes) => (HEX) D3 AB 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 13:43:06:	response (0 bytes) => (HEX)
+2020-04-19 13:43:06:	END
+2020-04-19 13:43:38:	Start
+2020-04-19 13:43:38:	Checking network time ==> 
+2020-04-19 13:43:38:	[OK] 85.1ms
+2020-04-19 13:43:38:	Connection to (host: 192.168.1.32, port: 502) ==> [OK] 24.9ms
+2020-04-19 13:43:39:	request  (12 bytes) => (HEX) B0 4A 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 13:43:39:	response (15 bytes) => (HEX) B0 4A 00 00 00 09 01 03 06 E7 7E 26 2E 00 B4
+2020-04-19 13:43:39:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 13:42:06
+2020-04-19 13:43:39:	Connection to (host: 192.168.1.34, port: 502) ==> [OK]  1.3ms
+2020-04-19 13:43:39:	ERROR: Socket Timeout
+2020-04-19 13:43:39:	request  (12 bytes) => (HEX) 4D E7 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 13:43:39:	response (0 bytes) => (HEX)
+2020-04-19 13:43:39:	END
+2020-04-19 13:48:35:	Start
+2020-04-19 13:48:35:	Checking network time ==> 
+2020-04-19 13:48:35:	[OK] 97.9ms
+2020-04-19 13:48:35:	The network time = 2020-04-19 13:48:35
+2020-04-19 13:48:35:	The system time is right
+2020-04-19 13:48:35:	END
+2020-04-19 13:50:42:	Start
+2020-04-19 13:50:42:	Checking network time ==> 
+2020-04-19 13:50:43:	[OK] 1016.8ms
+2020-04-19 13:50:43:	The network time = 2020-04-19 13:50:43
+2020-04-19 13:50:43:	The system time is right
+2020-04-19 13:50:43:	END
+2020-04-19 14:02:18:	Start
+2020-04-19 14:02:18:	Checking network time ==> 
+2020-04-19 14:02:18:	[OK] 74.9ms
+2020-04-19 14:02:18:	The network time = 2020-04-19 14:02:18
+2020-04-19 14:02:18:	The system time is right
+2020-04-19 14:02:18:	END
+2020-04-19 14:03:58:	Start
+2020-04-19 14:03:58:	Checking network time ==> 
+2020-04-19 14:03:58:	[OK] 82.2ms
+2020-04-19 14:03:58:	The network time = 2020-04-19 14:03:58
+2020-04-19 14:03:58:	The system time is right
+2020-04-19 14:03:58:	END
+2020-04-19 14:07:01:	Start
+2020-04-19 14:07:01:	Checking network time ==> 
+2020-04-19 14:07:01:	[OK] 115.4ms
+2020-04-19 14:07:01:	The network time = 2020-04-19 14:07:01
+2020-04-19 14:07:01:	The system time is right
+2020-04-19 14:07:01:	END
+2020-04-19 14:07:19:	Start
+2020-04-19 14:07:19:	Checking network time ==> 
+2020-04-19 14:07:19:	[OK] 229.4ms
+2020-04-19 14:07:19:	The network time = 2020-04-19 14:07:19
+2020-04-19 14:07:19:	The system time is right
+2020-04-19 14:07:19:	END
+2020-04-19 14:10:30:	Start
+2020-04-19 14:10:30:	Checking network time ==> 
+2020-04-19 14:10:30:	[OK] 274.5ms
+2020-04-19 14:10:30:	The network time = 2020-04-19 14:10:30
+2020-04-19 14:10:30:	The system time is right
+2020-04-19 14:10:30:	END
+2020-04-19 14:10:57:	Start
+2020-04-19 14:10:57:	Checking network time ==> 
+2020-04-19 14:10:58:	[OK] 595.6ms
+2020-04-19 14:10:58:	The network time = 2020-04-19 14:10:58
+2020-04-19 14:10:58:	The system time is correct
+2020-04-19 14:10:58:	END
+2020-04-19 14:11:25:	Start
+2020-04-19 14:11:25:	Checking network time ==> 
+2020-04-19 14:11:25:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:25:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:25:	END
+2020-04-19 14:11:26:	Start
+2020-04-19 14:11:26:	Checking network time ==> 
+2020-04-19 14:11:26:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:26:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:26:	END
+2020-04-19 14:11:27:	Start
+2020-04-19 14:11:27:	Checking network time ==> 
+2020-04-19 14:11:27:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:27:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:27:	END
+2020-04-19 14:11:27:	Start
+2020-04-19 14:11:27:	Checking network time ==> 
+2020-04-19 14:11:27:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:27:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:27:	END
+2020-04-19 14:11:28:	Start
+2020-04-19 14:11:28:	Checking network time ==> 
+2020-04-19 14:11:28:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:28:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:28:	END
+2020-04-19 14:11:28:	Start
+2020-04-19 14:11:28:	Checking network time ==> 
+2020-04-19 14:11:28:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:28:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:28:	END
+2020-04-19 14:11:28:	Start
+2020-04-19 14:11:28:	Checking network time ==> 
+2020-04-19 14:11:28:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:28:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:28:	END
+2020-04-19 14:11:28:	Start
+2020-04-19 14:11:28:	Checking network time ==> 
+2020-04-19 14:11:28:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:28:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:28:	END
+2020-04-19 14:11:30:	Start
+2020-04-19 14:11:30:	Checking network time ==> 
+2020-04-19 14:11:30:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:30:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:11:30:	END
+2020-04-19 14:13:09:	Start
+2020-04-19 14:13:09:	Checking network time ==> 
+2020-04-19 14:13:09:	[OK] 392.6ms
+2020-04-19 14:13:09:	The network time = 2020-04-19 14:13:09
+2020-04-19 14:13:09:	The system time is correct
+2020-04-19 14:13:09:	END
+2020-04-19 14:13:25:	Start
+2020-04-19 14:13:25:	Checking network time ==> 
+2020-04-19 14:13:25:	[WARNING]: No internet connection
+2020-04-19 14:13:25:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:25:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:25:	END
+2020-04-19 14:13:26:	Start
+2020-04-19 14:13:26:	Checking network time ==> 
+2020-04-19 14:13:26:	[WARNING]: No internet connection
+2020-04-19 14:13:26:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:26:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:26:	END
+2020-04-19 14:13:26:	Start
+2020-04-19 14:13:26:	Checking network time ==> 
+2020-04-19 14:13:26:	[WARNING]: No internet connection
+2020-04-19 14:13:26:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:26:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:26:	END
+2020-04-19 14:13:26:	Start
+2020-04-19 14:13:26:	Checking network time ==> 
+2020-04-19 14:13:26:	[WARNING]: No internet connection
+2020-04-19 14:13:26:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:26:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:26:	END
+2020-04-19 14:13:27:	Start
+2020-04-19 14:13:27:	Checking network time ==> 
+2020-04-19 14:13:27:	[WARNING]: No internet connection
+2020-04-19 14:13:27:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:27:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:27:	END
+2020-04-19 14:13:27:	Start
+2020-04-19 14:13:27:	Checking network time ==> 
+2020-04-19 14:13:27:	[WARNING]: No internet connection
+2020-04-19 14:13:27:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:27:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:13:27:	END
+2020-04-19 14:17:37:	Start
+2020-04-19 14:17:37:	2020-04-19 14:17:37:	Checking network time ==> [OK] 79.1ms
+2020-04-19 14:17:37:	The network time = 2020-04-19 14:17:37
+2020-04-19 14:17:37:	The system time is correct
+2020-04-19 14:17:37:	END
+2020-04-19 14:17:42:	Start
+2020-04-19 14:17:42:	2020-04-19 14:17:42:	Checking network time ==> [OK] 250.9ms
+2020-04-19 14:17:42:	The network time = 2020-04-19 14:17:42
+2020-04-19 14:17:42:	The system time is correct
+2020-04-19 14:17:42:	END
+2020-04-19 14:19:03:	Start
+2020-04-19 14:19:03:	Checking network time ==> [OK] 90.3ms
+2020-04-19 14:19:03:	The network time = 2020-04-19 14:19:03
+2020-04-19 14:19:03:	The system time is correct
+2020-04-19 14:19:03:	END
+2020-04-19 14:19:59:	Start
+2020-04-19 14:19:59:	Checking network time ==> [OK] 100.0ms
+2020-04-19 14:19:59:	The network time = 2020-04-19 14:19:59
+2020-04-19 14:19:59:	The system time is correct
+2020-04-19 14:19:59:	END
+2020-04-19 14:20:00:	Start
+2020-04-19 14:20:00:	Checking network time ==> [OK] 29.5ms
+2020-04-19 14:20:00:	The network time = 2020-04-19 14:20:00
+2020-04-19 14:20:00:	The system time is correct
+2020-04-19 14:20:00:	END
+2020-04-19 14:20:00:	Start
+2020-04-19 14:20:00:	Checking network time ==> [OK] 27.2ms
+2020-04-19 14:20:00:	The network time = 2020-04-19 14:20:00
+2020-04-19 14:20:00:	The system time is correct
+2020-04-19 14:20:00:	END
+2020-04-19 14:20:10:	Start
+2020-04-19 14:20:10:	Checking network time ==> [WARNING]: No internet connection
+2020-04-19 14:20:10:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:20:10:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 14:20:10:	END
+2020-04-19 14:42:55:	Start
+2020-04-19 14:42:55:	Checking network time ==> [OK] 80.0ms
+2020-04-19 14:42:55:	The network time = 2020-04-19 14:42:55
+2020-04-19 14:42:55:	The system time is correct
+2020-04-19 14:42:55:	END
+2020-04-19 16:52:07:	Start
+2020-04-19 16:52:07:	Checking network time ==> [OK] 180.6ms
+2020-04-19 16:52:07:	The network time = 2020-04-19 16:52:07
+2020-04-19 16:52:07:	The system time is correct
+2020-04-19 16:52:07:	END
+2020-04-19 16:52:33:	Start
+2020-04-19 16:52:33:	Checking network time ==> [WARNING]: No internet connection
+2020-04-19 16:52:33:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 16:52:33:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 16:52:33:	Sending request to units with error:
+2020-04-19 16:52:33:	Connection to (host: 192.168.1.32, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 16:52:33:	Connection to (host: 192.168.1.34, port: 502) ==> [ERROR]: Socket didn`t open
+2020-04-19 16:52:33:	END
+2020-04-19 17:09:30:	Start
+2020-04-19 17:09:30:	Checking network time ==> [OK] 98.3ms
+2020-04-19 17:09:30:	The network time = 2020-04-19 17:09:30
+2020-04-19 17:09:30:	The system time is correct
+2020-04-19 17:09:30:	END
+2020-04-19 17:09:56:	Start
+2020-04-19 17:09:56:	Checking network time ==> [OK] 986.4ms
+2020-04-19 17:09:57:	Connection to (host: 192.168.1.32, port: 502) ==> 
+[OK] 25.1ms
+2020-04-19 17:09:57:	request  (12 bytes) => (HEX) 40 AB 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:09:57:	response (15 bytes) => (HEX) 40 AB 00 00 00 09 01 03 06 17 D7 26 2F 00 B4
+2020-04-19 17:09:57:	The decoding system time of OVEN-AI-MB210-101 = 2127-11-11 11:21:27
+2020-04-19 17:09:57:	Connection to (host: 192.168.1.34, port: 502) ==> 
+[OK]  1.7ms
+2020-04-19 17:09:57:	ERROR: Socket Timeout
+2020-04-19 17:09:57:	request  (12 bytes) => (HEX) 48 69 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 17:09:57:	response (0 bytes) => (HEX)
+2020-04-19 17:09:58:	Sending requests to units with error:
+2020-04-19 17:09:58:	Connection to (host: 192.168.1.34, port: 502) ==> 
+[OK]  1.4ms
+2020-04-19 17:09:58:	ERROR: Socket Timeout
+2020-04-19 17:09:58:	request  (12 bytes) => (HEX) 75 7B 00 00 00 06 02 03 F0 80 00 03
+2020-04-19 17:09:58:	response (0 bytes) => (HEX)
+2020-04-19 17:09:58:	END
+2020-04-19 17:11:35:	Start
+2020-04-19 17:11:35:	Checking network time ==> [OK] 79.8ms
+2020-04-19 17:11:35:	Connection to (host: 192.168.1.32, port: 502) ==> 
+[OK] 24.9ms
+2020-04-19 17:11:35:	request  (12 bytes) => (HEX) 37 A4 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:11:35:	response (15 bytes) => (HEX) 37 A4 00 00 00 09 01 03 06 18 3A 26 2F 00 B4
+2020-04-19 17:11:35:	The decoding system time of OVEN-AI-MB210-101 = 2127-11-11 11:21:27
+2020-04-19 17:11:35:	Connection to (host: 192.168.1.34, port: 502) ==> 
+[OK]  1.4ms
+2020-04-19 17:11:35:	request  (12 bytes) => (HEX) 48 C5 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:11:35:	response (15 bytes) => (HEX) 48 C5 00 00 00 09 01 03 06 18 04 26 2F 00 B4
+2020-04-19 17:11:35:	The decoding system time of OVEN-DI-MB210-221 = 2127-11-11 11:21:27
+2020-04-19 17:11:35:	END
+2020-04-19 17:12:25:	Start
+2020-04-19 17:12:25:	Checking network time ==> [OK] 98.5ms
+2020-04-19 17:12:25:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 17:12:25:	[OK] 25.5ms
+2020-04-19 17:12:25:	request  (12 bytes) => (HEX) 81 66 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:12:25:	response (15 bytes) => (HEX) 81 66 00 00 00 09 01 03 06 18 6C 26 2F 00 B4
+2020-04-19 17:12:25:	The decoding system time of OVEN-AI-MB210-101 = 2127-11-11 11:21:27
+2020-04-19 17:12:25:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 17:12:25:	[OK]  1.7ms
+2020-04-19 17:12:26:	request  (12 bytes) => (HEX) F9 72 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:12:26:	response (15 bytes) => (HEX) F9 72 00 00 00 09 01 03 06 18 37 26 2F 00 B4
+2020-04-19 17:12:26:	The decoding system time of OVEN-DI-MB210-221 = 2127-11-11 11:21:27
+2020-04-19 17:12:26:	END
+2020-04-19 17:15:07:	Start
+2020-04-19 17:15:07:	Checking network time ==> [OK] 108.6ms
+2020-04-19 17:15:07:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 17:15:07:	[OK] 25.2ms
+2020-04-19 17:15:07:	request  (12 bytes) => (HEX) B6 17 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:15:07:	response (15 bytes) => (HEX) B6 17 00 00 00 09 01 03 06 19 0E 26 2F 00 B4
+2020-04-19 17:15:07:	The decoding system time of OVEN-AI-MB210-101 = 2127-11-11 11:21:27
+2020-04-19 17:15:07:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 17:15:07:	[OK]  1.5ms
+2020-04-19 17:15:07:	request  (12 bytes) => (HEX) CA ED 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:15:07:	response (15 bytes) => (HEX) CA ED 00 00 00 09 01 03 06 18 D8 26 2F 00 B4
+2020-04-19 17:15:07:	The decoding system time of OVEN-DI-MB210-221 = 2127-11-11 11:21:27
+2020-04-19 17:15:07:	END
+2020-04-19 17:15:32:	Start
+2020-04-19 17:15:32:	Checking network time ==> [OK] 124.6ms
+2020-04-19 17:15:32:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 17:15:32:	[OK] 24.9ms
+2020-04-19 17:15:32:	request  (12 bytes) => (HEX) B2 4A 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:15:32:	response (15 bytes) => (HEX) B2 4A 00 00 00 09 01 03 06 19 27 26 2F 00 B4
+2020-04-19 17:15:32:	The decoding system time of OVEN-AI-MB210-101 = 2127-11-11 11:21:27
+2020-04-19 17:15:32:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 17:15:32:	[OK]  6.6ms
+2020-04-19 17:15:32:	request  (12 bytes) => (HEX) 54 0C 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:15:32:	response (15 bytes) => (HEX) 54 0C 00 00 00 09 01 03 06 18 F2 26 2F 00 B4
+2020-04-19 17:15:32:	The decoding system time of OVEN-DI-MB210-221 = 2127-11-11 11:21:27
+2020-04-19 17:15:32:	END
+2020-04-19 17:16:25:	Start
+2020-04-19 17:16:25:	Checking network time ==> [OK] 53.3ms
+2020-04-19 17:16:25:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 17:16:25:	[OK] 25.0ms
+2020-04-19 17:16:25:	request  (12 bytes) => (HEX) 07 71 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:16:25:	response (15 bytes) => (HEX) 07 71 00 00 00 09 01 03 06 19 5C 26 2F 00 B4
+2020-04-19 17:16:25:	The decoding system time of OVEN-AI-MB210-101 = 2127-11-11 11:21:27
+2020-04-19 17:16:25:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 17:16:25:	[OK]  1.7ms
+2020-04-19 17:16:25:	request  (12 bytes) => (HEX) 9B 5F 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:16:25:	response (15 bytes) => (HEX) 9B 5F 00 00 00 09 01 03 06 19 27 26 2F 00 B4
+2020-04-19 17:16:25:	The decoding system time of OVEN-DI-MB210-221 = 2127-11-11 11:21:27
+2020-04-19 17:16:25:	END
+2020-04-19 17:17:02:	Start
+2020-04-19 17:17:02:	Checking network time ==> [OK] 169.6ms
+2020-04-19 17:17:03:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 17:17:03:	[OK] 25.6ms
+2020-04-19 17:17:03:	request  (12 bytes) => (HEX) C0 4E 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:17:03:	response (15 bytes) => (HEX) C0 4E 00 00 00 09 01 03 06 19 82 26 2F 00 B4
+2020-04-19 17:17:03:	The decoding system time of OVEN-AI-MB210-101 = 2127-11-11 11:21:27
+2020-04-19 17:17:03:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 17:17:03:	[OK]  1.7ms
+2020-04-19 17:17:03:	request  (12 bytes) => (HEX) 7F 10 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:17:03:	response (15 bytes) => (HEX) 7F 10 00 00 00 09 01 03 06 19 4C 26 2F 00 B4
+2020-04-19 17:17:03:	The decoding system time of OVEN-DI-MB210-221 = 2127-11-11 11:21:27
+2020-04-19 17:17:03:	END
+2020-04-19 17:17:49:	Start
+2020-04-19 17:17:49:	Checking network time ==> [OK] 72.0ms
+2020-04-19 17:17:49:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 17:17:49:	[OK] 24.6ms
+2020-04-19 17:17:50:	request  (12 bytes) => (HEX) B8 49 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:17:50:	response (15 bytes) => (HEX) B8 49 00 00 00 09 01 03 06 19 B0 26 2F 00 B4
+2020-04-19 17:17:50:	The decoding system time of OVEN-AI-MB210-101 = 2020-04-19 17:16:16
+2020-04-19 17:17:50:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 17:17:50:	[OK]  4.2ms
+2020-04-19 17:17:50:	request  (12 bytes) => (HEX) 0A BA 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 17:17:50:	response (15 bytes) => (HEX) 0A BA 00 00 00 09 01 03 06 19 7B 26 2F 00 B4
+2020-04-19 17:17:50:	The decoding system time of OVEN-DI-MB210-221 = 2020-04-19 17:15:23
+2020-04-19 17:17:50:	END
+2020-04-19 18:36:59:	Start
+2020-04-19 18:36:59:	Checking network time ==> [WARNING]: No internet connection
+2020-04-19 18:37:48:	Start
+2020-04-19 18:37:48:	Checking network time ==> [WARNING]: No internet connection
+2020-04-19 18:37:48:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 18:37:48:	[OK] 25.6ms
+2020-04-19 18:37:49:	request  (12 bytes) => (HEX) C2 C0 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 18:37:49:	response (15 bytes) => (HEX) C2 C0 00 00 00 09 01 03 06 2C 6F 26 2F 00 B4
+2020-04-19 18:37:49:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 18:36:15
+2020-04-19 18:37:49:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 18:37:49:	[OK]  1.6ms
+2020-04-19 18:37:49:	request  (12 bytes) => (HEX) E9 2A 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 18:37:49:	response (15 bytes) => (HEX) E9 2A 00 00 00 09 01 03 06 2C 39 26 2F 00 B4
+2020-04-19 18:37:49:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 18:35:21
+2020-04-19 18:38:11:	Start
+2020-04-19 18:38:11:	Checking network time ==> [WARNING]: No internet connection
+2020-04-19 18:38:11:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 18:38:11:	[OK] 24.9ms
+2020-04-19 18:38:11:	request  (12 bytes) => (HEX) 6C 75 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 18:38:11:	response (15 bytes) => (HEX) 6C 75 00 00 00 09 01 03 06 2C 86 26 2F 00 B4
+2020-04-19 18:38:11:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 18:36:38
+2020-04-19 18:38:11:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 18:38:11:	[OK]  1.5ms
+2020-04-19 18:38:11:	request  (12 bytes) => (HEX) C8 E6 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 18:38:11:	response (15 bytes) => (HEX) C8 E6 00 00 00 09 01 03 06 2C 50 26 2F 00 B4
+2020-04-19 18:38:11:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 18:35:44
+2020-04-19 18:43:08:	Start
+2020-04-19 18:43:08:	Checking network time ==> [WARNING]: No internet connection
+2020-04-19 18:43:08:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 18:43:08:	[OK] 25.6ms
+2020-04-19 18:43:08:	request  (12 bytes) => (HEX) 95 D4 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 18:43:08:	response (15 bytes) => (HEX) 95 D4 00 00 00 09 01 03 06 2D AF 26 2F 00 B4
+2020-04-19 18:43:08:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 18:41:35
+2020-04-19 18:43:08:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 18:43:08:	[OK]  1.5ms
+2020-04-19 18:43:09:	request  (12 bytes) => (HEX) 9A 06 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 18:43:09:	response (15 bytes) => (HEX) 9A 06 00 00 00 09 01 03 06 2D 7A 26 2F 00 B4
+2020-04-19 18:43:09:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 18:40:42
+2020-04-19 18:43:09:	Set system time from controller = 2020-04-19 18:41:35
+2020-04-19 18:43:09:	END
+2020-04-19 18:44:57:	Start
+2020-04-19 18:50:37:	Start
+2020-04-19 18:50:37:	Checking network time ==> [OK] 162.9ms
+2020-04-19 18:50:37:	The network time = 2020-04-19 18:50:37
+2020-04-19 18:50:37:	The system time is correct
+2020-04-19 18:50:37:	END
+2020-04-19 18:52:26:	Start
+2020-04-19 18:52:26:	Checking network time ==> [OK] 94.6ms
+2020-04-19 18:52:26:	The network time = 2020-04-19 18:52:26
+2020-04-19 18:52:26:	The system time is correct
+2020-04-19 18:52:26:	END
+2020-04-19 18:54:06:	Start
+2020-04-19 18:54:06:	Checking network time ==> [OK] 105.8ms
+2020-04-19 19:06:40:	Start
+2020-04-19 19:06:40:	Checking network time ==> [OK] 851.9ms
+2020-04-19 19:06:41:	There isn`t config file: /home/pi/sk/synctime/sync_time.conf.json
+2020-04-19 19:06:41:	END
+2020-04-19 19:07:42:	Start
+2020-04-19 19:07:42:	Checking network time ==> [OK] 124.5ms
+2020-04-19 19:07:42:	There isn`t config file: /home/pi/sk/synctime/sync_time.conf.json
+2020-04-19 19:07:51:	Start
+2020-04-19 19:07:51:	Checking network time ==> [OK] 124.2ms
+2020-04-19 19:07:51:	There isn`t config file: /home/pi/sk/synctime/sync_time.conf.json
+2020-04-19 19:09:31:	Start
+2020-04-19 19:09:31:	Checking network time ==> [OK] 119.6ms
+2020-04-19 19:09:31:	There isn`t config file: /home/pi/sk/synctime/sync_time.conf.json
+2020-04-19 19:10:31:	Start
+2020-04-19 19:10:31:	Checking network time ==> [OK] 92.2ms
+2020-04-19 19:10:31:	There isn`t config file: /home/pi/sk/synctime/sync_time.conf.json
+2020-04-19 19:12:12:	Start
+2020-04-19 19:12:12:	Checking network time ==> [OK] 96.9ms
+2020-04-19 19:12:12:	The network time = 2020-04-19 19:12:12
+2020-04-19 19:12:12:	The system time is correct
+2020-04-19 19:12:12:	END
+2020-04-19 19:12:28:	Start
+2020-04-19 19:12:28:	Checking network time ==> [OK] 85.7ms
+2020-04-19 19:12:29:	The network time = 2020-04-19 19:12:29
+2020-04-19 19:12:29:	The system time is correct
+2020-04-19 19:12:29:	END
+2020-04-19 19:12:51:	Start
+2020-04-19 19:12:51:	Checking network time ==> [OK] 267.9ms
+2020-04-19 19:12:51:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:12:51:	[OK] 25.8ms
+2020-04-19 19:12:51:	request  (12 bytes) => (HEX) 9E 04 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:12:51:	response (15 bytes) => (HEX) 9E 04 00 00 00 09 01 03 06 34 A6 26 2F 00 B4
+2020-04-19 19:12:51:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:11:18
+2020-04-19 19:12:51:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:12:51:	[OK]  1.6ms
+2020-04-19 19:12:51:	request  (12 bytes) => (HEX) FF 60 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:12:51:	response (15 bytes) => (HEX) FF 60 00 00 00 09 01 03 06 34 70 26 2F 00 B4
+2020-04-19 19:12:51:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:10:24
+2020-04-19 19:12:51:	Set system time from controller = 2020-04-19 19:11:18
+2020-04-19 19:12:51:	END
+2020-04-19 19:16:42:	Start
+2020-04-19 19:16:42:	Checking network time ==> [OK] 108.7ms
+2020-04-19 19:16:42:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:16:42:	[OK] 13.1ms
+2020-04-19 19:16:42:	request  (12 bytes) => (HEX) 60 6D 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:16:42:	response (15 bytes) => (HEX) 60 6D 00 00 00 09 01 03 06 35 8C 26 2F 00 B4
+2020-04-19 19:16:42:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:15:08
+2020-04-19 19:16:42:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:16:42:	[OK]  1.1ms
+2020-04-19 19:16:42:	request  (12 bytes) => (HEX) 46 F2 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:16:42:	response (15 bytes) => (HEX) 46 F2 00 00 00 09 01 03 06 35 57 26 2F 00 B4
+2020-04-19 19:16:42:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:14:15
+2020-04-19 19:16:42:	Set system time from controller = 2020-04-19 19:15:08
+2020-04-19 19:16:42:	END
+2020-04-19 19:17:24:	Start
+2020-04-19 19:17:24:	Checking network time ==> [OK] 84.3ms
+2020-04-19 19:17:24:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:17:24:	[OK] 26.2ms
+2020-04-19 19:17:24:	request  (12 bytes) => (HEX) FA 69 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:17:24:	response (15 bytes) => (HEX) FA 69 00 00 00 09 01 03 06 35 B7 26 2F 00 B4
+2020-04-19 19:17:24:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:15:51
+2020-04-19 19:17:24:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:17:24:	[OK]  1.6ms
+2020-04-19 19:17:24:	request  (12 bytes) => (HEX) 66 1A 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:17:24:	response (15 bytes) => (HEX) 66 1A 00 00 00 09 01 03 06 35 81 26 2F 00 B4
+2020-04-19 19:17:24:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:14:57
+2020-04-19 19:17:24:	Set system time from controller = 2020-04-19 19:15:51
+2020-04-19 19:17:24:	END
+2020-04-19 19:18:13:	Start
+2020-04-19 19:18:14:	Checking network time ==> [OK] 112.0ms
+2020-04-19 19:18:22:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:18:22:	[OK] 31.6ms
+2020-04-19 19:18:22:	request  (12 bytes) => (HEX) 56 15 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:18:22:	response (15 bytes) => (HEX) 56 15 00 00 00 09 01 03 06 35 F0 26 2F 00 B4
+2020-04-19 19:18:22:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:16:48
+2020-04-19 19:18:22:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:18:22:	[OK]  2.1ms
+2020-04-19 19:18:22:	request  (12 bytes) => (HEX) 71 59 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:18:22:	response (15 bytes) => (HEX) 71 59 00 00 00 09 01 03 06 35 BB 26 2F 00 B4
+2020-04-19 19:18:22:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:15:55
+2020-04-19 19:18:27:	Set system time from controller = 2020-04-19 19:16:48
+2020-04-19 19:18:46:	Start
+2020-04-19 19:18:46:	Checking network time ==> [OK] 90.0ms
+2020-04-19 19:18:47:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:18:47:	[OK] 28.2ms
+2020-04-19 19:18:47:	request  (12 bytes) => (HEX) D1 4D 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:18:47:	response (15 bytes) => (HEX) D1 4D 00 00 00 09 01 03 06 36 09 26 2F 00 B4
+2020-04-19 19:18:47:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:17:13
+2020-04-19 19:18:47:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:18:47:	[OK]  1.6ms
+2020-04-19 19:18:47:	request  (12 bytes) => (HEX) 44 BE 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:18:47:	response (15 bytes) => (HEX) 44 BE 00 00 00 09 01 03 06 35 D3 26 2F 00 B4
+2020-04-19 19:18:47:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:16:19
+2020-04-19 19:19:16:	Set system time from controller = 2020-04-19 19:17:13
+2020-04-19 19:25:09:	Start
+2020-04-19 19:25:09:	Checking network time ==> [OK] 116.6ms
+2020-04-19 19:25:09:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:25:09:	[OK] 25.7ms
+2020-04-19 19:25:09:	request  (12 bytes) => (HEX) 0C 45 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:25:09:	response (15 bytes) => (HEX) 0C 45 00 00 00 09 01 03 06 37 88 26 2F 00 B4
+2020-04-19 19:25:09:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:23:36
+2020-04-19 19:25:09:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:25:09:	[OK]  1.6ms
+2020-04-19 19:25:09:	request  (12 bytes) => (HEX) 3D 7D 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:25:09:	response (15 bytes) => (HEX) 3D 7D 00 00 00 09 01 03 06 37 52 26 2F 00 B4
+2020-04-19 19:25:09:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:22:42
+2020-04-19 19:25:16:	Start
+2020-04-19 19:25:16:	Checking network time ==> [OK] 299.8ms
+2020-04-19 19:25:16:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:25:16:	[OK] 26.2ms
+2020-04-19 19:25:16:	request  (12 bytes) => (HEX) 6C B7 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:25:16:	response (15 bytes) => (HEX) 6C B7 00 00 00 09 01 03 06 37 8F 26 2F 00 B4
+2020-04-19 19:25:16:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:23:43
+2020-04-19 19:25:16:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:25:16:	[OK]  1.8ms
+2020-04-19 19:25:17:	request  (12 bytes) => (HEX) 7E 24 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:25:17:	response (15 bytes) => (HEX) 7E 24 00 00 00 09 01 03 06 37 59 26 2F 00 B4
+2020-04-19 19:25:17:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:22:49
+2020-04-19 19:25:17:	Set system time from controller = %+Y-04-19 19:23:43
+2020-04-19 19:25:17:	END
+2020-04-19 19:25:36:	Start
+2020-04-19 19:25:36:	Checking network time ==> [OK] 218.5ms
+2020-04-19 19:25:36:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:25:36:	[OK] 26.2ms
+2020-04-19 19:25:36:	request  (12 bytes) => (HEX) 50 FD 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:25:36:	response (15 bytes) => (HEX) 50 FD 00 00 00 09 01 03 06 37 A3 26 2F 00 B4
+2020-04-19 19:25:36:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:24:03
+2020-04-19 19:25:36:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:25:36:	[OK]  1.8ms
+2020-04-19 19:25:36:	request  (12 bytes) => (HEX) 4D 52 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:25:36:	response (15 bytes) => (HEX) 4D 52 00 00 00 09 01 03 06 37 6D 26 2F 00 B4
+2020-04-19 19:25:36:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:23:09
+2020-04-19 19:25:36:	Set system time from controller = +2020-04-19 19:24:03
+2020-04-19 19:25:36:	END
+2020-04-19 19:26:26:	Start
+2020-04-19 19:26:26:	Checking network time ==> [OK] 207.3ms
+2020-04-19 19:26:26:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:26:26:	[OK] 25.5ms
+2020-04-19 19:26:27:	request  (12 bytes) => (HEX) F0 29 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:26:27:	response (15 bytes) => (HEX) F0 29 00 00 00 09 01 03 06 37 D5 26 2F 00 B4
+2020-04-19 19:26:27:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:24:53
+2020-04-19 19:26:27:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:26:27:	[OK]  1.5ms
+2020-04-19 19:26:27:	request  (12 bytes) => (HEX) E3 A0 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:26:27:	response (15 bytes) => (HEX) E3 A0 00 00 00 09 01 03 06 37 A0 26 2F 00 B4
+2020-04-19 19:26:27:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:24:00
+2020-04-19 19:26:27:	Set system time from controller = +2020-04-19 19:24:53
+2020-04-19 19:26:27:	END
+2020-04-19 19:27:17:	Start
+2020-04-19 19:27:17:	Checking network time ==> [OK] 276.1ms
+2020-04-19 19:27:17:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:27:17:	[OK] 26.2ms
+2020-04-19 19:27:17:	request  (12 bytes) => (HEX) 5B E7 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:27:17:	response (15 bytes) => (HEX) 5B E7 00 00 00 09 01 03 06 38 07 26 2F 00 B4
+2020-04-19 19:27:17:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:25:43
+2020-04-19 19:27:17:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:27:17:	[OK]  1.5ms
+2020-04-19 19:27:17:	request  (12 bytes) => (HEX) 5D 3F 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:27:17:	response (15 bytes) => (HEX) 5D 3F 00 00 00 09 01 03 06 37 D2 26 2F 00 B4
+2020-04-19 19:27:17:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:24:50
+2020-04-19 19:27:17:	Set system time from controller = +2020-04-19 19:25:43
+2020-04-19 19:27:17:	END
+2020-04-19 19:28:10:	Start
+2020-04-19 19:28:10:	Checking network time ==> [OK] 71.0ms
+2020-04-19 19:28:10:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:28:10:	[OK] 26.0ms
+2020-04-19 19:28:10:	request  (12 bytes) => (HEX) 20 9A 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:28:10:	response (15 bytes) => (HEX) 20 9A 00 00 00 09 01 03 06 38 3C 26 2F 00 B4
+2020-04-19 19:28:10:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:26:36
+2020-04-19 19:28:10:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:28:10:	[OK]  1.6ms
+2020-04-19 19:28:10:	request  (12 bytes) => (HEX) 10 1B 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:28:10:	response (15 bytes) => (HEX) 10 1B 00 00 00 09 01 03 06 38 07 26 2F 00 B4
+2020-04-19 19:28:10:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:25:43
+2020-04-19 19:28:10:	Set system time from controller = 2020-04-19 19:26:36
+2020-04-19 19:26:36:	END
+2020-04-19 19:26:53:	Start
+2020-04-19 19:26:53:	Checking network time ==> [OK] 98.9ms
+2020-04-19 19:26:53:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:26:53:	[OK] 13.2ms
+2020-04-19 19:26:53:	request  (12 bytes) => (HEX) E6 0A 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:26:53:	response (15 bytes) => (HEX) E6 0A 00 00 00 09 01 03 06 38 4F 26 2F 00 B4
+2020-04-19 19:26:53:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:26:55
+2020-04-19 19:26:53:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:26:53:	[OK]  1.2ms
+2020-04-19 19:26:54:	request  (12 bytes) => (HEX) 1E 7F 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:26:54:	response (15 bytes) => (HEX) 1E 7F 00 00 00 09 01 03 06 38 19 26 2F 00 B4
+2020-04-19 19:26:54:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:26:01
+2020-04-19 19:26:54:	Set system time from controller = 2020-04-19 19:26:55
+2020-04-19 19:26:55:	END
+2020-04-19 19:31:52:	Start
+2020-04-19 19:31:52:	Checking network time ==> [OK] 61.4ms
+2020-04-19 19:31:52:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:31:52:	[OK] 26.8ms
+2020-04-19 19:31:52:	request  (12 bytes) => (HEX) 4D 45 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:31:52:	response (15 bytes) => (HEX) 4D 45 00 00 00 09 01 03 06 39 78 26 2F 00 B4
+2020-04-19 19:31:52:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:31:52
+2020-04-19 19:31:52:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:31:52:	[OK]  1.7ms
+2020-04-19 19:31:52:	request  (12 bytes) => (HEX) 37 BB 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:31:52:	response (15 bytes) => (HEX) 37 BB 00 00 00 09 01 03 06 39 42 26 2F 00 B4
+2020-04-19 19:31:52:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:30:58
+2020-04-19 19:33:14:	Start
+2020-04-19 19:33:14:	Checking network time ==> [OK] 92.9ms
+2020-04-19 19:33:14:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:33:15:	[OK] 26.2ms
+2020-04-19 19:33:15:	request  (12 bytes) => (HEX) 42 5A 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:33:15:	response (15 bytes) => (HEX) 42 5A 00 00 00 09 01 03 06 39 CB 26 2F 00 B4
+2020-04-19 19:33:15:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:33:15
+2020-04-19 19:33:15:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:33:15:	[OK]  1.6ms
+2020-04-19 19:33:15:	request  (12 bytes) => (HEX) 85 2F 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:33:15:	response (15 bytes) => (HEX) 85 2F 00 00 00 09 01 03 06 39 95 26 2F 00 B4
+2020-04-19 19:33:15:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:32:21
+2020-04-19 19:33:15:	The system time is correct
+2020-04-19 19:33:15:	END
+2020-04-19 19:34:02:	Start
+2020-04-19 19:34:02:	Checking network time ==> [OK] 182.1ms
+2020-04-19 19:34:02:	The network time = 2020-04-19 19:35:36
+2020-04-19 19:35:20:	Start
+2020-04-19 19:35:20:	Checking network time ==> [OK] 62.5ms
+2020-04-19 19:35:20:	The network time = 2020-04-19 19:36:54
+2020-04-19 19:36:40:	Start
+2020-04-19 19:36:40:	Checking network time ==> [OK] 88.1ms
+2020-04-19 19:36:40:	The network time = 2020-04-19 19:38:13
+2020-04-19 19:36:40:	The system time is correct
+2020-04-19 19:36:40:	END
+2020-04-19 19:38:19:	Start
+2020-04-19 19:38:19:	Checking network time ==> [OK] 242.8ms
+2020-04-19 19:38:20:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 19:38:20:	[OK] 25.4ms
+2020-04-19 19:38:20:	request  (12 bytes) => (HEX) 47 44 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:38:20:	response (15 bytes) => (HEX) 47 44 00 00 00 09 01 03 06 3A FC 26 2F 00 B4
+2020-04-19 19:38:20:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:38:20
+2020-04-19 19:38:20:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 19:38:20:	[OK]  1.7ms
+2020-04-19 19:38:20:	request  (12 bytes) => (HEX) 1A 8A 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 19:38:20:	response (15 bytes) => (HEX) 1A 8A 00 00 00 09 01 03 06 3A C6 26 2F 00 B4
+2020-04-19 19:38:20:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:37:26
+2020-04-19 19:38:20:	The system time is correct
+2020-04-19 19:38:20:	END
+2000-09-25 15:00:08:	Start
+2000-09-25 15:00:08:	Checking network time ==> [OK] 110.6ms
+2000-09-25 15:00:08:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2000-09-25 15:00:08:	[OK] 25.4ms
+2000-09-25 15:00:08:	request  (12 bytes) => (HEX) F6 4D 00 00 00 06 01 03 F0 80 00 03
+2000-09-25 15:00:09:	response (15 bytes) => (HEX) F6 4D 00 00 00 09 01 03 06 3B 63 26 2F 00 B4
+2000-09-25 15:00:09:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:40:03
+2000-09-25 15:00:09:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2000-09-25 15:00:09:	[OK]  1.6ms
+2000-09-25 15:00:09:	request  (12 bytes) => (HEX) F1 C2 00 00 00 06 01 03 F0 80 00 03
+2000-09-25 15:00:09:	response (15 bytes) => (HEX) F1 C2 00 00 00 09 01 03 06 3B 2D 26 2F 00 B4
+2000-09-25 15:00:09:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:39:09
+2000-09-25 15:00:09:	The system time is correct
+2000-09-25 15:00:09:	END
+2000-09-25 15:00:44:	Start
+2000-09-25 15:00:44:	Checking network time ==> [OK] 96.7ms
+2000-09-25 15:00:45:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2000-09-25 15:00:45:	[OK] 26.6ms
+2000-09-25 15:00:45:	request  (12 bytes) => (HEX) 4A 77 00 00 00 06 01 03 F0 80 00 03
+2000-09-25 15:00:45:	response (15 bytes) => (HEX) 4A 77 00 00 00 09 01 03 06 3B 87 26 2F 00 B4
+2000-09-25 15:00:45:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:40:39
+2000-09-25 15:00:45:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2000-09-25 15:00:45:	[OK]  1.6ms
+2000-09-25 15:00:45:	request  (12 bytes) => (HEX) E8 1D 00 00 00 06 01 03 F0 80 00 03
+2000-09-25 15:00:45:	response (15 bytes) => (HEX) E8 1D 00 00 00 09 01 03 06 3B 52 26 2F 00 B4
+2000-09-25 15:00:45:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:39:46
+2000-09-25 15:02:06:	Start
+2000-09-25 15:02:06:	Checking network time ==> [OK] 93.9ms
+2000-09-25 15:02:06:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2000-09-25 15:02:06:	[OK] 26.6ms
+2000-09-25 15:02:06:	request  (12 bytes) => (HEX) 37 4C 00 00 00 06 01 03 F0 80 00 03
+2000-09-25 15:02:06:	response (15 bytes) => (HEX) 37 4C 00 00 00 09 01 03 06 3B D9 26 2F 00 B4
+2000-09-25 15:02:06:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:42:01
+2000-09-25 15:02:06:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2000-09-25 15:02:06:	[OK]  1.7ms
+2000-09-25 15:02:06:	request  (12 bytes) => (HEX) 86 7C 00 00 00 06 01 03 F0 80 00 03
+2000-09-25 15:02:06:	response (15 bytes) => (HEX) 86 7C 00 00 00 09 01 03 06 3B A3 26 2F 00 B4
+2000-09-25 15:02:06:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:41:07
+2000-09-25 15:03:49:	Start
+2000-09-25 15:03:49:	Checking network time ==> [OK] 79.8ms
+2000-09-25 15:03:49:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2000-09-25 15:03:49:	[OK] 27.9ms
+2000-09-25 15:03:49:	request  (12 bytes) => (HEX) 89 D8 00 00 00 06 01 03 F0 80 00 03
+2000-09-25 15:03:49:	response (15 bytes) => (HEX) 89 D8 00 00 00 09 01 03 06 3C 40 26 2F 00 B4
+2000-09-25 15:03:49:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 19:43:44
+2000-09-25 15:03:49:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2000-09-25 15:03:49:	[OK]  1.6ms
+2000-09-25 15:03:49:	request  (12 bytes) => (HEX) 1F E8 00 00 00 06 01 03 F0 80 00 03
+2000-09-25 15:03:49:	response (15 bytes) => (HEX) 1F E8 00 00 00 09 01 03 06 3C 0A 26 2F 00 B4
+2000-09-25 15:03:49:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 19:42:50
+2000-09-25 15:04:00:	Set system time from controller = 2020-04-19 19:43:44
+2020-04-19 19:43:44:	END
+2020-04-19 20:25:13:	Start
+2020-04-19 20:25:13:	Checking network time ==> [OK] 99.4ms
+2020-04-19 20:25:13:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 20:25:13:	[OK] 30.2ms
+2020-04-19 20:25:14:	request  (12 bytes) => (HEX) 8C BC 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 20:25:14:	response (15 bytes) => (HEX) 8C BC 00 00 00 09 01 03 06 46 05 26 2F 00 B4
+2020-04-19 20:25:14:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 20:25:25
+2020-04-19 20:25:14:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 20:25:14:	[OK]  1.8ms
+2020-04-19 20:25:14:	request  (12 bytes) => (HEX) 5C 7E 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 20:25:14:	response (15 bytes) => (HEX) 5C 7E 00 00 00 09 01 03 06 45 CF 26 2F 00 B4
+2020-04-19 20:25:14:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 20:24:31
+2020-04-19 20:25:14:	Set system time from controller = 2020-04-19 20:25:25
+2020-04-19 20:25:25:	END
+2020-04-19 20:25:32:	Start
+2020-04-19 20:25:32:	Checking network time ==> [OK] 218.6ms
+2020-04-19 20:25:32:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-19 20:25:32:	[OK] 14.5ms
+2020-04-19 20:25:33:	request  (12 bytes) => (HEX) F9 FE 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 20:25:33:	response (15 bytes) => (HEX) F9 FE 00 00 00 09 01 03 06 46 0D 26 2F 00 B4
+2020-04-19 20:25:33:	The decoding time of OVEN-AI-MB210-101 = 2020-04-19 20:25:33
+2020-04-19 20:25:33:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-19 20:25:33:	[OK]  1.3ms
+2020-04-19 20:25:33:	request  (12 bytes) => (HEX) F3 BD 00 00 00 06 01 03 F0 80 00 03
+2020-04-19 20:25:33:	response (15 bytes) => (HEX) F3 BD 00 00 00 09 01 03 06 45 D8 26 2F 00 B4
+2020-04-19 20:25:33:	The decoding time of OVEN-DI-MB210-221 = 2020-04-19 20:24:40
+2020-04-19 20:25:33:	The system time is correct
+2020-04-19 20:25:33:	END
+2020-04-22 19:55:58:	Start
+2020-04-22 19:55:58:	Checking network time ==> [OK] 113.6ms
+2020-04-22 19:55:58:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-22 19:55:58:	[OK] 20.8ms
+2020-04-22 19:55:58:	request  (12 bytes) => (HEX) 97 26 00 00 00 06 01 03 F0 80 00 03
+2020-04-22 19:55:58:	response (15 bytes) => (HEX) 97 26 00 00 00 09 01 03 06 33 36 26 33 00 B4
+2020-04-22 19:55:58:	The decoding time of OVEN-AI-MB210-101 = 2020-04-22 19:54:14
+2020-04-22 19:55:58:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-22 19:55:58:	[OK]  1.6ms
+2020-04-22 19:55:59:	request  (12 bytes) => (HEX) F9 59 00 00 00 06 01 03 F0 80 00 03
+2020-04-22 19:55:59:	response (15 bytes) => (HEX) F9 59 00 00 00 09 01 03 06 32 FA 26 33 00 B4
+2020-04-22 19:55:59:	The decoding time of OVEN-DI-MB210-221 = 2020-04-22 19:53:14
+2020-04-22 19:55:59:	Set system time from controller = 2020-04-22 19:54:14
+2020-04-22 19:54:14:	END
+2020-04-22 19:54:18:	Start
+2020-04-22 19:54:18:	Checking network time ==> [OK] 291.8ms
+2020-04-22 19:54:18:	Connection to (host: 192.168.1.32, port: 502) ==> 
+2020-04-22 19:54:18:	[OK] 25.4ms
+2020-04-22 19:54:18:	request  (12 bytes) => (HEX) B4 92 00 00 00 06 01 03 F0 80 00 03
+2020-04-22 19:54:18:	response (15 bytes) => (HEX) B4 92 00 00 00 09 01 03 06 33 3A 26 33 00 B4
+2020-04-22 19:54:18:	The decoding time of OVEN-AI-MB210-101 = 2020-04-22 19:54:18
+2020-04-22 19:54:18:	Connection to (host: 192.168.1.34, port: 502) ==> 
+2020-04-22 19:54:18:	[OK]  1.6ms
+2020-04-22 19:54:19:	request  (12 bytes) => (HEX) 7A 3F 00 00 00 06 01 03 F0 80 00 03
+2020-04-22 19:54:19:	response (15 bytes) => (HEX) 7A 3F 00 00 00 09 01 03 06 32 FF 26 33 00 B4
+2020-04-22 19:54:19:	The decoding time of OVEN-DI-MB210-221 = 2020-04-22 19:53:19
+2020-04-22 19:54:19:	Set system time from controller = 2020-04-22 19:54:18
+2020-04-22 19:54:18:	END

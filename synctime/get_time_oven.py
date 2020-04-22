@@ -132,7 +132,7 @@ Logger.write(log_file, u'Start')
 
 #cheching network time
 network_time = get_ethernet_time()
-if not network_time:
+if network_time:
     Logger.write(log_file, u'The network time = '  + datetime.datetime.fromtimestamp(network_time).strftime('%Y-%m-%d %H:%M:%S'))
     set_system_time(network_time, u'network')
 
