@@ -48,10 +48,10 @@ def get_ethernet_time():
     time_info_str = Logger.time() + u'Checking network time ==> '
     try:
         start_check_time = time.time()
-        response = ntp_client.request('pool.ntp.org')
+        response = ntp_client.request('pool.ntp.orgt')
         Logger.write(log_file, time_info_str + u'[OK] %4.1fms' % ((time.time() - start_check_time) * 1000), with_time=False)
         return response.tx_time
-    except ntplib.NTPException:
+    except (ntplib.NTPException, Exception):
         Logger.write(log_file, time_info_str + u'[WARNING]: No internet connection', with_time=False)
 
 
@@ -129,31 +129,36 @@ def median(array):
 # -------------------------------------------------------------------------------------------------
 time.sleep(1)
 Logger.write(log_file, u'Start')
+try:
+    #cheching network time
+    network_time = get_ethernet_time()
+    if network_time:
+        Logger.write(log_file, u'The network time = '  + datetime.datetime.fromtimestamp(network_time).strftime('%Y-%m-%d %H:%M:%S'))
+        set_system_time(network_time, u'network')
 
-#cheching network time
-network_time = get_ethernet_time()
-if network_time:
-    Logger.write(log_file, u'The network time = '  + datetime.datetime.fromtimestamp(network_time).strftime('%Y-%m-%d %H:%M:%S'))
-    set_system_time(network_time, u'network')
+    elif os.path.isfile(config_file):
+        with open(config_file) as json_file:
+            units_from_json = json.load(json_file)
 
-elif os.path.isfile(config_file):
-    with open(config_file) as json_file:
-        units_from_json = json.load(json_file)
-
-    units_with_error = send_request_to_units(units_from_json)
+        units_with_error = send_request_to_units(units_from_json)
 
     # repeat request to wrong units
-    if len(units_with_error) != 0:
-        time.sleep(1)
-        Logger.write(log_file, u'Sending requests to units with error:')
-        send_request_to_units(units_with_error)
+        if len(units_with_error) != 0:
+            time.sleep(1)
+            Logger.write(log_file, u'Sending requests to units with error:')
+            send_request_to_units(units_with_error)
 
-    if len(times_from_units) > 0:
-        set_system_time(median(times_from_units), u'controller')
+        if len(times_from_units) > 0:
+            set_system_time(median(times_from_units), u'controller')
+        else:
+            Logger.write(log_file, u'There isn`t time... ')
     else:
-        Logger.write(log_file, u'There isn`t time... ')
-else:
-    Logger.write(log_file, u'There isn`t config file: %s' % config_file)
-    sys.exit(1)
+        Logger.write(log_file, u'There isn`t config file: %s' % config_file)
+        sys.exit(1)
 
-Logger.write(log_file, u'END')
+
+except:
+    Logger.write(log_file, u'[ERROR] ' + unicode(unicode(sys.exc_info())))
+finally:
+    Logger.write(log_file, u'END')
+
