@@ -24,6 +24,13 @@ table_in_db = {
 }
 
 def read_json_file(file_path):
+    """
+    Read json data from file
+    :param file_path: path to file
+    :type file_path: str
+    :return: data from file
+    :rtype: list or None
+    """
     try:
         with open(file_path) as f:
             data_from_file = json.load(f)
@@ -34,14 +41,25 @@ def read_json_file(file_path):
         Logger.write("Read file successfully  -->  %s" % file_path)
         return data_from_file
 
-def read_files_by_type(dir_name, type_files):
-    list_files = [one_file for one_file in os.listdir(dir_name) if one_file.endswith(type_files)]
+def read_files_by_type(dir_path, type_files):
+    """
+    Read data from files with needed type. Now only two types:
+        dat with csv data,
+        log with my structure.
+    :param dir_path: path to dir with file
+    :type dir_path: str
+    :param type_files: type of files. For example - '.dat'
+    :type type_files: str
+    :return: list of data
+    :rtype: list
+    """
+    list_files = [one_file for one_file in os.listdir(dir_path) if one_file.endswith(type_files)]
     count_errors = 0
     list_broken_files = []
     data_from_file = []
     for one_file in list_files:
         try:
-            data_from_file += (read_dat_file(dir_name, one_file) if type_files == '.dat' else read_log_file(dir_name, one_file))
+            data_from_file += (read_dat_file(dir_path, one_file) if type_files == '.dat' else read_log_file(dir_path, one_file))
         except:
             count_errors += 1
             list_broken_files.append(one_file)
@@ -50,8 +68,19 @@ def read_files_by_type(dir_name, type_files):
     Logger.write(message)
     return data_from_file
 
-def read_log_file(dir_name, file_name):
-    with open(dir_name + file_name) as f:
+def read_log_file(dir_path, file_name):
+    """
+    Read log data with struct:
+        2020-04-20 20:20:20  [------] message
+    Log type inside [] is a name of enum item in Logger.LogType
+    :param dir_path: path to dir with file
+    :type dir_path: str
+    :param file_name: name of files.
+    :type file_name: str
+    :return: list of data
+    :rtype: list
+    """
+    with open(dir_path + file_name) as f:
         data_from_log = []
         for line in f:
             pattern = r'.*?(?P<Datetime>\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2})\s*(?P<LogType>\[.*?\])\s*(?P<Message>.*)'
@@ -65,14 +94,30 @@ def read_log_file(dir_name, file_name):
             data_from_log.append(log_line)
     return data_from_log
 
-def read_dat_file(dir_name, file_name):
-    with open(dir_name + file_name) as f:
+def read_dat_file(dir_path, file_name):
+    """
+    Read dat with csv struct, where delimiter is ','
+    :param dir_path: path to dir with file
+    :type dir_path: str
+    :param file_name: name of files.
+    :type file_name: str
+    :return: list of data
+    :rtype: list
+    """
+    with open(dir_path + file_name) as f:
         data_from_dat = list(csv.reader(f, delimiter=','))
     for i in range(len(data_from_dat)):
         data_from_dat[i][0] = datetime.strptime(file_name[:-4] + data_from_dat[i][0], '%Y-%m-%d %H%M%S').strftime('%Y-%m-%d %H:%M:%S')
     return data_from_dat
 
 def connect_to_db(server_to_connect):
+    """
+    Connecting to server via DB module in this project
+    :param server_to_connect: Server for connection
+    :type server_to_connect: DB.Server
+    :return: Result of connection.
+    :rtype bool
+    """
     message = 'Connect to ' + str(server_to_connect.config.get('host')) + '  -->  '
     try:
         connect_time = server_to_connect.connect()
@@ -84,6 +129,7 @@ def connect_to_db(server_to_connect):
         return True
 
 def upload_data(data, table_with_column):
+
     message = 'Upload data to ' + table_with_column + '  -->  '
     try:
         if len(data) > 0:

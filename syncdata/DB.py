@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 # coding=utf-8
 import time
-from datetime import datetime as d
 
 import _mysql
 import mysql.connector as connector
@@ -60,64 +59,61 @@ class Server(object):
     def replace_many_rows(self, data, table_name):
         start_time = time.time()
         cursor = self.__get_cursor()
-        if cursor is not None:
-            sql = 'REPLACE INTO %s VALUES' % table_name
-            if isinstance(data[0], dict):
-                sql += dict_to_sql(data)
-            else:
-                sql += list_to_sql(data)
-            sql = sql[:-1] + ';'
-            cursor.execute(sql)
-            self.__con.commit()
-            cursor.close()
-            return time.time() - start_time
+        sql = 'REPLACE INTO %s VALUES' % table_name
+        if isinstance(data[0], dict):
+            sql += dict_to_sql(data)
         else:
-            raise Exception('No connection to db')
+            sql += list_to_sql(data)
+        sql = sql[:-1] + ';'
+        cursor.execute(sql)
+        self.__con.commit()
+        cursor.close()
+        return time.time() - start_time
 
-    def load_data(self):
-        try:
-            cursor = self.__get_cursor()
-            if cursor is not None:
-                sql = 'SELECT * from DATA'
-                cursor.execute(sql)
-                rows = cursor.fetchall()
-                # if rows is not None:
-                # for row in rows:
-                # print(row)
-                pass
-                cursor.close()
-        except connector.Error as e:
-            print e
-
-    def insert_data(self, data):
-        try:
-            cursor = self.__get_cursor()
-            if cursor is not None:
-                sql = 'INSERT INTO DATA VALUES (%s, %s, %s)'
-                cursor.execute(sql, data)
-                self.__con.commit()
-                cursor.close()
-        except connector.Error as e:
-            print e
-
-    def insert_many(self, data):
-        try:
-            cursor = self.__get_cursor()
-            if cursor is not None:
-                sql = 'INSERT INTO DATA VALUES (%s, %s, %s)'
-                cursor.executemany(sql, data)
-                self.__con.commit()
-                cursor.close()
-        except connector.Error as e:
-            print e
-
-    def delete_all(self):
-        try:
-            cursor = self.__get_cursor()
-            if cursor is not None:
-                sql = 'TRUNCATE TABLE DATA'
-                cursor.execute(sql)
-                self.__con.commit()
-                cursor.close()
-        except connector.Error as e:
-            print e.message
+    # def load_data(self):
+    #     try:
+    #         cursor = self.__get_cursor()
+    #         if cursor is not None:
+    #             sql = 'SELECT * from DATA'
+    #             cursor.execute(sql)
+    #             rows = cursor.fetchall()
+    #             # if rows is not None:
+    #             # for row in rows:
+    #             # print(row)
+    #             pass
+    #             cursor.close()
+    #     except connector.Error as e:
+    #         print e
+    #
+    # def insert_data(self, data):
+    #     try:
+    #         cursor = self.__get_cursor()
+    #         if cursor is not None:
+    #             sql = 'INSERT INTO DATA VALUES (%s, %s, %s)'
+    #             cursor.execute(sql, data)
+    #             self.__con.commit()
+    #             cursor.close()
+    #     except connector.Error as e:
+    #         print e
+    #
+    # def insert_many(self, data):
+    #     try:
+    #         cursor = self.__get_cursor()
+    #         if cursor is not None:
+    #             sql = 'INSERT INTO DATA VALUES (%s, %s, %s)'
+    #             cursor.executemany(sql, data)
+    #             self.__con.commit()
+    #             cursor.close()
+    #     except connector.Error as e:
+    #         print e
+    #
+    # def delete_all(self):
+    #     try:
+    #         cursor = self.__get_cursor()
+    #         if cursor is not None:
+    #             sql = 'TRUNCATE TABLE DATA'
+    #             cursor.execute(sql)
+    #             self.__con.commit()
+    #             cursor.close()
+    #     except connector.Error as e:
+    #         print e.message
