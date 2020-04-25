@@ -45,7 +45,7 @@ def get_ethernet_time():
     :rtype: float
     """
     ntp_client = ntplib.NTPClient()
-    time_info_str = Logger.get_current_time() + u'Checking network time ==> '
+    time_info_str = Logger.time() + u'Checking network time ==> '
     try:
         start_check_time = time.time()
         response = ntp_client.request('pool.ntp.org')
