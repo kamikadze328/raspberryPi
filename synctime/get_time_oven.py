@@ -45,10 +45,10 @@ def get_ethernet_time():
     :rtype: float
     """
     ntp_client = ntplib.NTPClient()
-    time_info_str = Logger.time() + u'Checking network time ==> '
+    time_info_str = Logger.get_current_time() + u'Checking network time ==> '
     try:
         start_check_time = time.time()
-        response = ntp_client.request('pool.ntp.orgt')
+        response = ntp_client.request('pool.ntp.org')
         Logger.write(log_file, time_info_str + u'[OK] %4.1fms' % ((time.time() - start_check_time) * 1000), with_time=False)
         return response.tx_time
     except (ntplib.NTPException, Exception):
@@ -158,7 +158,7 @@ try:
 
 
 except:
-    Logger.write(log_file, u'[ERROR] ' + unicode(unicode(sys.exc_info())))
+    Logger.write(log_file, u'[ERROR] ' + unicode(sys.exc_info()))
 finally:
     Logger.write(log_file, u'END')
 

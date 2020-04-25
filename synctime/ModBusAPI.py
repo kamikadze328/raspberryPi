@@ -125,7 +125,7 @@ def send_packet_tcp(ip_address, send_byte_arr, transact_id, expected_number_byte
     received_byte_arr = bytearray()
     time_socket_open = time.time()
 
-    connect_info_str = Logger.time() + (u'Connection to (host: %s, port: %d) ==> '% ip_address)
+    connect_info_str = Logger.get_current_time() + (u'Connection to (host: %s, port: %d) ==> ' % ip_address)
     ip_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     ip_socket.settimeout(timeout)
     socket_error = ip_socket.connect_ex(ip_address)
@@ -138,16 +138,16 @@ def send_packet_tcp(ip_address, send_byte_arr, transact_id, expected_number_byte
             time.sleep(timeout)
             data = ip_socket.recv(128)
         except socket.error:
-            connect_info_str += '\n' + Logger.time() +  u'ERROR: Socket Timeout'
+            connect_info_str += '\n' + Logger.get_current_time() + u'ERROR: Socket Timeout'
         else:
             err_code = -3
             for byte in data:
                 received_byte_arr.append(byte)
             if transact_id != (received_byte_arr[0], received_byte_arr[1]):
-                connect_info_str += '\n' + Logger.time() +  u'ERROR: Response has wrong transactional id'
+                connect_info_str += '\n' + Logger.get_current_time() + u'ERROR: Response has wrong transactional id'
             elif type_checksum == Checksum.Length:
                 if len(received_byte_arr) != expected_number_bytes:
-                    connect_info_str += '\n' + Logger.time() +  u'ERROR: Wrong CRC'
+                    connect_info_str += '\n' + Logger.get_current_time() + u'ERROR: Wrong CRC'
                 else: err_code = 0
     else:
         connect_info_str += u'[ERROR]: Socket didn`t open'

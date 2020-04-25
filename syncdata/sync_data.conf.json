@@ -1,0 +1,14 @@
+[
+  {
+    "host":"VH246.spaceweb.ru",
+    "user":"carbondvru",
+    "password":"Hh06132736",
+    "database": "carbondvru"
+  },
+  {
+    "host":"192.168.1.101",
+    "user":"mysql",
+    "password":"mysql",
+    "database": "carbondvru"
+  }
+]
