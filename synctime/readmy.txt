@@ -1,6 +1,6 @@
 Описание:
 Программа запрашивает время сначала с интернета, а после, в случае отсутствия подключение к интернету, опрашивает устройста описанные в конфигурации.
-Наиболее разумное время программа устанавливает системе. В приоритете время с интернета. 
+Наиболее разумное время программа устанавливает системе. В приоритете время с интернета.
 Программа логгирует свои действия в файл.
 
 Для запуска программы достаточно Python 2.7 и две доп. библиотеки:
@@ -13,7 +13,7 @@
 - get_oven_time.py.	Основной исполняемый скрипт. Для корректной работы требуется файл конфигов.
 
 Конфиги:
-json файл (default name = "sync_time.conf.json") вида - 
+json файл (default name = "sync_time.conf.json") вида -
 [
     {
         "sModelName": "OVEN-AI-MB210-101",
@@ -43,7 +43,7 @@ json файл (default name = "sync_time.conf.json") вида -
 sudo nano /lib/systemd/system/get-time-oven.service
 
 [Unit]
-Description=Getting time from OVEN on the starup. 
+Description=Getting time from OVEN on the starup.
 After=multi-user.target
 Wants=network.target
 

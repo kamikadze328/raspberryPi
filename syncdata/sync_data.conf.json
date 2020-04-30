@@ -10,5 +10,11 @@
     "user":"mysql",
     "password":"mysql",
     "database": "carbondvru"
+  },
+  {
+    "host":"192.168.1.110",
+    "user":"mysql",
+    "password":"mysql",
+    "database": "carbondvru"
   }
 ]
