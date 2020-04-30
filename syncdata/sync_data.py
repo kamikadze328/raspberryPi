@@ -17,8 +17,11 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
-config_file = current_path + 'sync_data.conf.json'
-
+config_filename = 'sync_data.conf.json'
+config_file = current_path + config_filename
+dyn_data_filename = 'DATA_UNP300/.DynDATA.json'
+data_dirname = 'DATA_UNP300/'
+log_dirname = 'logs/'
 table_in_db = {
     'data':     'data(id_datetime, id, id_value)',
     'dyn_data': 'data_dyn(id, id_value)',
@@ -34,13 +37,19 @@ def read_json_file(file_path):
     :rtype: list or None
     """
     try:
+        if dyn_data_filename in file_path:
+            filename = 'dyn data'
+        elif config_filename in file_path:
+            filename = 'config'
+        else:
+            filename = file_path
         with open(file_path) as f:
             data_from_file = json.load(f)
     except:
         Logger.write("Can't read file  -->  %s" %file_path , Logger.LogType.ERROR)
         return False
     else:
-        Logger.write("Read file successfully  -->  %s" % file_path)
+        Logger.write("Read %s successfully" % filename)
         return data_from_file
 
 def read_files_by_type(dir_path, type_files):
@@ -140,14 +149,14 @@ def connect_to_db(server_to_connect):
         Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
         return False
     else:
-        Logger.write(message + '[OK] %4.1fms' % (connect_time*10))
+        Logger.write(message + '%4.1fms' % (connect_time*10))
         return True
 
 def upload_data(data, file_name, table_with_params):
     if 'dyn' in file_name.lower():
-        message = 'Upload dyn data to %s  -->  ' % table_with_params
+        message = 'Upload dyn data to %s  -->  ' % table_with_params.split('(')[0].upper()
     else:
-        message = 'Upload data earlier than %s to %s  -->  ' % (file_name.split(' ')[0] if file_name[-4:] == '.dat' else file_name.split('.')[0], table_with_params)
+        message = 'Upload data dated %s to %s  -->  ' % (file_name.split(' ')[0] if file_name[-4:] == '.dat' else file_name.split('.')[0], table_with_params.split('(')[0].upper())
     try:
         if len(data) > 0:
             full_time = 0
@@ -165,7 +174,7 @@ def upload_data(data, file_name, table_with_params):
         Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
         return False
     else:
-        Logger.write(message + '%d rows in %4.1fms (full time - %4.1fms)' % (len(data), upload_time*10, full_time*10))
+        Logger.write(message + '%d rows in %4.1fms (fulltime - %4.1fms)' % (len(data), upload_time*10, full_time*10))
         return True
 
 
@@ -199,11 +208,11 @@ def save_failed_date(source_error):
 # =========================================================================================================================================================================================
 print "START program"
 
-
-dyn_data = read_json_file(current_path + 'DATA_UNP300/.DynDATA.json')
-dat_data, dat_filenames = read_files_by_type(current_path + 'DATA_UNP300/', '.dat')
-log_data, log_filenames = read_files_by_type(current_path + 'logs/', '.log')
 configs_servers = read_json_file(config_file)
+
+dyn_data = read_json_file(current_path + dyn_data_filename)
+dat_data, dat_filenames = read_files_by_type(current_path + data_dirname, '.dat')
+log_data, log_filenames = read_files_by_type(current_path + log_dirname, '.log')
 
 for config_server in configs_servers:
     server = DB.Server(**config_server)
