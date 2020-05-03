@@ -5,6 +5,7 @@ import time
 import _mysql
 import mysql.connector as connector
 
+
 def dict_to_sql(data_dict):
     sql = ''
     for one_data in data_dict:
@@ -41,17 +42,28 @@ class Server(object):
             'database': database,
         }
         #Позже брать из файла
-        self.last_dates_for_send = {
-            'dat':'2000-01-01',
-            'logs':'2000-01-01',
-            'dyn':0,
+        self.last_upload_date = {
+            'host':host,
+            'last_connection':'2000-01-01',
+            'dat':'0001-01-01',
+            'logs':'00001-01-01',
+            'logs_syncdata':'00001-01-01',
+            'dyn':-1,
         }
         self.__con = None
+        self.whitelist = []
 
     def connect(self):
         start_time = time.time()
         self.__con = connector.connect(**self.config)
-        return time.time() - start_time
+        stop_time = time.time()
+        self.whitelist = [str(table) for (table,) in self.__get_whitelist_table()]
+        return stop_time - start_time
+
+    def __get_whitelist_table(self):
+        cursor = self.__get_cursor()
+        cursor.execute('show tables;')
+        return cursor.fetchall()
 
     def __get_cursor(self):
         if self.__con.is_connected():
@@ -62,8 +74,13 @@ class Server(object):
                 return self.__con.cursor()
         raise connector.Error(str(self.config.get('host')) + ' is not available now')
 
+    def __is_in_table_whitelist(self, table_name):
+        return table_name in self.whitelist
+
     def replace_many_rows(self, data, table_name_with_params):
         start_time = time.time()
+        if not self.__is_in_table_whitelist(table_name_with_params.split('(')[0]):
+            raise connector.Error('table %s doesn`t exist' % table_name_with_params.split('(')[0].upper())
         cursor = self.__get_cursor()
         sql = 'REPLACE INTO %s VALUES' % table_name_with_params
         if isinstance(data[0], dict):
@@ -78,29 +95,31 @@ class Server(object):
         return time.time() - start_time, time.time() - start_time_execute
 
     def delete_between_dates(self, date1, date2, table_name, data_column):
+        if not self.__is_in_table_whitelist(table_name.split('(')[0]):
+            raise connector.Error('table %s doesn`t exist' %table_name.upper())
         cursor = self.__get_cursor()
         if isinstance(date1, str):
             date1 = '\'' + _mysql.escape_string(date1) + '\''
         else:
-            date1 = date1.strftime('%Y-%m-%d %H:%M:%S')
+            date1 = '\'' + date1.strftime('%Y-%m-%d %H:%M:%S') + '\''
         if isinstance(date2, str):
             date2 = '\'' + _mysql.escape_string(date2) + '\''
         else:
-            date2 = date2.strftime('%Y-%m-%d %H:%M:%S')
+            date2 = '\'' + date2.strftime('%Y-%m-%d %H:%M:%S') + '\''
         sql =  'DELETE from %s where %s between %s and %s;' %(table_name, data_column, date1, date2)
         cursor.execute(sql)
         self.__con.commit()
         cursor.close()
 
-    # def replace_data(self, data, table_name):
-    #     start_time = time.time()
-    #     cursor = self.__get_cursor()
-    #     sql = 'REPLACE INTO ' + table_name +' VALUES (%s, %s, %s)'
-    #     #sql = 'INSERT INTO DATA VALUES (%s, %s, %s)'
-    #     cursor.executemany(sql, data)
-    #     self.__con.commit()
-    #     cursor.close()
-    #     return time.time() - start_time, 0
+    def load_last_data(self, table_name):
+        if not self.__is_in_table_whitelist(table_name.split('(')[0]):
+            raise connector.Error('table %s doesn`t exist' %table_name.upper())
+        cursor = self.__get_cursor()
+        sql = 'SELECT id_datetime from %s ORDER BY id_datetime desc LIMIT 200;' % table_name
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        cursor.close()
+        return rows
 
 # def load_data(self):
 #     try:

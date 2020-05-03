@@ -1,9 +1,9 @@
 [
   {
-    "host":"VH246.spaceweb.ru",
-    "user":"carbondvru",
+    "host":"VIP51.spaceweb.ru",
+    "user":"carbondvru_TEST",
     "password":"Hh06132736",
-    "database": "carbondvru"
+    "database": "carbondvru_TEST"
   },
   {
     "host":"192.168.1.101",
