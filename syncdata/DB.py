@@ -41,15 +41,7 @@ class Server(object):
             'password': password,
             'database': database,
         }
-        #Позже брать из файла
-        self.last_upload_date = {
-            'host':host,
-            'last_connection':'2000-01-01',
-            'dat':'0001-01-01',
-            'logs':'00001-01-01',
-            'logs_syncdata':'0001-01-01',
-            'dyn':-1,
-        }
+
         self.__con = None
         self.whitelist = []
 
