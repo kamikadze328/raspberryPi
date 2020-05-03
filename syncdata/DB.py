@@ -47,7 +47,7 @@ class Server(object):
             'last_connection':'2000-01-01',
             'dat':'0001-01-01',
             'logs':'00001-01-01',
-            'logs_syncdata':'00001-01-01',
+            'logs_syncdata':'0001-01-01',
             'dyn':-1,
         }
         self.__con = None

@@ -29,7 +29,7 @@ table_in_db = {
     'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text)'
 }
 
-last_upload_filename = 'last_upload_date.json'
+last_upload_path = current_path + 'last_upload_date.json'
 
 
 def read_json_file(file_path):
@@ -53,7 +53,7 @@ def read_json_file(file_path):
 def filter_files_by_date(dir_path, type_files, first_date):
     files = []
     for one_file in os.listdir(dir_path):
-        if one_file.endswith(type_files) and first_date <= datetime.strptime(one_file.split('.')[0], '%Y-%m-%d %H%M'):
+        if one_file.endswith(type_files) and first_date <= one_file.split('.')[0]:
             files.append(one_file)
     return sorted(files)
 
@@ -86,8 +86,8 @@ def read_files_by_type(dir_path, type_files, first_date):
         except:
             list_broken_files.append(one_file)
     if len(list_broken_files) > 0:
-        Logger.write('Can`t read %d  -->  %s' % (len(list_broken_files), list_broken_files), Logger.LogType.WARN)
-    return data_from_files, list_success_files, list_broken_files
+        Logger.write('Can`t read %d files  -->  %s' % (len(list_broken_files), list_broken_files), Logger.LogType.WARN)
+    return data_from_files, list_success_files, list_broken_files[0] if len(list_broken_files) else None
 
 
 def read_log_file(file_path):
@@ -104,6 +104,7 @@ def read_log_file(file_path):
     with open(file_path) as f:
         data_from_log = []
         for line in f:
+            # TODO replace regexp
             pattern = r'.*?(?P<Datetime>\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2})\s*(?P<LogType>\[.*?\])\s*(?P<Message>.*)'
             log_line = re.split(pattern, line)[1:-1]
             if len(log_line) == 3:
@@ -162,27 +163,31 @@ def upload_data(list_data, list_filenames, table_with_params):
         full_time = 0
         upload_time = 0
         count_rows = 0
-        for index, one_data in enumerate(list_data):
-            if 'logs' in table_with_params:
-                date1 = datetime.strptime(list_filenames[index].split('.')[0], '%Y-%m-%d %H%M')
-                date2 = date1 + timedelta(seconds=59)
-                server.delete_between_dates(date1, date2, table_name, 'id_datetime')
-            try:
+        index_first_broken_file = None
+        index = 0
+        try:
+            for index, one_data in enumerate(list_data):
+                if 'logs' in table_with_params:
+                    date1 = datetime.strptime(list_filenames[index].split('.')[0], '%Y-%m-%d %H%M')
+                    date2 = date1 + timedelta(seconds=59)
+                    server.delete_between_dates(date1, date2, table_name, 'id_datetime')
+
                 new_full_time, new_upload_time = server.replace_many_rows(one_data, table_with_params)
-            except:
-                Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
-            else:
                 upload_time += new_upload_time
                 full_time += new_full_time
                 count_rows += len(one_data)
-        if count_rows > 0:
-            Logger.write(message + '%d rows in %d files in %4.1fms (fulltime - %4.1fms)' % (
-            count_rows, len(list_data), upload_time * 10, full_time * 10))
+        except:
+            Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
+            index_first_broken_file = index if not index_first_broken_file else index_first_broken_file
+        else:
+            if count_rows > 0:
+                Logger.write(message + '%d rows in %d files in %4.1fms (fulltime - %4.1fms)' % (
+                count_rows, len(list_data), upload_time * 10, full_time * 10))
+        return index_first_broken_file
 
-
-def get_last_data(tablename):
+def get_last_data_from_server(db_server, tablename):
     try:
-        dates = server.load_last_data(tablename)
+        dates = db_server.load_last_data(tablename)
         if len(dates) == 0:
             return datetime.min
         else:
@@ -191,6 +196,19 @@ def get_last_data(tablename):
         Logger.write('Can`t check server data -->  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
         return False
 
+
+def get_last_data(db_server, tablename):
+    last_upload_data =  read_json_file(last_upload_path)
+    if last_upload_data:
+        for host in last_upload_data:
+            if host.get('host') == db_server.config.get('host'):
+                return str(host.get(tablename))
+
+    return get_last_data_from_server(db_server, tablename)
+
+def set_last_data(db_server, tablename, last_upload_date):
+    with open(last_upload_path, ) as f:
+        pass
 
 def divide_list(divided_list, size_of_chunk):
     """
@@ -234,22 +252,20 @@ for config_server in configs_servers:
         dyn_data = read_json_file(dyn_data_path)
         upload_data([dyn_data], dyn_data_path, table_in_db.get('dyn_data'))
 
-        #upload data
-        last_date = get_last_data(table_in_db.get('data').split('(')[0])
-        if last_date:
-            last_data, last_filenames, count_files = read_files_by_type(data_path, '.dat', last_date)
-            upload_data(last_data, last_filenames, table_in_db.get('data'))
+        for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path), ('logs_syncdata', '.log', my_logs_path)]:
 
-        #upload logs
-        last_date = get_last_data(table_in_db.get('logs').split('(')[0])
-        if last_date:
-            last_data, last_filenames, count_files = read_files_by_type(data_path, '.log', last_date)
-            upload_data(last_data, last_filenames, table_in_db.get('logs'))
+            last_date = get_last_data(server, table_in_db.get(table).split('(')[0])
+            if last_date:
+                last_data, filenames, broken_read_file = read_files_by_type(path, type_file, last_date)
+                index_broken_upload_file = upload_data(last_data, filenames, table_in_db.get(table))
 
-        #upload my logs
-        last_date = get_last_data(table_in_db.get('logs_syncdata').split('(')[0])
-        if last_date:
-            last_data, last_filenames, count_files = read_files_by_type(my_logs_path, '.log', last_date)
-            upload_data(last_data, last_filenames, table_in_db.get('logs_syncdata'))
+                if index_broken_upload_file and broken_read_file:
+                    last_date_file = min(broken_read_file, filenames[index_broken_upload_file])
+                elif broken_read_file:
+                    last_date_file = broken_read_file
+                elif len(filenames) > 0:
+                    last_date_file = filenames[-1]
+
+                set_last_data(server, table_in_db.get(table).split('(')[0], last_date)
 
 print "END program"
