@@ -29,7 +29,6 @@ table_in_db = {
 }
 
 
-
 def filter_files_by_date(dir_path, type_files, first_date):
     files = []
     for one_file in os.listdir(dir_path):
@@ -61,7 +60,8 @@ def read_files_by_type(dir_path, type_files, first_date):
     data_from_files = []
     for one_file in list_files:
         try:
-            data_from_one_file = Logger.read_dat_file(dir_path + one_file) if type_files == '.dat' else Logger.read_log_file(
+            data_from_one_file = Logger.read_dat_file(
+                dir_path + one_file) if type_files == '.dat' else Logger.read_log_file(
                 dir_path + one_file)
         except:
             list_broken_files.append(one_file)
@@ -120,7 +120,8 @@ def get_last_date(db_server, tablename):
             if host.get('host') == db_server.config.get('host'):
                 return datetime.strptime(str(host.get(tablename)), '%Y-%m-%d %H:%M').strftime("%Y-%m-%d %H%M")
 
-    else: return get_last_data_from_server(db_server, tablename)
+    else:
+        return get_last_data_from_server(db_server, tablename)
 
 
 def upload_data(list_data, list_filenames, table_with_params):
@@ -162,20 +163,17 @@ def add_row_statistics(time_upload=None, time_connection=None, dir_path=None, al
         'id_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'host_name': server.config.get('host'),
         'speed_kbs': round(calculate_size_files(dir_path, all_filenames) / time_upload, 2) if time_upload else None,
-        'time_connection_ms': round(time_connection*10, 2) if time_connection else None
+        'time_connection_ms': round(time_connection * 10, 2) if time_connection else None
     }
     statistics_rows.append(one_row_stat)
 
 
-def send_statistics(dir_path, all_filenames, list_statistics, statistics_name):
-    total_size = 0
-
-    # delete don`t uploaded files
-    all_filenames = all_filenames[:list_statistics.get('count_files')]
-
-    # calculate size of files
-    for filepath in filenames:
-        total_size += os.path.getsize(dir_path + filepath)
+def send_statistics():
+    if old_statistics_rows and len(old_statistics_rows) > 0:
+        try:
+            server.upload_stat(old_statistics_rows)
+        except:
+            pass
 
 
 def calculate_size_files(dir_path, all_filenames):
@@ -191,11 +189,13 @@ def calculate_size_files(dir_path, all_filenames):
 print "START program"
 
 configs_servers = Logger.read_json_file(config_path)
+old_statistics_rows = Logger.read_stat()
 statistics_rows = []
+
 for config_server in configs_servers:
     server = DB.Server(**config_server)
     if connect_to_db(server):
-
+        send_statistics()
         # upload dynamic data
         dyn_data = Logger.read_json_file(data_path + dyn_data_name)
         if dyn_data:
@@ -217,9 +217,9 @@ for config_server in configs_servers:
                         last_date_file = first_broken_read_file
 
                     last_date_file = last_date_file.split('.')[0]
-                    Logger.set_last_data(server, table_in_db.get(table).split('(')[0],
-                                  datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
+                    Logger.set_last_data(server.config.get('host'), table_in_db.get(table).split('(')[0],
+                                         datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
 
-        print statistics_rows
-
+print statistics_rows
+Logger.save_stat(statistics_rows)
 print "END program"

@@ -8,32 +8,20 @@ from enum import Enum
 
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 last_upload_path = current_path + 'last_upload_date.json'
+statistics_path = current_path + 'statistics.json'
+
 
 class LogType(Enum):
-    FATAL   =   1
-    ERROR   =   2
-    WARN    =   3
-    INFO    =   4
+    FATAL = 1
+    ERROR = 2
+    WARN = 3
+    INFO = 4
 
-def get_logs_filepath():
-    return current_path + '/' + 'logs/' + d.now().strftime("%Y-%m-%d %H%M") + '.log'
-
-
-def get_current_time():
-    return unicode(d.now().strftime('%Y-%m-%d %H:%M:%S'))
-
-def make_message(message, log_type=None, time=None):
-    if time is None:
-        time = get_current_time()
-    if isinstance(time, d):
-        time = time.strftime('%Y-%m-%d %H:%M:%S')
-    log_type = '[------]' if log_type is None else '[{:6}]'.format(log_type.name)
-    return unicode(time +'  ' + log_type + ' ' + message + '\n')
 
 def write(message, log_type=None, file_path=None):
-    message = make_message(message, log_type)
+    message = __make_message(message, log_type)
     if file_path is None:
-        file_path = get_logs_filepath()
+        file_path = __get_logs_filepath()
     if not os.path.exists(file_path):
         with codecs.open(file_path, 'w', encoding='utf-8') as f:
             f.write(message)
@@ -41,10 +29,23 @@ def write(message, log_type=None, file_path=None):
         with codecs.open(file_path, 'a', encoding='utf-8') as f:
             f.write(message)
 
+
+def __get_logs_filepath():
+    return current_path + '/' + 'logs/' + d.now().strftime("%Y-%m-%d %H%M") + '.log'
+
+
+def __make_message(message, log_type=None, time=None):
+    if time is None:
+        time = unicode(d.now().strftime('%Y-%m-%d %H:%M:%S'))
+    elif isinstance(time, d):
+        time = time.strftime('%Y-%m-%d %H:%M:%S')
+    log_type = '[------]' if log_type is None else '[{:6}]'.format(log_type.name)
+    return unicode(time + '  ' + log_type + ' ' + message + '\n')
+
+
 def write_last_upload(last_upload_date, filename):
     with open(filename, 'w') as outfile:
         json.dump(last_upload_date, outfile, indent=4)
-
 
 
 def read_json_file(file_path):
@@ -63,6 +64,7 @@ def read_json_file(file_path):
         return False
     else:
         return data_from_file
+
 
 def read_log_file(file_path):
     """
@@ -95,9 +97,9 @@ def read_dat_file(file_path):
     return data_from_dat
 
 
-def set_last_data(db_server, tablename, last_upload_date):
+def set_last_data(host_name, tablename, last_upload_date):
     pattern_json_data = [{
-        'host': db_server.config.get('host'),
+        'host': host_name,
         'data': '1990-01-01 00:00',
         'logs': '1900-01-01 00:00',
         'logs_syncdata': '1900-01-01 00:00',
@@ -111,12 +113,23 @@ def set_last_data(db_server, tablename, last_upload_date):
         with open(last_upload_path, 'r') as f:
             new_upload_data = json.load(f)
 
-        if len([host for host in new_upload_data if host.get('host') == db_server.config.get('host')]) > 0:
+        if len([host for host in new_upload_data if host.get('host') == host_name]) > 0:
             for host in new_upload_data:
-                if host.get('host') == db_server.config.get('host'):
+                if host.get('host') == host_name:
                     host[tablename] = last_upload_date
         else:
             new_upload_data.append(pattern_json_data[0])
 
         with open(last_upload_path, 'w') as f:
-            json.dump(new_upload_data, f)
+            json.dump(new_upload_data, f, indent=4)
+
+
+def read_stat():
+    if os.path.exists(statistics_path):
+        with open(statistics_path) as f:
+            return json.load(f)
+
+
+def save_stat(statistics):
+    with open(statistics_path, 'w') as f:
+        json.dump(statistics, f)

@@ -19,6 +19,7 @@ def dict_to_sql(data_dict):
         sql = sql[:-1] + '),'
     return sql
 
+
 def list_to_sql(data_list):
     sql = ''
     for one_data in data_list:
@@ -85,18 +86,18 @@ class Server(object):
 
     def delete_between_dates(self, date1, date2, table_name, data_column):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):
-            raise connector.Error('table %s doesn`t exist' %table_name.upper())
+            raise connector.Error('table %s doesn`t exist' % table_name.upper())
         cursor = self.__get_cursor()
         date1 = '\'' + date1.strftime('%Y-%m-%d %H:%M:%S') + '\''
         date2 = '\'' + date2.strftime('%Y-%m-%d %H:%M:%S') + '\''
-        sql =  'DELETE from %s where %s between %s and %s;' %(table_name, data_column, date1, date2)
+        sql = 'DELETE from %s where %s between %s and %s;' % (table_name, data_column, date1, date2)
         cursor.execute(sql)
         self.__con.commit()
         cursor.close()
 
     def load_last_data(self, table_name):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):
-            raise connector.Error('table %s doesn`t exist' %table_name.upper())
+            raise connector.Error('table %s doesn`t exist' % table_name.upper())
         cursor = self.__get_cursor()
         sql = 'SELECT id_datetime from %s ORDER BY id_datetime desc LIMIT 200;' % table_name
         cursor.execute(sql)
@@ -104,41 +105,10 @@ class Server(object):
         cursor.close()
         return rows
 
-# def load_data(self):
-#     try:
-#         cursor = self.__get_cursor()
-#         if cursor is not None:
-#             sql = 'SELECT * from DATA'
-#             cursor.execute(sql)
-#             rows = cursor.fetchall()
-#             # if rows is not None:
-#             # for row in rows:
-#             # print(row)
-#             pass
-#             cursor.close()
-#     except connector.Error as e:
-#         print e
-#
-
-
-# def insert_many(self, data):
-#     try:
-#         cursor = self.__get_cursor()
-#         if cursor is not None:
-#             sql = 'INSERT INTO DATA VALUES (%s, %s, %s)'
-#             cursor.executemany(sql, data)
-#             self.__con.commit()
-#             cursor.close()
-#     except connector.Error as e:
-#         print e
-#
-# def delete_all(self):
-#     try:
-#         cursor = self.__get_cursor()
-#         if cursor is not None:
-#             sql = 'TRUNCATE TABLE DATA'
-#             cursor.execute(sql)
-#             self.__con.commit()
-#             cursor.close()
-#     except connector.Error as e:
-#         print e.message
+    def upload_stat(self, statistics):
+        cursor = self.__get_cursor()
+        sql = 'INSERT INTO statistics(id_datetime, host_name, speed_kbs, time_connection_ms) ' \
+              'VALUES(%(id_datetime)s, %(host_name)s, %(speed_kbs)s, %(time_connection_ms)s)'
+        cursor.executemany(sql, statistics)
+        self.__con.commit()
+        cursor.close()
