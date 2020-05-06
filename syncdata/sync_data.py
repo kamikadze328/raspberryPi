@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import csv
-import json
+
 import os
-import re
 import sys
 from datetime import datetime
 from datetime import timedelta
@@ -17,37 +15,19 @@ sys.setdefaultencoding('utf8')
 
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 config_path = current_path + 'sync_data.conf.json'
-my_logs_path = current_path +  'logs/'
+my_logs_path = current_path + 'logs/'
 
 data_path = '/home/pi/sk/syncdata/DATA_UNP300/'
-dyn_data_path = data_path + '.DynDATA.json'
+dyn_data_name = '.DynDATA.json'
 
 table_in_db = {
     'data': 'data(id_datetime, id, id_value)',
     'dyn_data': 'data_dyn(id, id_value)',
     'logs': 'logs(id_datetime, log_id, log_text)',
-    'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text)'
+    'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text)',
+    'statistics': 'statistics(id_datetime, host_name, speed_kbs, time_connection_ms)'
 }
 
-last_upload_path = current_path + 'last_upload_date.json'
-
-
-def read_json_file(file_path):
-    """
-    Read json data from file
-    :param file_path: path to file
-    :type file_path: str
-    :return: data from file
-    :rtype: list or None
-    """
-    try:
-        with open(file_path) as f:
-            data_from_file = json.load(f)
-    except:
-        Logger.write("Can't read file  -->  %s" % file_path, Logger.LogType.ERROR)
-        return False
-    else:
-        return data_from_file
 
 
 def filter_files_by_date(dir_path, type_files, first_date):
@@ -64,6 +44,8 @@ def read_files_by_type(dir_path, type_files, first_date):
         dat with csv data,
         log with my structure.
     Sorted file on data(because date in filename) and put data from one day in one list
+    :param first_date:
+    :type first_date
     :param dir_path: path to dir with file
     :type dir_path: str
     :param type_files: type of files. For example - '.dat'
@@ -79,58 +61,17 @@ def read_files_by_type(dir_path, type_files, first_date):
     data_from_files = []
     for one_file in list_files:
         try:
-            data_from_one_file = read_dat_file(dir_path + one_file) if type_files == '.dat' else read_log_file(
+            data_from_one_file = Logger.read_dat_file(dir_path + one_file) if type_files == '.dat' else Logger.read_log_file(
                 dir_path + one_file)
-            data_from_files.append(data_from_one_file)
-            list_success_files.append(one_file)
         except:
             list_broken_files.append(one_file)
+        else:
+            data_from_files.append(data_from_one_file)
+            list_success_files.append(one_file)
     if len(list_broken_files) > 0:
         Logger.write('Can`t read %d files  -->  %s' % (len(list_broken_files), list_broken_files), Logger.LogType.WARN)
-    return data_from_files, list_success_files, list_broken_files[0] if len(list_broken_files) else None
-
-
-def read_log_file(file_path):
-    """
-    Read log data with struct:
-        2020-04-20 20:20:20  [------] message
-    Log type inside [] is a name of enum item in Logger.LogType
-    Cut message to 200 chars.
-    :param file_path: absolute path to file
-    :type file_path: str
-    :return: list of data
-    :rtype: list
-    """
-    with open(file_path) as f:
-        data_from_log = []
-        for line in f:
-            # TODO replace regexp
-            pattern = r'.*?(?P<Datetime>\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}\:\d{2})\s*(?P<LogType>\[.*?\])\s*(?P<Message>.*)'
-            log_line = re.split(pattern, line)[1:-1]
-            if len(log_line) == 3:
-                log_type_name = re.search(r'\[(.*?)\s*\]', log_line[1]).group(0)
-                log_type_name = str(log_type_name[1:-1]).strip().upper()
-                if '-' in log_type_name:
-                    log_line[1] = Logger.LogType.INFO.value
-                else:
-                    log_line[1] = Logger.LogType[log_type_name].value
-                log_line[2] = log_line[2][:200]
-                data_from_log.append(log_line)
-    return data_from_log
-
-
-def read_dat_file(file_path):
-    """
-    Read dat with csv struct, where delimiter is ','
-    :param file_path: absolute path to file
-    :type file_path: str
-    :return: list of data
-    :rtype: list
-    """
-    with open(file_path) as f:
-        data_from_dat = list(csv.reader(f, delimiter=','))
-
-    return data_from_dat
+    return data_from_files, list_success_files, list_broken_files[0] if len(list_broken_files) and len(
+        list_success_files) > 0 else None
 
 
 def connect_to_db(server_to_connect):
@@ -149,12 +90,42 @@ def connect_to_db(server_to_connect):
         return False
     else:
         Logger.write(message + '%4.1fms' % (connect_time * 10))
+        add_row_statistics(time_connection=connect_time)
         return True
+
+
+def get_last_data_from_server(db_server, tablename):
+    """
+
+    :param db_server:
+    :param tablename:
+    :return: Last date of data on the server
+    :rtype: str or None
+    """
+    try:
+        dates = db_server.load_last_data(tablename)
+        if len(dates) == 0:
+            return datetime(1900, 01, 01, 00, 00).strftime("%Y-%m-%d %H%M")
+        else:
+            return dates[len(dates) / 2][0].strftime("%Y-%m-%d %H%M")
+    except:
+        Logger.write('Can`t check server data -->  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
+        return None
+
+
+def get_last_date(db_server, tablename):
+    last_upload_data = Logger.read_json_file(Logger.last_upload_path)
+    if last_upload_data:
+        for host in last_upload_data:
+            if host.get('host') == db_server.config.get('host'):
+                return datetime.strptime(str(host.get(tablename)), '%Y-%m-%d %H:%M').strftime("%Y-%m-%d %H%M")
+
+    else: return get_last_data_from_server(db_server, tablename)
 
 
 def upload_data(list_data, list_filenames, table_with_params):
     table_name = table_with_params.split('(')[0]
-    if dyn_data_path in list_filenames:
+    if dyn_data_name in list_filenames:
         message = 'Upload dyn data to %s  -->  ' % table_name.upper()
     else:
         message = 'Upload data since %s to %s  -->  ' % (list_filenames[0].split('.')[0], table_name.upper())
@@ -163,10 +134,9 @@ def upload_data(list_data, list_filenames, table_with_params):
         full_time = 0
         upload_time = 0
         count_rows = 0
-        index_first_broken_file = None
         index = 0
         try:
-            for index, one_data in enumerate(list_data):
+            for one_data in list_data:
                 if 'logs' in table_with_params:
                     date1 = datetime.strptime(list_filenames[index].split('.')[0], '%Y-%m-%d %H%M')
                     date2 = date1 + timedelta(seconds=59)
@@ -176,96 +146,80 @@ def upload_data(list_data, list_filenames, table_with_params):
                 upload_time += new_upload_time
                 full_time += new_full_time
                 count_rows += len(one_data)
+                index += 1
         except:
             Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
-            index_first_broken_file = index if not index_first_broken_file else index_first_broken_file
-        else:
-            if count_rows > 0:
-                Logger.write(message + '%d rows in %d files in %4.1fms (fulltime - %4.1fms)' % (
-                count_rows, len(list_data), upload_time * 10, full_time * 10))
-        return index_first_broken_file
 
-def get_last_data_from_server(db_server, tablename):
-    try:
-        dates = db_server.load_last_data(tablename)
-        if len(dates) == 0:
-            return datetime.min
-        else:
-            return dates[len(dates) / 2][0].replace(second=0, microsecond=0)
-    except:
-        Logger.write('Can`t check server data -->  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
-        return False
+        if count_rows > 0:
+            Logger.write(message + '%d rows in %d files in %4.1fms (fulltime - %4.1fms)' %
+                         (count_rows, index, upload_time * 10, full_time * 10))
+            add_row_statistics(time_upload=upload_time, dir_path=path, all_filenames=filenames[:index])
+        return index
 
 
-def get_last_data(db_server, tablename):
-    last_upload_data =  read_json_file(last_upload_path)
-    if last_upload_data:
-        for host in last_upload_data:
-            if host.get('host') == db_server.config.get('host'):
-                return str(host.get(tablename))
-
-    return get_last_data_from_server(db_server, tablename)
-
-def set_last_data(db_server, tablename, last_upload_date):
-    with open(last_upload_path, ) as f:
-        pass
-
-def divide_list(divided_list, size_of_chunk):
-    """
-    Divide list on chunks of needed size
-    Divider have a ``Yields`` section instead of a ``Returns`` section.
-    :param divided_list: list
-    :type divided_list: list
-    :param size_of_chunk: length of chunks
-    :type size_of_chunk: int
-    :return generator
-    """
-    for counter in range(0, len(divided_list), size_of_chunk):
-        yield divided_list[counter:counter + size_of_chunk]
+def add_row_statistics(time_upload=None, time_connection=None, dir_path=None, all_filenames=None):
+    one_row_stat = {
+        'id_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'host_name': server.config.get('host'),
+        'speed_kbs': round(calculate_size_files(dir_path, all_filenames) / time_upload, 2) if time_upload else None,
+        'time_connection_ms': round(time_connection*10, 2) if time_connection else None
+    }
+    statistics_rows.append(one_row_stat)
 
 
-# def save_last_date(source_error):
-#     if 'log' in source_error:
-#         prev_date = datetime.strptime(server.last_upload_date.get('logs'), '%Y-%m-%d').date()
-#         if prev_date < datetime.strptime(log_filenames[i].split('.')[0], '%Y-%m-%d').date():
-#             server.last_upload_date['logs'] = log_filenames[i].split('.')[0]
-#     elif 'dat' == source_error:
-#         prev_date = datetime.strptime(server.last_upload_date.get('dat'), '%Y-%m-%d').date()
-#         if prev_date < datetime.strptime(dat_filenames[i].split(' ')[0], '%Y-%m-%d').date():
-#             server.last_upload_date['dat'] = dat_filenames[i].split(' ')[0]
-#     elif 'dyn' in source_error:
-#         server.last_upload_date['dyn'] = 0
+def send_statistics(dir_path, all_filenames, list_statistics, statistics_name):
+    total_size = 0
+
+    # delete don`t uploaded files
+    all_filenames = all_filenames[:list_statistics.get('count_files')]
+
+    # calculate size of files
+    for filepath in filenames:
+        total_size += os.path.getsize(dir_path + filepath)
+
+
+def calculate_size_files(dir_path, all_filenames):
+    total_size = 0
+    for filepath in all_filenames:
+        total_size += os.path.getsize(dir_path + filepath)
+    return total_size / 1024.0
+
 
 # =========================================================================================================================================================================================
 #  СТАРТ программы
 # =========================================================================================================================================================================================
 print "START program"
 
-configs_servers = read_json_file(config_path)
-
+configs_servers = Logger.read_json_file(config_path)
+statistics_rows = []
 for config_server in configs_servers:
     server = DB.Server(**config_server)
     if connect_to_db(server):
-        server.last_upload_date['last_connection'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        #upload dynamic data
-        dyn_data = read_json_file(dyn_data_path)
-        upload_data([dyn_data], dyn_data_path, table_in_db.get('dyn_data'))
+        # upload dynamic data
+        dyn_data = Logger.read_json_file(data_path + dyn_data_name)
+        if dyn_data:
+            upload_data([dyn_data], data_path + dyn_data_name, table_in_db.get('dyn_data'))
 
-        for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path), ('logs_syncdata', '.log', my_logs_path)]:
+        for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path),
+                                         ('logs_syncdata', '.log', my_logs_path)]:
 
-            last_date = get_last_data(server, table_in_db.get(table).split('(')[0])
-            if last_date:
-                last_data, filenames, broken_read_file = read_files_by_type(path, type_file, last_date)
-                index_broken_upload_file = upload_data(last_data, filenames, table_in_db.get(table))
+            last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
+            last_data_from_files, filenames, first_broken_read_file = read_files_by_type(path, type_file, last_date)
+            if len(last_data_from_files):
+                index_broken_or_last_upload_file = upload_data(last_data_from_files, filenames, table_in_db.get(table))
+                if first_broken_read_file or index_broken_or_last_upload_file:
+                    if index_broken_or_last_upload_file:
+                        index_broken_or_last_upload_file -= 1
+                        last_date_file = min(first_broken_read_file, filenames[index_broken_or_last_upload_file]) \
+                            if first_broken_read_file else filenames[index_broken_or_last_upload_file]
+                    else:
+                        last_date_file = first_broken_read_file
 
-                if index_broken_upload_file and broken_read_file:
-                    last_date_file = min(broken_read_file, filenames[index_broken_upload_file])
-                elif broken_read_file:
-                    last_date_file = broken_read_file
-                elif len(filenames) > 0:
-                    last_date_file = filenames[-1]
+                    last_date_file = last_date_file.split('.')[0]
+                    Logger.set_last_data(server, table_in_db.get(table).split('(')[0],
+                                  datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
 
-                set_last_data(server, table_in_db.get(table).split('(')[0], last_date)
+        print statistics_rows
 
 print "END program"

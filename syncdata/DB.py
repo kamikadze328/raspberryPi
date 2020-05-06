@@ -24,10 +24,7 @@ def list_to_sql(data_list):
     for one_data in data_list:
         sql += '('
         for param in one_data:
-            if isinstance(param, str):
-                sql += '\'' + _mysql.escape_string(param) + '\','
-            else:
-                sql += str(param) + ','
+            sql += '\'' + _mysql.escape_string(param) + '\','
         sql = sql[:-1] + '),'
     return sql
 
@@ -90,14 +87,8 @@ class Server(object):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):
             raise connector.Error('table %s doesn`t exist' %table_name.upper())
         cursor = self.__get_cursor()
-        if isinstance(date1, str):
-            date1 = '\'' + _mysql.escape_string(date1) + '\''
-        else:
-            date1 = '\'' + date1.strftime('%Y-%m-%d %H:%M:%S') + '\''
-        if isinstance(date2, str):
-            date2 = '\'' + _mysql.escape_string(date2) + '\''
-        else:
-            date2 = '\'' + date2.strftime('%Y-%m-%d %H:%M:%S') + '\''
+        date1 = '\'' + date1.strftime('%Y-%m-%d %H:%M:%S') + '\''
+        date2 = '\'' + date2.strftime('%Y-%m-%d %H:%M:%S') + '\''
         sql =  'DELETE from %s where %s between %s and %s;' %(table_name, data_column, date1, date2)
         cursor.execute(sql)
         self.__con.commit()

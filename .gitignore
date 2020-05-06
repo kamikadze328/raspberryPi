@@ -2,3 +2,6 @@
 syncdata/DATA_UNP300/
 /syncdata/sync_data.conf.json
 /syncdata/last_upload_date.json
+/syncdata/raspberryPi.pstat
+/syncdata/raspberryPi1.pstat
+/syncdata/raspberryPi2.pstat
