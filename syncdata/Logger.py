@@ -12,6 +12,9 @@ statistics_path = current_path + 'statistics.json'
 
 
 class LogType(Enum):
+    """
+    Enum with type of message in log
+    """
     FATAL = 1
     ERROR = 2
     WARN = 3
@@ -43,25 +46,28 @@ def __make_message(message, log_type=None, time=None):
     return unicode(time + '  ' + log_type + ' ' + message + '\n')
 
 
-def write_last_upload(last_upload_date, filename):
-    with open(filename, 'w') as outfile:
-        json.dump(last_upload_date, outfile, indent=4)
-
-
-def read_json_file(file_path):
+def read_json_file(file_path, do_check_file=False):
     """
     Read json data from file
+    :param do_check_file: Do with check whether the file exists or not?
+        Value is 'False' (the default)
+    :type do_check_file: bool
     :param file_path: path to file
     :type file_path: str
     :return: data from file
     :rtype: list or None
     """
     try:
+        if do_check_file:
+            if not os.path.exists(last_upload_path):
+                with open(file_path, 'w') as f:
+                    f.write(str([]))
+
         with open(file_path) as f:
             data_from_file = json.load(f)
     except:
-        write("Can't read file  -->  %s" % file_path, LogType.ERROR)
-        return False
+        write("Can't read file  -->  %s" % file_path, LogType.WARN)
+        return None
     else:
         return data_from_file
 
@@ -72,7 +78,7 @@ def read_log_file(file_path):
         2020-04-20 20:20:20  [------] message
     Log type inside [] is a name of enum item in Logger.LogType
     Cut message to 200 chars.
-    :param file_path: absolute path to file
+    :param file_path: absolute path to file.
     :type file_path: str
     :return: list of data
     :rtype: list
@@ -97,7 +103,7 @@ def read_dat_file(file_path):
     return data_from_dat
 
 
-def set_last_data(host_name, tablename, last_upload_date):
+def save_last_upload_dates(host_name, tablename, last_upload_date):
     pattern_json_data = [{
         'host': host_name,
         'data': '1990-01-01 00:00',
@@ -125,11 +131,13 @@ def set_last_data(host_name, tablename, last_upload_date):
 
 
 def read_stat():
-    if os.path.exists(statistics_path):
-        with open(statistics_path) as f:
-            return json.load(f)
+    return read_json_file(statistics_path, True)
 
 
 def save_stat(statistics):
+    """
+    Save statistics with rewriting existing statistics
+    :param statistics: Statistics in json format
+    """
     with open(statistics_path, 'w') as f:
         json.dump(statistics, f)

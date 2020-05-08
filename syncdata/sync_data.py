@@ -25,7 +25,7 @@ table_in_db = {
     'dyn_data': 'data_dyn(id, id_value)',
     'logs': 'logs(id_datetime, log_id, log_text)',
     'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text)',
-    'statistics': 'statistics(id_datetime, host_name, speed_kbs, time_connection_ms)'
+    'statistics': 'statistics(id_datetime, host_name, time_upload_ms, time_connection_ms)'
 }
 
 
@@ -87,10 +87,11 @@ def connect_to_db(server_to_connect):
         connect_time = server_to_connect.connect()
     except:
         Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
+        add_row_statistics(time_connection=-1, with_error=True)
         return False
     else:
         Logger.write(message + '%4.1fms' % (connect_time * 10))
-        add_row_statistics(time_connection=connect_time)
+        add_row_statistics(time_connection=connect_time * 10)
         return True
 
 
@@ -114,8 +115,8 @@ def get_last_data_from_server(db_server, tablename):
 
 
 def get_last_date(db_server, tablename):
-    last_upload_data = Logger.read_json_file(Logger.last_upload_path)
-    if last_upload_data:
+    last_upload_data = Logger.read_json_file(Logger.last_upload_path, True)
+    if last_upload_data and len(last_upload_data) > 0:
         for host in last_upload_data:
             if host.get('host') == db_server.config.get('host'):
                 return datetime.strptime(str(host.get(tablename)), '%Y-%m-%d %H:%M').strftime("%Y-%m-%d %H%M")
@@ -136,6 +137,7 @@ def upload_data(list_data, list_filenames, table_with_params):
         upload_time = 0
         count_rows = 0
         index = 0
+        with_error = False
         try:
             for one_data in list_data:
                 if 'logs' in table_with_params:
@@ -149,21 +151,23 @@ def upload_data(list_data, list_filenames, table_with_params):
                 count_rows += len(one_data)
                 index += 1
         except:
+            with_error = True
             Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
 
         if count_rows > 0:
             Logger.write(message + '%d rows in %d files in %4.1fms (fulltime - %4.1fms)' %
                          (count_rows, index, upload_time * 10, full_time * 10))
-            add_row_statistics(time_upload=upload_time, dir_path=path, all_filenames=filenames[:index])
+            add_row_statistics(time_upload=upload_time*10, with_error=with_error)
         return index
 
 
-def add_row_statistics(time_upload=None, time_connection=None, dir_path=None, all_filenames=None):
+def add_row_statistics(time_upload=None, time_connection=None, with_error=False):
     one_row_stat = {
         'id_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'host_name': server.config.get('host'),
-        'speed_kbs': round(calculate_size_files(dir_path, all_filenames) / time_upload, 2) if time_upload else None,
-        'time_connection_ms': round(time_connection * 10, 2) if time_connection else None
+        'time_upload_ms': round(time_upload, 3) if time_upload else None,
+        'time_connection_ms': round(time_connection, 2) if time_connection else None,
+        'is_error':with_error
     }
     statistics_rows.append(one_row_stat)
 
@@ -174,13 +178,6 @@ def send_statistics():
             server.upload_stat(old_statistics_rows)
         except:
             pass
-
-
-def calculate_size_files(dir_path, all_filenames):
-    total_size = 0
-    for filepath in all_filenames:
-        total_size += os.path.getsize(dir_path + filepath)
-    return total_size / 1024.0
 
 
 # =========================================================================================================================================================================================
@@ -217,9 +214,8 @@ for config_server in configs_servers:
                         last_date_file = first_broken_read_file
 
                     last_date_file = last_date_file.split('.')[0]
-                    Logger.set_last_data(server.config.get('host'), table_in_db.get(table).split('(')[0],
-                                         datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
+                    Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0],
+                                                  datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
 
-print statistics_rows
 Logger.save_stat(statistics_rows)
 print "END program"
