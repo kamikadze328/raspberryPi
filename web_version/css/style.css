@@ -1,0 +1,148 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body,
+.wrapper {
+    height: 100%;
+    width: 100%;
+
+}
+.header{
+    height: 40px;
+    width: 100%;
+    font-size: 1.3rem;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-end;
+    flex-direction: row;
+    justify-content: space-between;
+    box-shadow: 0 0 16px rgba(0,0,0,.15);
+}
+.header > *{
+    border-bottom: 2px solid #2d353c;
+    margin-bottom: 2px;
+}
+.header :first-child{
+    margin-left: 23px;
+}
+.header :last-child{
+    margin-right: 8px;
+}
+.wrapper{
+    margin-top: 40px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+}
+body{
+    white-space: nowrap;
+    font-family: "Open Sans",sans-serif;
+    font-weight: 400;
+    font-size: .75rem;
+    color: #333;
+    text-align: left;
+    background-color: #d9e0e7;
+}
+
+#db-list {
+    height: calc(100% - 40px);
+    margin-bottom: 5px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.db-name{
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.db {
+    height: 100%;
+    max-height: 160px;
+    display: flex;
+    flex-direction: row;
+    margin: 8px 5px 8px 5px;
+}
+
+.card{
+    padding: 15px;
+    margin: 0 3px;
+    border-radius: 4px;
+    background-color: #2d353c;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 0 2px rgba(0,0,0,.2), 0 4px 4px -2px rgba(0,0,0,.2);
+}
+
+.db-main-info{
+    max-width: 300px;
+    min-width: 260px;
+    flex: 2;
+    justify-content: space-between;
+    flex-direction: column;
+}
+.db-extented-info{
+    flex:3
+}
+.text-main {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    font-weight:bold;
+    text-transform: uppercase;
+    color: #b6c2c9;
+}
+.row-stat{
+    justify-content: space-between;
+    margin-top: 8px;
+    display:flex;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.row-stat > :last-child{
+    margin-left: auto;
+    font-weight: 600;
+}
+.flex{
+
+    display:flex;
+    align-items: center;
+}
+
+
+.circle{
+    height: 8px;
+    width: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.error{
+    background-color: #ff5b57
+}
+.text-error{
+    color:#ff5b57;
+}
+.warn{
+background-color: #f59c1a;
+}
+.text-warn{
+    color:#f59c1a;
+}
+
+.norm{
+    background-color: #90ca4b;
+}
+
+@media (max-height:600px){
+    .text-main {
+        margin-bottom: 0;
+    }
+    .db{
+        margin: 4px 4px;
+    }
+}
