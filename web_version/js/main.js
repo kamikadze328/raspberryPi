@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     window.setInterval(updateTime, 1000);
 
-    fetch('servers.php')
+    fetch('php/servers.php')
         .then(response => response.text())
         .then(data => {
             try {
