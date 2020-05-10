@@ -171,6 +171,10 @@ def add_row_statistics(time_upload=None, time_connection=None, with_error=False)
     }
     statistics_rows.append(one_row_stat)
 
+# def calculate_stat():
+#     for row in statistics_rows:
+#         if row.get('host_name') == server.config.get('host') \
+#             and row.get('time_upload_ms')
 
 def send_statistics():
     if old_statistics_rows and len(old_statistics_rows) > 0:
@@ -216,6 +220,6 @@ for config_server in configs_servers:
                     last_date_file = last_date_file.split('.')[0]
                     Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0],
                                                   datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
-
+        # calculate_stat()
 Logger.save_stat(statistics_rows)
 print "END program"

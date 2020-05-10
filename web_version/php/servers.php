@@ -23,11 +23,11 @@ function get_info_from_server($server){
                                      and TIME_CONNECTION_MS > 0 ORDER BY id_datetime DESC LIMIT 1";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
-                $info_about_one_server["last_connection"] = $row ? $row["ID_DATETIME"]: "2000-00-00 00:00:00";
+                $info_about_one_server["last_connection"] = $row ? $row["ID_DATETIME"]: NAN;
                 $result->close();
 
-                $sql = "SELECT avg(TIME_UPLOAD_MS) from statistics where '{$server["host"]}' 
-                                             and ID_DATETIME between now() - interval 1 hour and now() 
+                $sql = "SELECT avg(TIME_UPLOAD_MS) from statistics where HOST_NAME='{$server["host"]}' 
+                                             and ID_DATETIME between now() - interval 1 hour and now()
                                              and TIME_UPLOAD_MS > 0";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
@@ -35,8 +35,8 @@ function get_info_from_server($server){
                 $result->close();
 
                 $sql = "SELECT avg(TIME_CONNECTION_MS) from statistics where HOST_NAME='{$server["host"]}' 
-                                                 and ID_DATETIME between now() - interval 1 hour 
-                                                 and now() and TIME_CONNECTION_MS > 0";
+                                                 and ID_DATETIME between now() - interval 1 hour and now()
+                                                 and TIME_CONNECTION_MS > 0";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
                 $info_about_one_server["avg_time_connection"] = $row ? round($row["avg(TIME_CONNECTION_MS)"],3): 0;
@@ -47,7 +47,7 @@ function get_info_from_server($server){
                                   and ID_DATETIME between now() - interval 1 hour and now()";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
-                $info_about_one_server["number_error"] = $row ? $row["count(*)"]: 0;
+                $info_about_one_server["number_error"] = $row ? $row["count(*)"]: -1;
                 $result->close();
 
                 array_push($info, $info_about_one_server);

@@ -85,7 +85,10 @@ body{
     justify-content: space-between;
     flex-direction: column;
 }
-.db-extented-info{
+#kek{
+    padding: 0;
+}
+.db-extended-info{
     flex:3
 }
 .text-main {
