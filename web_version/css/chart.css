@@ -1,0 +1,21 @@
+.line {
+    fill: none;
+    stroke: steelblue;
+}
+
+.axisWhite line{
+    shape-rendering: optimizeSpeed;
+    stroke: white;
+}
+
+.axisWhite path{
+    stroke: white;
+    stroke-width: 1px;
+    shape-rendering: optimizeSpeed;
+
+}
+
+.axisWhite text{
+    fill: white;
+    font-size: 0.8rem;
+}

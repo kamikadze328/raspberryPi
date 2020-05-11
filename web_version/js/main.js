@@ -16,8 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dbs = dbs ? dbs.length : 0;
             document.querySelector(".header :first-child").textContent = 'List of ' + dbs + ' DBs'
             dateToDelta()
-
-
+            charts({duration:'hour'})
         });
 
 });

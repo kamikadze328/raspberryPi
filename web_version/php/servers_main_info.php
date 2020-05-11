@@ -53,7 +53,7 @@
                     </div>
                 </div>
             </div>
-            <div id="kek" class="db-extended-info card">
+            <div id="chart-<?php echo md5($server["host"]) ?>" class="db-extended-info card">
 
             </div>
         </div>
