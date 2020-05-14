@@ -88,8 +88,8 @@ def read_log_file(file_path):
     with open(file_path) as f:
         data_from_log = []
         for line in f:
-            log_type = LogType[line[22:28]] if line[22:28] != '------' else LogType.INFO
-            data_from_log.append([line[:19], log_type.value, line[29:229]])
+            log_type = LogType[line[22:28].strip()] if line[22:28] != '------' else LogType.INFO
+            data_from_log.append([line[:19], str(log_type.value), line[29:229]])
     return data_from_log
 
 
