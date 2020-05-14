@@ -34,7 +34,9 @@ def write(message, log_type=None, file_path=None):
 
 
 def __get_logs_filepath():
-    return current_path + '/' + 'logs/' + d.now().strftime("%Y-%m-%d %H%M") + '.log'
+    if not os.path.exists(current_path + 'logs/'):
+        os.mkdir(current_path + 'logs/')
+    return current_path + 'logs/' + d.now().strftime("%Y-%m-%d %H%M") + '.log'
 
 
 def __make_message(message, log_type=None, time=None):
@@ -59,7 +61,7 @@ def read_json_file(file_path, do_check_file=False):
     """
     try:
         if do_check_file:
-            if not os.path.exists(last_upload_path):
+            if not os.path.exists(file_path):
                 with open(file_path, 'w') as f:
                     f.write(str([]))
 

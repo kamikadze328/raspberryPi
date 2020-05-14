@@ -77,12 +77,15 @@ class Server(object):
             sql += dict_to_sql(data)
         else:
             sql += list_to_sql(data)
+
         sql = sql[:-1] + ';'
+
         start_time_execute = time.time()
         cursor = self.__get_cursor()
         cursor.execute(sql)
         self.__con.commit()
         cursor.close()
+
         return time.time() - start_time, time.time() - start_time_execute
 
     def delete_between_dates(self, date1, date2, table_name, data_column):

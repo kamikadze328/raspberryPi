@@ -17,7 +17,8 @@ current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 config_path = current_path + 'sync_data.conf.json'
 my_logs_path = current_path + 'logs/'
 
-data_path = '/home/pi/sk/syncdata/DATA_UNP300/'
+data_path = '/var/www/html/DATA_UNP300/'
+#data_path = '/home/pi/sk/syncdata/DATA_UNP300/'
 dyn_data_name = '.DynDATA.json'
 
 table_in_db = {
@@ -150,6 +151,7 @@ def upload_data(list_data, list_filenames, table_with_params):
                 full_time += new_full_time
                 count_rows += len(one_data)
                 index += 1
+
         except:
             with_error = True
             Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
