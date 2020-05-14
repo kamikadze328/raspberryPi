@@ -173,11 +173,6 @@ def add_row_statistics(time_upload=None, time_connection=None, with_error=False)
     }
     statistics_rows.append(one_row_stat)
 
-# def calculate_stat():
-#     for row in statistics_rows:
-#         if row.get('host_name') == server.config.get('host') \
-#             and row.get('time_upload_ms')
-
 def send_statistics():
     if old_statistics_rows and len(old_statistics_rows) > 0:
         try:

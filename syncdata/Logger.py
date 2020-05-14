@@ -15,10 +15,10 @@ class LogType(Enum):
     """
     Enum with type of message in log
     """
-    FATAL = 1
+    FATAL = 3
     ERROR = 2
-    WARN = 3
-    INFO = 4
+    WARN = 1
+    INFO = 0
 
 
 def write(message, log_type=None, file_path=None):
@@ -88,7 +88,8 @@ def read_log_file(file_path):
     with open(file_path) as f:
         data_from_log = []
         for line in f:
-            data_from_log.append([line[:19], line[22:28], line[29:229]])
+            log_type = LogType[line[22:28]] if line[22:28] != '------' else LogType.INFO
+            data_from_log.append([line[:19], log_type.value, line[29:229]])
     return data_from_log
 
 
