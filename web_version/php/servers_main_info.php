@@ -54,6 +54,9 @@
                 </div>
             </div>
             <div id="chart-<?php echo md5($server["host"]) ?>" class="db-extended-info card">
+                <div class="action-dropdown">
+                    <span class="fa-ellipsis-v"></span>
+                </div>
 
             </div>
         </div>

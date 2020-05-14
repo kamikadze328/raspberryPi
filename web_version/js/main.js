@@ -1,30 +1,33 @@
-
-
+let dataToServer = {duration:'hour'}
+let duration = dataToServer.duration
 document.addEventListener('DOMContentLoaded', () => {
     window.setInterval(updateTime, 1000);
-
-    fetch('php/servers.php')
-        .then(response => response.text())
-        .then(data => {
-            try {
-                data = JSON.stringify(JSON.parse(data), null, 4)
-            } catch (e) {
-            }
-            console.log(data);
-            document.getElementById("db-list").innerHTML = data;
-            let dbs = document.getElementsByClassName("db");
-            dbs = dbs ? dbs.length : 0;
-            document.querySelector(".header :first-child").textContent = 'List of ' + dbs + ' DBs'
-            dateToDelta()
-            charts({duration:'hour'})
-        });
+    setHTMLMainInfoFromServer()
 
 });
 
+function setHTMLMainInfoFromServer() {
+    fetch('php/servers.php')
+        .then(response => response.text())
+        .then(data => {
+            console.log(data);
+            document.getElementById("db-list").innerHTML = data;
 
-function dateToDelta() {
-    let dates = document.querySelectorAll(".db-last-conn > :last-child")
-    for (let date of dates) {
+            setNumberDB(document.getElementsByClassName("db"))
+            dateToDelta(document.querySelectorAll(".db-last-conn > :last-child"))
+            charts(dataToServer)
+        });
+}
+function setJSONMainInfoFromServer(){
+
+}
+
+function setNumberDB(htmlPath){
+    const numberDB = htmlPath ? htmlPath.length : 0;
+    document.querySelector(".header :first-child").textContent = 'List of ' + numberDB + ' DBs'
+}
+function dateToDelta(htmlPathToServerDates) {
+    for (let date of htmlPathToServerDates) {
         const str_date = String(date.textContent)
         if (str_date !== "NAN") {
             const delta = new Date - new Date(Date.parse(str_date))
