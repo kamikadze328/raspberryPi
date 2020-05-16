@@ -22,6 +22,7 @@ function charts(json_data) {
             }
         });
 }
+
 function updateChart() {
     fetch('./php/graph.php', {
         method: 'POST',
@@ -44,15 +45,12 @@ function setNewChartUpdater() {
     refreshChartId = window.setInterval(updateChart, timeout);
 }
 
-function resizeCharts(){
-    chart_data.forEach(server => {
-        drawChart(server, true)
-    })
+function resizeCharts() {
+    chart_data.forEach(server => drawChart(server, true))
 }
-function reDrawAll(){
-    chart_data.forEach(server => {
-        drawChart(server, false)
-    })
+
+function reDrawAll() {
+    chart_data.forEach(server => drawChart(server, false))
 }
 
 
@@ -95,7 +93,7 @@ function drawChart(server, isResize) {
 
     let xScale = d3.scaleTime()
         .range([margin.left, width - margin.right])
-        .domain(d3.extent(data, d=>d.date))
+        .domain(d3.extent(data, d => d.date))
     const maxValue = d3.max(data, d => d.value)
     let yScale = d3.scaleLinear()
         .range([height - margin.bottom, margin.top])
@@ -103,7 +101,7 @@ function drawChart(server, isResize) {
 
     const xAxis = d3.axisBottom()
         .scale(xScale)
-        .ticks(width/80);
+        .ticks(width / 80);
     const yAxis = d3.axisLeft()
         .scale(yScale)
         .ticks(3);

@@ -1,12 +1,14 @@
 let dataToServer = {duration:localStorage.getItem("duration") ? localStorage.getItem("duration") : "hour"}
 let duration = dataToServer.duration
 let refreshInfoID = 0
+
+
 document.addEventListener('DOMContentLoaded', () => {
     window.setInterval(updateTime, 1000);
     getHTMLMainInfoFromServer()
 });
 
-function clearUpdaterAndGetTimeout(id){
+function clearUpdaterAndGetTimeout(id) {
     clearInterval(id)
     if (duration === 'hour') return 1000 * 10
     else if (duration === 'week') return 1000 * 60 * 60
@@ -23,7 +25,8 @@ function getHTMLMainInfoFromServer() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Accept':'text/html'},
+            'Accept': 'text/html'
+        },
         body: JSON.stringify(dataToServer),
     })
         .then(response => response.text())
@@ -35,8 +38,9 @@ function getHTMLMainInfoFromServer() {
             dateToDeltaHTML(document.querySelectorAll(".db-last-conn > :last-child"))
             setNewInfoUpdater()
             setEventListenerSettings()
-        });
+        })
 }
+
 function updateMainInfo() {
     fetch('./php/servers.php', {
         method: 'POST',
@@ -69,7 +73,7 @@ function updateMainInfo() {
                     num_err.className = "text-" + server.num_err.status
                     document.getElementById("circle-num-err-" + serverID).className = "circle " + server.num_err.status
 
-                    document.getElementById("val-date-" + serverID).textContent = dateToDelta(String(server.last_con))
+                    document.getElementById("val-date-" + serverID).textContent = secToHms(dateToDelta(String(server.last_con)))
                 })
         })
 }
@@ -78,18 +82,20 @@ function getServerId(serverHost){
     return String(serverHost).replace(/\./g, "")
 }
 
-function setNumberDB(htmlPath){
+function setNumberDB(htmlPath) {
     const numberDB = htmlPath ? htmlPath.length : 0;
     document.querySelector(".header :first-child").textContent = 'List of ' + numberDB + ' DBs'
 }
+
 function dateToDeltaHTML(htmlCollectionDates) {
     for (let date of htmlCollectionDates)
-        date.textContent = dateToDelta(String(date.textContent))
+        date.textContent = secToHms(dateToDelta(String(date.textContent)))
 }
-function dateToDelta(str_date){
+
+function dateToDelta(str_date) {
     if (str_date !== "NAN") {
         const delta = new Date - new Date(Date.parse(str_date))
-        return  Math.round(delta / 1000)
+        return Math.round(delta / 1000)
     } else return str_date
 }
 
@@ -101,20 +107,21 @@ function updateDeltaTime() {
             const seconds = hmsToSecondsOnly(str_delta) + 1
             dateHTML.textContent = secToHms(seconds)
             setStatusTime(seconds, dateHTML)
-        }
+        } else setStatusTime(null, dateHTML)
     }
 }
 
-function setStatusTime(seconds, elemHTML){
+function setStatusTime(seconds, elemHTML) {
     let status = "error"
     seconds = Number(seconds)
-    if(seconds < 5 * 60)
+    if (seconds > 0 && seconds < 300)
         status = "norm"
-    else if(seconds >= 5*60 && seconds < 60*60)
+    else if (seconds >= 300 && seconds < 3600)
         status = "warn"
     elemHTML.className = "text-" + status
-    elemHTML.parentElement.firstElementChild.firstElementChild.className = "circle "+ status
+    elemHTML.parentElement.firstElementChild.firstElementChild.className = "circle " + status
 }
+
 function secToHms(sec_num) {
     let hours = Math.floor(sec_num / 3600);
     let minutes = Math.floor((sec_num - (hours * 3600)) / 60);
@@ -135,6 +142,7 @@ function secToHms(sec_num) {
 
     return hours + minutes + seconds;
 }
+
 function hmsToSecondsOnly(str) {
     let p = str.split(':'),
         s = 0, m = 1;
@@ -173,6 +181,7 @@ function settingsPanel() {
         this.parentElement.classList.add("show-settings")
     }
 }
+
 function chooseDuration(e) {
     duration = e.target.textContent.toLowerCase()
     localStorage.setItem("duration", duration)
@@ -186,7 +195,8 @@ function chooseDuration(e) {
     updateChart()
     updateMainInfo()
 }
-function setChoiceDuration(htmlElem){
+
+function setChoiceDuration(htmlElem) {
     if (htmlElem.textContent.toLowerCase() === duration)
         htmlElem.classList.add("duration-choice")
     else htmlElem.classList.remove("duration-choice")
