@@ -18,7 +18,6 @@ function get_graph_from_server($server, $duration)
                 if($duration == 'day') $format_date = '%Y-%m-%d %H:%i';
                 elseif($duration == 'week') $format_date = '%Y-%m-%d %H';
                 else $format_date = '%Y-%m-%d %H:%i:%S';
-                //TODO check 2pm vip
                 $sql = "select date_format(ID_DATETIME, '{$format_date}') as date, ROUND(avg(TIME_UPLOAD_MS), 3) as value from statistics 
                             where HOST_NAME='{$server["host"]}' 
                             and ID_DATETIME between now() - interval 1 {$duration} and now() 

@@ -53,10 +53,16 @@
                     </div>
                 </div>
             </div>
-            <div id="chart-<?php echo md5($server["host"]) ?>" class="db-extended-info card">
-                <div class="action-dropdown">
+            <div id="chart-<?php echo str_replace(".", "", $server["host"]) ?>" class="db-extended-info card">
+                <!--<div class="action-dropdown">
                     <span class="fa-ellipsis-v"></span>
-                </div>
+                    <div class="dropdown-menu show show-menu">
+                        <div class="dropdown-item">Hour</div>
+                        <div class="dropdown-item">Day</div>
+                        <div class="dropdown-item">Week</div>
+
+                    </div>
+                </div>-->
 
             </div>
         </div>

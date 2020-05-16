@@ -1,39 +1,71 @@
-let dataToServer = {duration:'hour'}
+let dataToServer = {duration:localStorage.getItem("duration") ? localStorage.getItem("duration") : "hour"}
 let duration = dataToServer.duration
+let refreshInfoID = 0
 document.addEventListener('DOMContentLoaded', () => {
     window.setInterval(updateTime, 1000);
-    setHTMLMainInfoFromServer()
-
+    getHTMLMainInfoFromServer()
 });
 
-function setHTMLMainInfoFromServer() {
-    fetch('php/servers.php')
+function clearUpdaterAndGetTimeout(id){
+    clearInterval(id)
+    if (duration === 'hour') return 1000 * 10
+    else if (duration === 'week') return 1000 * 60 * 60
+    else return (1000) * 60
+}
+
+function setNewInfoUpdater() {
+    const timeout = clearUpdaterAndGetTimeout(refreshInfoID);
+    refreshInfoID = window.setInterval(updateMainInfo, timeout);
+}
+
+function getHTMLMainInfoFromServer() {
+    fetch('./php/servers.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept':'text/html'},
+        body: JSON.stringify(dataToServer),
+    })
         .then(response => response.text())
         .then(data => {
-            console.log(data);
             document.getElementById("db-list").innerHTML = data;
+            charts(dataToServer)
 
             setNumberDB(document.getElementsByClassName("db"))
-            dateToDelta(document.querySelectorAll(".db-last-conn > :last-child"))
-            charts(dataToServer)
+            dateToDeltaHTML(document.querySelectorAll(".db-last-conn > :last-child"))
+            setNewInfoUpdater()
+            setEventListenerSettings()
         });
 }
-function setJSONMainInfoFromServer(){
-
+function updateMainInfo(){
+    fetch('./php/servers.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept':'application/json'
+        },
+        body: JSON.stringify(dataToServer),
+    })
+        .then(response => response.json())
+        .then(data => {
+            setNewInfoUpdater()
+            console.log(data)
+        })
 }
 
 function setNumberDB(htmlPath){
     const numberDB = htmlPath ? htmlPath.length : 0;
     document.querySelector(".header :first-child").textContent = 'List of ' + numberDB + ' DBs'
 }
-function dateToDelta(htmlPathToServerDates) {
-    for (let date of htmlPathToServerDates) {
-        const str_date = String(date.textContent)
-        if (str_date !== "NAN") {
-            const delta = new Date - new Date(Date.parse(str_date))
-            date.textContent = Math.round(delta / 1000)
-        }
-    }
+function dateToDeltaHTML(htmlCollectionDates) {
+    for (let date of htmlCollectionDates)
+        date.textContent = dateToDelta(String(date.textContent))
+}
+function dateToDelta(str_date){
+    if (str_date !== "NAN") {
+        const delta = new Date - new Date(Date.parse(str_date))
+        return  Math.round(delta / 1000)
+    } else return str_date
 }
 
 function updateDeltaTime() {
@@ -88,4 +120,44 @@ function updateTime() {
     document.querySelector(".header :last-child").textContent = date.toLocaleString("ru", options)
     updateDeltaTime()
 
+}
+
+function settingsPanel() {
+    let classListIcon = this.getElementsByClassName("settings-icon")[0].classList
+    if (classListIcon.contains("close-icon")) {
+        classListIcon.remove("close-icon")
+        classListIcon.add("show-icon")
+        this.parentElement.classList.remove("show-settings")
+    } else {
+        classListIcon.remove("show-icon")
+        classListIcon.add("close-icon")
+        this.parentElement.classList.add("show-settings")
+    }
+}
+function chooseDuration(e) {
+    duration = e.target.textContent.toLowerCase()
+    localStorage.setItem("duration", duration)
+    dataToServer.duration = e.target.textContent.toLowerCase()
+
+    let durationItems = document.querySelectorAll(".duration-item")
+    durationItems.forEach(elem =>
+        setChoiceDuration(elem))
+    document.querySelector(".settings-button").click()
+
+    updateChart()
+    updateMainInfo()
+}
+function setChoiceDuration(htmlElem){
+    if (htmlElem.textContent.toLowerCase() === duration)
+        htmlElem.classList.add("duration-choice")
+    else htmlElem.classList.remove("duration-choice")
+}
+
+function setEventListenerSettings() {
+    document.querySelector(".settings-button").addEventListener('click', settingsPanel)
+    let durationItems = document.querySelectorAll(".duration-item")
+    durationItems.forEach(elem => {
+        elem.addEventListener('click', chooseDuration)
+        setChoiceDuration(elem)
+    })
 }

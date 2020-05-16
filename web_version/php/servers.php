@@ -8,8 +8,10 @@ function read_json($filepath)
     else return array();
 }
 
-function get_info_from_server($server){
+function get_info_from_server($server, $duration){
     try{
+        if($duration == null)
+            $duration = "day";
         $mysqli = new mysqli($server["host"], $server["user"], $server["password"], $server["database"]);
 
         if (!$mysqli->connect_errno){
@@ -23,11 +25,11 @@ function get_info_from_server($server){
                                      and TIME_CONNECTION_MS > 0 ORDER BY id_datetime DESC LIMIT 1";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
-                $info_about_one_server["last_connection"] = $row ? $row["ID_DATETIME"]: NAN;
+                $info_about_one_server["last_connection"] = $row ? $row["ID_DATETIME"]: "NAN";
                 $result->close();
 
                 $sql = "SELECT avg(TIME_UPLOAD_MS) from statistics where HOST_NAME='{$server["host"]}' 
-                                             and ID_DATETIME between now() - interval 1 hour and now()
+                                             and ID_DATETIME between now() - interval 1 {$duration} and now()
                                              and TIME_UPLOAD_MS > 0";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
@@ -35,7 +37,7 @@ function get_info_from_server($server){
                 $result->close();
 
                 $sql = "SELECT avg(TIME_CONNECTION_MS) from statistics where HOST_NAME='{$server["host"]}' 
-                                                 and ID_DATETIME between now() - interval 1 hour and now()
+                                                 and ID_DATETIME between now() - interval 1 {$duration} and now()
                                                  and TIME_CONNECTION_MS > 0";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
@@ -44,13 +46,13 @@ function get_info_from_server($server){
 
                 $sql = "SELECT count(*) from statistics where HOST_NAME='{$server["host"]}' 
                                   and IS_ERROR = 1 
-                                  and ID_DATETIME between now() - interval 1 hour and now()";
+                                  and ID_DATETIME between now() - interval 1 {$duration} and now()";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
                 $info_about_one_server["number_error"] = $row ? $row["count(*)"]: -1;
                 $result->close();
 
-                array_push($info, $info_about_one_server);
+                $info[] = $info_about_one_server;
 
             }
             $mysqli->close();
@@ -60,20 +62,26 @@ function get_info_from_server($server){
     }catch(Exception $e){}
     return false;
 }
+if(isset($_SERVER['HTTP_ACCEPT'])) {
+    $accept = $_SERVER['HTTP_ACCEPT'];
+    $servers = read_json($servers_file);
+    $post = json_decode(file_get_contents('php://input'), true);
+    if (isset($post["duration"]) && ($post["duration"] == "day" || $post["duration"] == "week" || $post["duration"] == "hour")) {
+        $duration = $post["duration"];
 
-$servers = read_json($servers_file);
+        foreach ($servers as $server) {
+            $answer = get_info_from_server($server, $duration);
+            if ($answer) {
+                if ($accept == "text/html") {
+                    $_servers_main_info = $answer;
+                    include "servers_main_info.php";
+                } else
+                    echo json_encode($answer);
 
-$out = array();
-foreach($servers as $server){
-    $answer = get_info_from_server($server);
-    if($answer) {
-        $out["info"] = $answer;
+                break;
+            }
+        }
+    } else echo json_encode(array("message" => "wrong request", "request-body" => $post));
+} else echo json_encode(array("message" => "no headers accept"));
 
-        $_servers_main_info = $answer;
 
-        include "servers_main_info.php";
-        break;
-    }
-}
-
-//echo json_encode($out);

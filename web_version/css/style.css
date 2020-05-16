@@ -162,16 +162,124 @@ background-color: #f59c1a;
     color: #8a9da8
 }
 
-@media (max-height:600px){
+.show{
+    display: block;
+}
+.show-menu {
+    position: absolute;
+    transform: translate(-80px, 8px);
+    top: 0;
+    will-change: transform;
+}
+.duration-item{
+    font-size: 0.8rem;
+    padding: 5px 15px;
+    font-weight: 600;
+    color: #4e5c68;
+    text-decoration: none;
+    display: block;
+    clear: both;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+}
+.duration-item:focus, .duration-item:hover {
+    color: #2d353c;
+    text-decoration: none;
+    background: #f2f4f5;
+}
+.settings-panel{
+    right: -65px;
+    position: fixed;
+    top: 150px;
+    -webkit-transition: right .2s linear;
+    -moz-transition: right .2s linear;
+    -ms-transition: right .2s linear;
+    -o-transition: right .2s linear;
+    transition: right .2s linear;
+    -webkit-border-radius: 4px 0 0 4px;
+    border-radius: 4px 0 0 4px;
+    min-width: 1rem;
+    padding: .5rem 0;
+    font-size: .6875rem;
+    color: #333;
+    text-align: left;
+    list-style: none;
+    background: #fff;
+    background-clip: padding-box;
+    border: 0 solid rgba(0,0,0,.15);
+    box-shadow: 0 5px 25px rgba(0,0,0,.3);
+}
+.show-settings{
+    right: 0 !important;
+}
+.settings-icon{
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    line-height: 1;
+}
+.close-icon:before{
+    content: '\2716';
+}
+.show-icon:before{
+    content: "\2630";
+}
+
+.settings-button{
+    position: absolute;
+    left: -30px;
+    margin-top: -15px;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 18px;
+    color: #2d353c;
+    background: #fff;
+    text-align: center;
+    border-radius: 4px 0 0 4px;
+    top: 30%;
+    font-weight: bolder;
+    cursor: pointer;
+}
+.duration-choice{
+    color: #348fe2;
+    font-weight: 800;
+}
+@media (max-height:600px) {
     .text-main {
         margin-bottom: 0;
     }
-    .db{
+
+    .db {
         margin: 4px 4px;
     }
+
+    .settings-panel{
+        top: 50%;
+        right: -77px;
+    }
+    .duration-item{
+        font-size: 0.9rem;
+        padding: 10px 20px;
+    }
 }
-@media(max-width: 800px){
-    .db-main-info{
+
+@media(max-width: 800px) {
+    .db-main-info {
         max-width: 220px;
+    }
+
+    .settings-panel {
+        top: 50%;
+        right: -77px;
+    }
+
+    .duration-item {
+        font-size: 0.9rem;
+        padding: 10px 20px;
     }
 }
