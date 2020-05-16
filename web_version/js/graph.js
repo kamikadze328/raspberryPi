@@ -11,7 +11,6 @@ function charts(json_data) {
         .then(data => {
             if (!data.error) {
                 chart_data = data
-                console.log(data)
                 chart_data.forEach(server => {
                     console.log([server.host, server.data.length])
                     drawChart(server, false)
@@ -33,7 +32,6 @@ function updateChart() {
         .then(data => {
             if (!data.error) {
                 chart_data = data
-                console.log(data)
                 d3.selectAll("svg").remove()
                 reDrawAll()
                 setNewChartUpdater()
@@ -61,7 +59,7 @@ function reDrawAll(){
 function drawChart(server, isResize) {
     //TODO Сейчас при перерисовке удаляется тег и заново добавляется.
     //Переделать, чтобы перерисовывалось, а не вот это всё
-    let id = String(server.host).replace(/\./g, "")
+    let id = getServerId(server.host)
     let chart = document.getElementById('chart-' + id)
     let margin = ({top: 10, right: 0, bottom: 10, left: 35}),
         width = chart.clientWidth - margin.right - margin.left,
@@ -86,14 +84,14 @@ function drawChart(server, isResize) {
         }, data)
     }
 
-    let minusHours
+    /*let minusHours
     if(duration === 'day') minusHours = 24
     else if(duration === 'week') minusHours = 24*7
     else minusHours = 1
     const nowDate = new Date
     const minDate = new Date(nowDate.setHours(nowDate.getHours() - minusHours))
     console.log(d3.extent(data, d=>d.date))
-    console.log(d3.extent([minDate, nowDate]))
+    console.log(d3.extent([minDate, nowDate]))*/
 
     let xScale = d3.scaleTime()
         .range([margin.left, width - margin.right])

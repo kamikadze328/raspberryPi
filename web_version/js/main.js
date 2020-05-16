@@ -37,12 +37,12 @@ function getHTMLMainInfoFromServer() {
             setEventListenerSettings()
         });
 }
-function updateMainInfo(){
+function updateMainInfo() {
     fetch('./php/servers.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Accept':'application/json'
+            'Accept': 'application/json'
         },
         body: JSON.stringify(dataToServer),
     })
@@ -50,7 +50,32 @@ function updateMainInfo(){
         .then(data => {
             setNewInfoUpdater()
             console.log(data)
+            if (!data.error)
+                data.forEach(server => {
+                    const serverID = getServerId(server.host)
+
+                    const avg_con = document.getElementById("val-avg-con-" + serverID)
+                    avg_con.textContent = server.avg_time_con.value
+                    avg_con.className = "text-" + server.avg_time_con.status
+                    document.getElementById("circle-avg-con-" + serverID).className = "circle " + server.avg_time_con.status
+
+                    const avg_upld = document.getElementById("val-avg-upld-" + serverID)
+                    avg_upld.textContent = server.avg_time_upld.value
+                    avg_upld.className = "text-" + server.avg_time_upld.status
+                    document.getElementById("circle-avg-upld-" + serverID).className = "circle " + server.avg_time_upld.status
+
+                    const num_err = document.getElementById("val-num-err-" + serverID)
+                    num_err.textContent = server.num_err.value
+                    num_err.className = "text-" + server.num_err.status
+                    document.getElementById("circle-num-err-" + serverID).className = "circle " + server.num_err.status
+
+                    document.getElementById("val-date-" + serverID).textContent = dateToDelta(String(server.last_con))
+                })
         })
+}
+
+function getServerId(serverHost){
+    return String(serverHost).replace(/\./g, "")
 }
 
 function setNumberDB(htmlPath){
@@ -70,11 +95,25 @@ function dateToDelta(str_date){
 
 function updateDeltaTime() {
     let dates = document.querySelectorAll(".db-last-conn > :last-child")
-    for (let date of dates) {
-        let str_delta = String(date.textContent)
-        if (str_delta !== "NAN")
-            date.textContent = secToHms(hmsToSecondsOnly(str_delta) + 1)
+    for (let dateHTML of dates) {
+        let str_delta = String(dateHTML.textContent)
+        if (str_delta !== "NAN") {
+            const seconds = hmsToSecondsOnly(str_delta) + 1
+            dateHTML.textContent = secToHms(seconds)
+            setStatusTime(seconds, dateHTML)
+        }
     }
+}
+
+function setStatusTime(seconds, elemHTML){
+    let status = "error"
+    seconds = Number(seconds)
+    if(seconds < 5 * 60)
+        status = "norm"
+    else if(seconds >= 5*60 && seconds < 60*60)
+        status = "warn"
+    elemHTML.className = "text-" + status
+    elemHTML.parentElement.firstElementChild.firstElementChild.className = "circle "+ status
 }
 function secToHms(sec_num) {
     let hours = Math.floor(sec_num / 3600);

@@ -8,6 +8,29 @@ function read_json($filepath)
     else return array();
 }
 
+function prepareResponseJSON($info)
+{
+    require_once('servers_main_info.php');
+    if (!empty($info)) {
+        $response = array();
+        foreach ($info as $server) {
+            $avg_con = $server["avg_time_connection"];
+            $avg_upld = $server["avg_time_upload"];
+            $number_err = $server["number_error"];
+
+            $responseServer = array(
+                "host" => $server["host"],
+                "last_con" => $server["last_connection"],
+                "avg_time_con" => array("value" => $avg_con, "status" => get_status_avg_con($avg_con)),
+                "avg_time_upld" => array("value" => $avg_upld, "status" => get_status_avg_upld($avg_upld)),
+                "num_err" => array("value" => $number_err, "status" => get_status_number_error($number_err)),
+            );
+            $response[] = $responseServer;
+        }
+        return $response;
+    }
+}
+
 function get_info_from_server($server, $duration){
     try{
         if($duration == null)
@@ -76,7 +99,7 @@ if(isset($_SERVER['HTTP_ACCEPT'])) {
                     $_servers_main_info = $answer;
                     include "servers_main_info.php";
                 } else
-                    echo json_encode($answer);
+                    echo json_encode(prepareResponseJSON($answer));
 
                 break;
             }
