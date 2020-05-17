@@ -111,7 +111,7 @@ def read_dat_file(file_path):
     return data_from_dat
 
 
-def save_last_upload_dates(host_name, tablename, last_upload_date, prev_date):
+def save_last_upload_dates(host_name, tablename, last_upload_date):
     pattern_json_data = [{
         'host': host_name,
         'data': '1990-01-01 00:00',
@@ -120,6 +120,8 @@ def save_last_upload_dates(host_name, tablename, last_upload_date, prev_date):
         'logs_counter': 0,
         'logs_syncdata': '1900-01-01 00:00',
         'logs_syncdata_counter': 0,
+        'statistics':'1900-01-01 00:00',
+        'statistics_counter':0,
         tablename: last_upload_date
     }]
     if not os.path.exists(last_upload_path):
@@ -148,15 +150,15 @@ def save_last_upload_dates(host_name, tablename, last_upload_date, prev_date):
             json.dump(new_upload_data, f, indent=4)
 
 
-def read_stat():
-    #
-    return read_json_file(statistics_path, True)
-
-
-def save_stat(statistics):
+def save_stat(statistics, headers):
     """
     Save statistics with rewriting existing statistics
     :param statistics: Statistics in json format
     """
-    with open(statistics_path, 'w') as f:
-        json.dump(statistics, f)
+    stat_path = __get_stat_filepath()
+    if not os.path.exists(stat_path):
+        with open(stat_path, 'w'):pass
+    with open(stat_path, 'a') as f:
+        writer = csv.DictWriter(f, fieldnames=headers)
+        for row in statistics:
+            writer.writerow(row)

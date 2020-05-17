@@ -25,7 +25,8 @@ def list_to_sql(data_list):
     for one_data in data_list:
         sql += '('
         for param in one_data:
-            sql += '\'' + _mysql.escape_string(param) + '\','
+            param = None if "" else param
+            sql += '\'' + _mysql.escape_string(param) + '\',' if param else 'NULL,'
         sql = sql[:-1] + '),'
     return sql
 
@@ -59,7 +60,6 @@ class Server(object):
         if self.__con.is_connected():
             return self.__con.cursor()
         else:
-            print 'reconnect'
             self.connect()
             if self.__con.is_connected():
                 return self.__con.cursor()

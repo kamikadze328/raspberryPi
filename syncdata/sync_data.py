@@ -16,18 +16,23 @@ sys.setdefaultencoding('utf8')
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 config_path = current_path + 'sync_data.conf.json'
 my_logs_path = current_path + 'logs/'
+stat_path = current_path + 'stats/'
+if not os.path.exists(my_logs_path):
+    os.mkdir(my_logs_path)
+if not os.path.exists(stat_path):
+    os.mkdir(stat_path)
+
 
 data_path = '/var/www/html/DATA_UNP300/'
 #data_path = '/home/pi/sk/syncdata/DATA_UNP300/'
 dyn_data_name = '.DynDATA.json'
-stat_path = 'stats/'
 
 table_in_db = {
     'data': 'data(id_datetime, id, id_value)',
     'dyn_data': 'data_dyn(id, id_value)',
     'logs': 'logs(id_datetime, log_id, log_text)',
     'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text)',
-    'statistics': 'statistics(id_datetime, host_name, time_upload_ms, time_connection_ms)'
+    'statistics': 'statistics(id_datetime, host_name, time_upload_ms, time_connection_ms, is_error)',
 }
 
 
@@ -62,9 +67,11 @@ def read_files_by_type(dir_path, type_files, first_date):
     data_from_files = []
     for one_file in list_files:
         try:
-            data_from_one_file = Logger.read_dat_file(
-                dir_path + one_file) if type_files == '.dat' else Logger.read_log_file(
-                dir_path + one_file)
+            if type_file == '.log':
+                data_from_one_file = Logger.read_log_file(dir_path + one_file)
+            else:
+                data_from_one_file = Logger.read_dat_file(dir_path + one_file)
+
         except:
             list_broken_files.append(one_file)
         else:
@@ -172,19 +179,9 @@ def add_row_statistics(time_upload=None, time_connection=None, with_error=False)
         'host_name': server.config.get('host'),
         'time_upload_ms': round(time_upload, 3) if time_upload else None,
         'time_connection_ms': round(time_connection, 2) if time_connection else None,
-        'is_error':with_error
+        'is_error':int(with_error)
     }
     statistics_rows.append(one_row_stat)
-
-def send_statistics():
-    # last_date_stat = get_last_date(server, 'stat')
-    # old_statistics_rows = Logger.read_stat()
-    # TODO записывать статистику по файлам и сохранять последние отправленные
-    if old_statistics_rows and len(old_statistics_rows) > 0:
-        try:
-            server.upload_stat(old_statistics_rows)
-        except:
-            pass
 
 def prepare_dyn_data(dynamic_data):
     keys = ['iTegAddr', 'iTegValue']
@@ -198,7 +195,6 @@ def prepare_dyn_data(dynamic_data):
 print "START program"
 
 configs_servers = Logger.read_json_file(config_path)
-old_statistics_rows = Logger.read_stat()
 statistics_rows = []
 
 for config_server in configs_servers:
@@ -207,14 +203,14 @@ for config_server in configs_servers:
 
         # Если добавился новый сервер, следует самому добавить его в статистику
 
-        send_statistics()
+        #send_statistics()
         # upload dynamic data
         dyn_data = Logger.read_json_file(data_path + dyn_data_name)
         if dyn_data:
             upload_data(prepare_dyn_data(dyn_data), data_path + dyn_data_name, table_in_db.get('dyn_data'))
 
         for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path),
-                                         ('logs_syncdata', '.log', my_logs_path)]:
+                                         ('logs_syncdata', '.log', my_logs_path), ('statistics', '.stat', stat_path)]:
 
             last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
             last_data_from_files, filenames, first_broken_read_file = read_files_by_type(path, type_file, last_date)
@@ -230,7 +226,7 @@ for config_server in configs_servers:
 
                     last_date_file = last_date_file.split('.')[0]
                     Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0],
-                                                  datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"), last_date)
-        # calculate_stat()
-Logger.save_stat(statistics_rows)
+                                                  datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
+
+Logger.save_stat(statistics_rows, table_in_db.get('statistics').split('(')[1][:-1].split(", "))
 print "END program"
