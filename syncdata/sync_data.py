@@ -20,6 +20,7 @@ my_logs_path = current_path + 'logs/'
 data_path = '/var/www/html/DATA_UNP300/'
 #data_path = '/home/pi/sk/syncdata/DATA_UNP300/'
 dyn_data_name = '.DynDATA.json'
+stat_path = 'stats/'
 
 table_in_db = {
     'data': 'data(id_datetime, id, id_value)',
@@ -160,6 +161,8 @@ def upload_data(list_data, list_filenames, table_with_params):
             Logger.write(message + '%d rows in %d files in %4.1fms (fulltime - %4.1fms)' %
                          (count_rows, index, upload_time * 10, full_time * 10))
             add_row_statistics(time_upload=upload_time*10, with_error=with_error)
+        else:
+            add_row_statistics(time_upload=-1, with_error=True)
         return index
 
 
@@ -174,13 +177,21 @@ def add_row_statistics(time_upload=None, time_connection=None, with_error=False)
     statistics_rows.append(one_row_stat)
 
 def send_statistics():
+    # last_date_stat = get_last_date(server, 'stat')
+    # old_statistics_rows = Logger.read_stat()
+    # TODO записывать статистику по файлам и сохранять последние отправленные
     if old_statistics_rows and len(old_statistics_rows) > 0:
         try:
             server.upload_stat(old_statistics_rows)
         except:
             pass
 
-
+def prepare_dyn_data(dynamic_data):
+    keys = ['iTegAddr', 'iTegValue']
+    new_dyn_data = []
+    for one_data in dynamic_data:
+        new_dyn_data.append([str(one_data.get(key)) for key in keys])
+    return [new_dyn_data]
 # =========================================================================================================================================================================================
 #  СТАРТ программы
 # =========================================================================================================================================================================================
@@ -193,11 +204,14 @@ statistics_rows = []
 for config_server in configs_servers:
     server = DB.Server(**config_server)
     if connect_to_db(server):
+
+        # Если добавился новый сервер, следует самому добавить его в статистику
+
         send_statistics()
         # upload dynamic data
         dyn_data = Logger.read_json_file(data_path + dyn_data_name)
         if dyn_data:
-            upload_data([dyn_data], data_path + dyn_data_name, table_in_db.get('dyn_data'))
+            upload_data(prepare_dyn_data(dyn_data), data_path + dyn_data_name, table_in_db.get('dyn_data'))
 
         for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path),
                                          ('logs_syncdata', '.log', my_logs_path)]:
@@ -216,7 +230,7 @@ for config_server in configs_servers:
 
                     last_date_file = last_date_file.split('.')[0]
                     Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0],
-                                                  datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
+                                                  datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"), last_date)
         # calculate_stat()
 Logger.save_stat(statistics_rows)
 print "END program"

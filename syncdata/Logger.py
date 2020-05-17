@@ -38,6 +38,11 @@ def __get_logs_filepath():
         os.mkdir(current_path + 'logs/')
     return current_path + 'logs/' + d.now().strftime("%Y-%m-%d %H%M") + '.log'
 
+def __get_stat_filepath():
+    if not os.path.exists(current_path + 'stats/'):
+        os.mkdir(current_path + 'stats/')
+    return current_path + 'stats/' + d.now().strftime("%Y-%m-%d %H%M") + '.stat'
+
 
 def __make_message(message, log_type=None, time=None):
     if time is None:
@@ -106,12 +111,15 @@ def read_dat_file(file_path):
     return data_from_dat
 
 
-def save_last_upload_dates(host_name, tablename, last_upload_date):
+def save_last_upload_dates(host_name, tablename, last_upload_date, prev_date):
     pattern_json_data = [{
         'host': host_name,
         'data': '1990-01-01 00:00',
+        'data_counter': 0,
         'logs': '1900-01-01 00:00',
+        'logs_counter': 0,
         'logs_syncdata': '1900-01-01 00:00',
+        'logs_syncdata_counter': 0,
         tablename: last_upload_date
     }]
     if not os.path.exists(last_upload_path):
@@ -125,6 +133,13 @@ def save_last_upload_dates(host_name, tablename, last_upload_date):
         if len([host for host in new_upload_data if host.get('host') == host_name]) > 0:
             for host in new_upload_data:
                 if host.get('host') == host_name:
+                    counter = host.get(tablename + '_counter')
+                    if counter is not None:
+                        if last_upload_date == host.get(tablename):
+                            counter = int(counter) + 1
+                            host[tablename + '_counter'] = counter
+                        else:
+                            host[tablename + '_counter'] = 0
                     host[tablename] = last_upload_date
         else:
             new_upload_data.append(pattern_json_data[0])
@@ -134,6 +149,7 @@ def save_last_upload_dates(host_name, tablename, last_upload_date):
 
 
 def read_stat():
+    #
     return read_json_file(statistics_path, True)
 
 
