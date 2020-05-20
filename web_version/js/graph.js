@@ -68,20 +68,41 @@ function drawChart(server, isResize) {
         .attr("height", '100%')
         .classed("svg-content", true);
 
-
+    let preparedData
     let data = server.data
     if (!isResize) {
         let format_time
-        if (duration === 'day') format_time = '%Y-%m-%d %H:%M'
-        else if (duration === 'week') format_time = '%Y-%m-%d %H'
-        else format_time = '%Y-%m-%d %H:%M:%S';
+        let delta
+        if (duration === 'day') {
+            format_time = '%Y-%m-%d %H:%M'
+            //5 minute
+            delta = 300000
+        } else if (duration === 'week') {
+            format_time = '%Y-%m-%d %H'
+            //60 minute
+            delta = 3600000
+        } else {
+            format_time = '%Y-%m-%d %H:%M:%S'
+            //5 minute
+            delta = 300000
+        }
         let parseDate = d3.timeParse(format_time)
-        data.forEach(function (d, i) {
-            this[i].date = parseDate(d.date)
-            this[i].value = d.value ? +d.value : undefined
+        preparedData = []
+        data.forEach(elem => {
+            let preparedElem = {
+                date: parseDate(elem.date),
+                value: elem.value ? +elem.value : undefined
+            }
+            const prev = preparedData[preparedData.length - 1]
+            if (elem.value && prev && preparedElem.date - prev.date > delta)
+                preparedData.push({
+                    data: new Date(prev.date.getMilliseconds() + 1),
+                    value: undefined
+                })
+            preparedData.push(preparedElem)
         }, data)
+        data = preparedData
     }
-
     /*let minusHours
     if(duration === 'day') minusHours = 24
     else if(duration === 'week') minusHours = 24*7

@@ -10,9 +10,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function clearUpdaterAndGetTimeout(id) {
     clearInterval(id)
-    if (duration === 'hour') return 1000 * 10
+    if (duration === 'hour') return 1000 * 60
     else if (duration === 'week') return 1000 * 60 * 60
-    else return (1000) * 60
+    else return (1000) * 60 * 5
 }
 
 function setNewInfoUpdater() {
@@ -38,7 +38,7 @@ function getHTMLMainInfoFromServer() {
             dateToDeltaHTML(document.querySelectorAll(".db-last-conn > :last-child"))
             setNewInfoUpdater()
             setEventListenerSettings()
-        })
+        }).catch(error => console.log(error))
 }
 
 function updateMainInfo() {
