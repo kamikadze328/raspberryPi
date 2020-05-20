@@ -75,7 +75,7 @@ function updateMainInfo() {
 
                     document.getElementById("val-date-" + serverID).textContent = secToHms(dateToDelta(String(server.last_con)))
                 })
-        })
+        }).catch(error => console.log(error))
 }
 
 function getServerId(serverHost){

@@ -20,7 +20,7 @@ function charts(json_data) {
                 window.addEventListener("resize", resizeCharts)
                 setNewChartUpdater()
             }
-        });
+        }).catch(error => console.log(error));
 }
 
 function updateChart() {
@@ -37,7 +37,7 @@ function updateChart() {
                 reDrawAll()
                 setNewChartUpdater()
             }
-        });
+        }).catch(error => console.log(error));
 }
 
 function setNewChartUpdater() {
