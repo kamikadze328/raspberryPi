@@ -69,7 +69,7 @@ function drawChart(server, isResize) {
         .classed("svg-content", true);
 
     let preparedData
-    let data = server.data
+
     if (!isResize) {
         let format_time
         let delta
@@ -88,7 +88,7 @@ function drawChart(server, isResize) {
         }
         let parseDate = d3.timeParse(format_time)
         preparedData = []
-        data.forEach(elem => {
+        server.data.forEach(elem => {
             let preparedElem = {
                 date: parseDate(elem.date),
                 value: elem.value ? +elem.value : undefined
@@ -100,9 +100,16 @@ function drawChart(server, isResize) {
                     value: undefined
                 })
             preparedData.push(preparedElem)
-        }, data)
-        data = preparedData
+        }, server.data)
+        if (new Date - preparedData[preparedData.length - 1].date > delta)
+            preparedData.push({
+                data: new Date,
+                value: undefined
+            })
+
+        server.data = preparedData
     }
+    let data = server.data
     /*let minusHours
     if(duration === 'day') minusHours = 24
     else if(duration === 'week') minusHours = 24*7
