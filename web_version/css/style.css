@@ -242,7 +242,9 @@ background-color: #f59c1a;
     text-align: center;
     border-radius: 4px 0 0 4px;
     top: 30%;
+    /*
     font-weight: bolder;
+    */
     cursor: pointer;
 }
 .duration-choice{
@@ -257,15 +259,27 @@ background-color: #f59c1a;
     .db {
         margin: 4px 4px;
     }
-
-    .settings-panel{
-        top: 50%;
-        right: -77px;
+    .settings-button {
+        width: 55px;
+        height: 50px;
+        left: -50px;
     }
-    .duration-item{
-        font-size: 0.9rem;
+
+    .settings-icon {
+        font-size: 40px;
+        margin: 5px 10px 5px 0;
+    }
+
+    .settings-panel {
+        top: 50%;
+        right: -86px;
+    }
+
+    .duration-item {
+        font-size: 1.1rem;
         padding: 10px 20px;
     }
+
 }
 
 @media(max-width: 800px) {
@@ -273,13 +287,24 @@ background-color: #f59c1a;
         max-width: 220px;
     }
 
+    .settings-button {
+        width: 45px;
+        height: 40px;
+        left: -39px;
+    }
+
+    .settings-icon {
+        font-size: 30px;
+        margin: 5px 10px 5px 0;
+    }
+
     .settings-panel {
         top: 50%;
-        right: -77px;
+        right: -86px;
     }
 
     .duration-item {
-        font-size: 0.9rem;
+        font-size: 1.1rem;
         padding: 10px 20px;
     }
 }
