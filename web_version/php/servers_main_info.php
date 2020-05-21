@@ -5,8 +5,8 @@ function get_status_avg_con($avg_con){
     else return "error";
 }
 function get_status_avg_upld($avg_upld){
-    if ($avg_upld > 0 && $avg_upld < 2) return "norm";
-    elseif ($avg_upld >= 2 && $avg_upld < 4) return "warn";
+    if ($avg_upld > 0 && $avg_upld < 5) return "norm";
+    elseif ($avg_upld >= 5 && $avg_upld < 20) return "warn";
     else return "error";
 }
 function get_status_number_error($number_err){
