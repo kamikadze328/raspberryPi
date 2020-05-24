@@ -31,6 +31,7 @@ function get_graph_from_server($server, $duration)
                 $result->close();
                 $info[] = $info_about_one_server;
             }
+            $mysqli->close();
             return $info;
         }
 

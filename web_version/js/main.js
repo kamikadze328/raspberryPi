@@ -6,6 +6,7 @@ let refreshInfoID = 0
 document.addEventListener('DOMContentLoaded', () => {
     window.setInterval(updateTime, 1000);
     getHTMLMainInfoFromServer()
+    setEventListenerSettings()
 });
 
 function clearUpdaterAndGetTimeout(id) {
@@ -28,6 +29,7 @@ function getHTMLMainInfoFromServer() {
             'Accept': 'text/html'
         },
         body: JSON.stringify(dataToServer),
+
     })
         .then(response => response.text())
         .then(data => {
@@ -37,7 +39,6 @@ function getHTMLMainInfoFromServer() {
             setNumberDB(document.getElementsByClassName("db"))
             dateToDeltaHTML(document.querySelectorAll(".db-last-conn > :last-child"))
             setNewInfoUpdater()
-            setEventListenerSettings()
         }).catch(error => console.log(error))
 }
 
@@ -50,7 +51,7 @@ function updateMainInfo() {
         },
         body: JSON.stringify(dataToServer),
     })
-        .then(response => response.json())
+        .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
             setNewInfoUpdater()
             console.log(data)
@@ -169,17 +170,27 @@ function updateTime() {
 
 }
 
-function settingsPanel() {
-    let classListIcon = this.getElementsByClassName("settings-icon")[0].classList
-    if (classListIcon.contains("close-icon")) {
-        classListIcon.remove("close-icon")
-        classListIcon.add("show-icon")
-        this.parentElement.classList.remove("show-settings")
-    } else {
-        classListIcon.remove("show-icon")
-        classListIcon.add("close-icon")
-        this.parentElement.classList.add("show-settings")
-    }
+function getSettingsListClasses(){
+    return document.getElementsByClassName("settings-icon")[0].classList
+}
+
+function toggleSettingsPanel() {
+    let listClassesIcon = getSettingsListClasses()
+    if (listClassesIcon.contains("close-icon")) closeSettingsPanel(listClassesIcon)
+    else openSettingsPanel(listClassesIcon)
+}
+
+function openSettingsPanel(listClassesIcon) {
+    listClassesIcon.remove("show-icon")
+    listClassesIcon.add("close-icon")
+    document.getElementById("settings-panel").classList.add("show-settings")
+}
+
+function closeSettingsPanel(listClassesIcon) {
+    listClassesIcon.remove("close-icon")
+    listClassesIcon.add("show-icon")
+    document.getElementById("settings-panel").classList.remove("show-settings")
+    clearTempSettingsInfo()
 }
 
 function chooseDuration(e) {
@@ -203,10 +214,37 @@ function setChoiceDuration(htmlElem) {
 }
 
 function setEventListenerSettings() {
-    document.querySelector(".settings-button").addEventListener('click', settingsPanel)
+    document.querySelector(".settings-button").addEventListener('click', toggleSettingsPanel)
+
     let durationItems = document.querySelectorAll(".duration-item")
     durationItems.forEach(elem => {
         elem.addEventListener('click', chooseDuration)
         setChoiceDuration(elem)
     })
+
+    document.getElementById("db-list").addEventListener('click', () => {if (getSettingsListClasses().contains("close-icon")) closeSettingsPanel(getSettingsListClasses())})
+    document.getElementById("refresh-button").addEventListener('click', ()=>{updateChart(); updateMainInfo()})
+    document.getElementById("update-db-button").addEventListener('click', updateDB)
 }
+
+function updateDB(){
+    clearTempSettingsInfo()
+    fetch('./php/update_tables.php')
+        .then(response => response.json())
+        .then(data => {
+            let elem = document.getElementById("update-db-info")
+            data.forEach((server)=>{
+                elem.innerHTML += `<div style="margin: 10px 0; border-radius: 5px" class="${server.status ? 'norm' : 'error'}">${server.host}</div>`
+            })
+            elem.parentElement.classList.add("border-bottom")
+            console.log(data)
+        })
+        .catch(error => console.log(error))
+}
+
+function clearTempSettingsInfo() {
+    document.getElementById("update-db-info").innerHTML = ''
+    document.getElementById("update-db-info").parentElement.classList.remove("border-bottom")
+}
+
+

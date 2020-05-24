@@ -7,7 +7,7 @@ function charts(json_data) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(json_data),
     })
-        .then(response => response.json())
+        .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
             if (!data.error) {
                 chart_data = data
@@ -29,7 +29,7 @@ function updateChart() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(dataToServer),
     })
-        .then(response => response.json())
+        .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
             if (!data.error) {
                 chart_data = data

@@ -29,6 +29,7 @@ function prepareResponseJSON($info)
         }
         return $response;
     }
+    return NAN;
 }
 
 function get_info_from_server($server, $duration){
