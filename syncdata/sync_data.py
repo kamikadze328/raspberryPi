@@ -188,7 +188,7 @@ def add_row_statistics(time_upload=None, time_connection=None, with_error=False)
 def prepare_dyn_data(dynamic_data):
     new_dyn_data = []
     for one_data in dynamic_data:
-        new_dyn_data.append([one_data[0], one_data[1]])
+        new_dyn_data.append([str(one_data[0]), str(one_data[1])])
     return [new_dyn_data]
 
 def delete_files_by_date(dir_path, type_files, min_date):
