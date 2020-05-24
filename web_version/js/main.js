@@ -203,6 +203,7 @@ function chooseDuration(e) {
         setChoiceDuration(elem))
     document.querySelector(".settings-button").click()
 
+    updateChartsMeta()
     updateChart()
     updateMainInfo()
 }

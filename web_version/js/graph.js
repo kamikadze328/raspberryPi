@@ -1,5 +1,7 @@
 let chart_data, refreshChartId = 0
-
+let margin = ({top: 10, right: 0, bottom: 10, left: 35})
+let format_time, deltaForChart
+let new_charts_data = []
 function charts(json_data) {
     duration = json_data.duration
     fetch('./php/graph.php', {
@@ -11,6 +13,7 @@ function charts(json_data) {
         .then(data => {
             if (!data.error) {
                 chart_data = data
+                updateChartsMeta()
                 chart_data.forEach(server => {
                     console.log([server.host, server.data.length])
                     drawChart(server, false)
@@ -53,6 +56,25 @@ function reDrawAll() {
     chart_data.forEach(server => drawChart(server, false))
 }
 
+function redrawChart() {
+
+}
+
+function initChart(server) {
+    let id = getServerId(server.host)
+    let chart = document.getElementById('chart-' + id)
+    let width = chart.clientWidth - margin.right - margin.left,
+        height = chart.clientHeight - margin.top - margin.bottom;
+    const svg = d3.select('#chart-' + id).append('svg')
+        .attr("width", '100%')
+        .attr("height", '100%')
+        .classed("svg-content", true);
+
+    let data = prepareData(server.data)
+    server.data = data
+    new_charts_data.push(server)
+
+}
 
 function drawChart(server, isResize) {
     //TODO Сейчас при перерисовке удаляется тег и заново добавляется.
@@ -68,56 +90,11 @@ function drawChart(server, isResize) {
         .attr("height", '100%')
         .classed("svg-content", true);
 
-    let preparedData
 
-    if (!isResize) {
-        let format_time
-        let delta
-        if (duration === 'day') {
-            format_time = '%Y-%m-%d %H:%M'
-            //5 minute
-            delta = 300000
-        } else if (duration === 'week') {
-            format_time = '%Y-%m-%d %H'
-            //60 minute
-            delta = 3600000
-        } else {
-            format_time = '%Y-%m-%d %H:%M:%S'
-            //5 minute
-            delta = 300000
-        }
-        let parseDate = d3.timeParse(format_time)
-        preparedData = []
-        server.data.forEach(elem => {
-            let preparedElem = {
-                date: parseDate(elem.date),
-                value: elem.value ? +elem.value : undefined
-            }
-            const prev = preparedData[preparedData.length - 1]
-            if (elem.value && prev && preparedElem.date - prev.date > delta)
-                preparedData.push({
-                    data: new Date(prev.date.getMilliseconds() + 1),
-                    value: undefined
-                })
-            preparedData.push(preparedElem)
-        }, server.data)
-        if (new Date - preparedData[preparedData.length - 1].date > delta)
-            preparedData.push({
-                data: new Date,
-                value: undefined
-            })
+    if (!isResize)
+        server.data = prepareData(server.data)
 
-        server.data = preparedData
-    }
     let data = server.data
-    /*let minusHours
-    if(duration === 'day') minusHours = 24
-    else if(duration === 'week') minusHours = 24*7
-    else minusHours = 1
-    const nowDate = new Date
-    const minDate = new Date(nowDate.setHours(nowDate.getHours() - minusHours))
-    console.log(d3.extent(data, d=>d.date))
-    console.log(d3.extent([minDate, nowDate]))*/
 
     let xScale = d3.scaleTime()
         .range([margin.left, width - margin.right])
@@ -165,5 +142,45 @@ function drawChart(server, isResize) {
         .attr("stroke-width", 1.5)
         .attr("fill", "none")
         .attr("d", line);
+}
+
+function prepareData(serverData) {
+    let preparedData = []
+    let parseDate = d3.timeParse(format_time)
+    serverData.forEach(elem => {
+        let preparedElem = {
+            date: parseDate(elem.date),
+            value: (elem.value && elem.value > 0) ? +elem.value : undefined
+        }
+        const prev = preparedData[preparedData.length - 1]
+        if (elem.value && prev && preparedElem.date - prev.date > deltaForChart)
+            preparedData.push({
+                data: new Date(prev.date.getMilliseconds() + 1),
+                value: undefined
+            })
+        preparedData.push(preparedElem)
+    }, serverData)
+    if (new Date - preparedData[preparedData.length - 1].date > deltaForChart)
+        preparedData.push({
+            data: new Date,
+            value: undefined
+        })
+    return preparedData
+}
+
+function updateChartsMeta(){
+    if (duration === 'day') {
+        format_time = '%Y-%m-%d %H:%M'
+        //5 minute
+        deltaForChart = 300000
+    } else if (duration === 'week') {
+        format_time = '%Y-%m-%d %H'
+        //60 minute
+        deltaForChart = 3600000
+    } else {
+        format_time = '%Y-%m-%d %H:%M:%S'
+        //5 minute
+        deltaForChart = 300000
+    }
 }
 

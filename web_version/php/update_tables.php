@@ -22,16 +22,25 @@ function replace_data($server)
         global $devices;
         global $tags;
         $sql = "TRUNCATE TABLE tags; TRUNCATE TABLE devices;";
-        $sql .= "INSERT INTO tags()";
+
+        $sql .= "INSERT INTO tags(ID, ID_NAME, ID_DEVICE, SAVE_INTERVAL, VALUE_MIN, VALUE_MAX, TAG_TYPE) VALUES ";
         foreach ($tags as $tag) {
-            $sql .= "()";
+            $sql .= "(${$tag["iTegAddr"]},${$tag["sTegInfo"]},${$tag["iBaseAddrTeg"]},
+            ${$tag["iTime_Save"]},${$tag["iMinValue"]},${$tag["iMaxValue"]}, ${$tag["sTegType"]}),";
         }
-        $sql .= "INSERT INTO device()";
+        $sql = substr($sql, 0 , -1);
+        $sql .= ";";
+
+        $sql .= "INSERT INTO device(BASE_ADDRESS, id_name_device, id_name_full, interface_type, INTERFACE_IP_ADDRESS, interface_ip_port, addr_modbus) VALUES ";
         foreach ($devices as $device) {
-            $sql .= "()";
+            $sql .= "(${$device["iBaseAddrTeg"]},${$device["sModelName"]},${$device["sModuleInfo"]},
+            ${$device["sInterface"]},${$device["ip_adress"]},${$device["ip_port"]}, ${$device["iAdrMODBUS"]}),";
         }
 
-        //$mysqli->multi_query($sql);
+        $sql = substr($sql, 0 , -1);
+        $sql .= ";";
+
+        $mysqli->multi_query($sql);
         $mysqli->close();
     }
 }
