@@ -86,6 +86,7 @@ function get_info_from_server($server, $duration){
     }catch(Exception $e){}
     return false;
 }
+
 if(isset($_SERVER['HTTP_ACCEPT'])) {
     $accept = $_SERVER['HTTP_ACCEPT'];
     $servers = read_json($servers_file);

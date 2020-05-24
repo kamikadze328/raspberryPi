@@ -1,5 +1,5 @@
 <?php
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+mysqli_report(MYSQLI_REPORT_STRICT);
 
 $servers_file = "../sync_data.conf.json";
 $tags_file = "../../DATA_UNP300/.Conf_Teg.json";
@@ -25,23 +25,29 @@ function replace_data($server)
 
         $sql .= "INSERT INTO tags(ID, ID_NAME, ID_DEVICE, SAVE_INTERVAL, VALUE_MIN, VALUE_MAX, TAG_TYPE) VALUES ";
         foreach ($tags as $tag) {
-            $sql .= "(${$tag["iTegAddr"]},${$tag["sTegInfo"]},${$tag["iBaseAddrTeg"]},
-            ${$tag["iTime_Save"]},${$tag["iMinValue"]},${$tag["iMaxValue"]}, ${$tag["sTegType"]}),";
+            $sql .= "({$tag["iTegAddr"]},'{$tag["sTegInfo"]}',{$tag["iBaseAddrTeg"]},
+            {$tag["iTime_Save"]},{$tag["iMinValue"]},{$tag["iMaxValue"]}, '{$tag["sTegType"]}'),";
         }
-        $sql = substr($sql, 0 , -1);
+        $sql = substr($sql, 0, -1);
         $sql .= ";";
 
-        $sql .= "INSERT INTO device(BASE_ADDRESS, id_name_device, id_name_full, interface_type, INTERFACE_IP_ADDRESS, interface_ip_port, addr_modbus) VALUES ";
+        $sql .= "INSERT INTO devices(BASE_ADDRESS, id_name_device, id_name_full, interface_type, INTERFACE_IP_ADDRESS, interface_ip_port, addr_modbus) VALUES ";
         foreach ($devices as $device) {
-            $sql .= "(${$device["iBaseAddrTeg"]},${$device["sModelName"]},${$device["sModuleInfo"]},
-            ${$device["sInterface"]},${$device["ip_adress"]},${$device["ip_port"]}, ${$device["iAdrMODBUS"]}),";
+            $sql .= "({$device["iBaseAddrTeg"]},'{$device["sModelName"]}','{$device["sModuleInfo"]}',
+            '{$device["sInterface"]}','{$device["ip_adress"]}',{$device["ip_port"]}, {$device["iAdrMODBUS"]}),";
         }
 
-        $sql = substr($sql, 0 , -1);
+        $sql = substr($sql, 0, -1);
         $sql .= ";";
-
-        $mysqli->multi_query($sql);
-        $mysqli->close();
+        if ($mysqli->multi_query($sql)) {
+            while ($mysqli->more_results() && $mysqli->next_result()) {
+            }
+            if ($mysqli->errno) throw new Exception;
+            else {
+                $mysqli->commit();
+                $mysqli->close();
+            }
+        } else throw new Exception;
     }
 }
 
