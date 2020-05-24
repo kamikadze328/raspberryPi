@@ -6,6 +6,7 @@ import sys
 from datetime import datetime
 from datetime import timedelta
 
+
 import DB
 import Logger
 
@@ -149,16 +150,17 @@ def upload_data(list_data, list_filenames, table_with_params):
         with_error = False
         try:
             for one_data in list_data:
-                if 'logs' in table_with_params:
-                    date1 = datetime.strptime(list_filenames[index].split('.')[0], '%Y-%m-%d %H%M')
-                    date2 = date1 + timedelta(seconds=59)
-                    server.delete_between_dates(date1, date2, table_name, 'id_datetime')
+                if len(one_data) > 0:
+                    if table_with_params.startswith('logs') or table_with_params.startswith('statistics'):
+                        date1 = datetime.strptime(list_filenames[index].split('.')[0], '%Y-%m-%d %H%M')
+                        date2 = date1 + timedelta(seconds=59)
+                        server.delete_between_dates(date1, date2, table_name, 'id_datetime')
 
-                new_full_time, new_upload_time = server.replace_many_rows(one_data, table_with_params)
-                upload_time += new_upload_time
-                full_time += new_full_time
-                count_rows += len(one_data)
-                index += 1
+                    new_full_time, new_upload_time = server.replace_many_rows(one_data, table_with_params)
+                    upload_time += new_upload_time
+                    full_time += new_full_time
+                    count_rows += len(one_data)
+                    index += 1
 
         except:
             with_error = True
@@ -184,11 +186,39 @@ def add_row_statistics(time_upload=None, time_connection=None, with_error=False)
     statistics_rows.append(one_row_stat)
 
 def prepare_dyn_data(dynamic_data):
-    keys = ['iTegAddr', 'iTegValue']
     new_dyn_data = []
     for one_data in dynamic_data:
-        new_dyn_data.append([str(one_data.get(key)) for key in keys])
+        new_dyn_data.append([one_data[0], one_data[1]])
     return [new_dyn_data]
+
+def delete_files_by_date(dir_path, type_files, min_date):
+    for one_file in os.listdir(dir_path):
+        if one_file.endswith(type_files) and min_date >= one_file.split('.')[0]:
+            os.remove(dir_path + one_file)
+
+def decrease_date(str_date, minutes):
+    return (str_date - timedelta(minutes=minutes)).strftime("%Y-%m-%d %H%M")
+
+def clean():
+    min_last_dates = {
+        'data': '9000-01-01 0000',
+        'logs': '9000-01-01 0000',
+        'logs_syncdata': '9000-01-01 0000',
+        'statistics': '9000-01-01 0000',
+    }
+    dates_and_counters = Logger.read_json_file(Logger.last_upload_path)
+    for clean_server in dates_and_counters:
+        for name in ['data', 'logs', 'logs_syncdata', 'statistics']:
+            counter = clean_server.get(name + '_counter')
+            server_date= datetime.strptime(clean_server.get(name), '%Y-%m-%d %H:%M')
+            min_last_dates[name] = min(min_last_dates.get(name), decrease_date(server_date, 0) \
+                if counter > 3 \
+                else decrease_date(server_date, 30))
+
+    for (name, type_files, paths) in [('data', '.dat', data_path), ('logs', '.log', data_path),
+                                      ('logs_syncdata', '.log', my_logs_path), ('statistics', '.stat', stat_path)]:
+        delete_files_by_date(paths, type_files, min_last_dates.get(name))
+
 # =========================================================================================================================================================================================
 #  СТАРТ программы
 # =========================================================================================================================================================================================
@@ -202,8 +232,8 @@ for config_server in configs_servers:
     if connect_to_db(server):
 
         # Если добавился новый сервер, следует самому добавить его в статистику
+        # Сам он добавится только если успешно будет работать
 
-        #send_statistics()
         # upload dynamic data
         dyn_data = Logger.read_json_file(data_path + dyn_data_name)
         if dyn_data:
@@ -229,4 +259,6 @@ for config_server in configs_servers:
                                                   datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
 
 Logger.save_stat(statistics_rows, table_in_db.get('statistics').split('(')[1][:-1].split(", "))
+clean()
+
 print "END program"
