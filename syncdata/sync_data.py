@@ -15,7 +15,8 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
-config_path = current_path + 'sync_data.conf.json'
+config_path = '/var/www/html/syncdata_web_version/sync_data.conf.json'
+#config_path = current_path + 'sync_data.conf.json'
 my_logs_path = current_path + 'logs/'
 stat_path = current_path + 'stats/'
 if not os.path.exists(my_logs_path):
