@@ -52,7 +52,6 @@ function updateChartData(chart, newData){
     newData = prepareData(newData)
     const stopData = date_one_duration_ago(newData[0].date)
     for(i; i < chart.data.length; i++) {
-        console.log(chart.data[i])
         if (chart.data[i].date.getTime() >= stopData) break;
     }
     chart.data = chart.data.slice(i, chart.data.length - 1)

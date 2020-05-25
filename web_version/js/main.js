@@ -54,7 +54,6 @@ function updateMainInfo() {
         .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
             setNewInfoUpdater()
-            console.log(data)
             if (!data.error)
                 data.forEach(server => {
                     const serverID = getServerId(server.host)
@@ -183,12 +182,14 @@ function toggleSettingsPanel() {
 function openSettingsPanel(listClassesIcon) {
     listClassesIcon.remove("show-icon")
     listClassesIcon.add("close-icon")
+    document.getElementById("settings-button").classList.add("show-button")
     document.getElementById("settings-panel").classList.add("show-settings")
 }
 
 function closeSettingsPanel(listClassesIcon) {
     listClassesIcon.remove("close-icon")
     listClassesIcon.add("show-icon")
+    document.getElementById("settings-button").classList.remove("show-button")
     document.getElementById("settings-panel").classList.remove("show-settings")
     clearTempSettingsInfo()
 }
@@ -201,7 +202,7 @@ function chooseDuration(e) {
     let durationItems = document.querySelectorAll(".duration-item")
     durationItems.forEach(elem =>
         setChoiceDuration(elem))
-    document.querySelector(".settings-button").click()
+    document.getElementById("settings-button").click()
 
     updateChartsMeta()
     initCharts()
@@ -216,7 +217,7 @@ function setChoiceDuration(htmlElem) {
 }
 
 function setEventListenerSettings() {
-    document.querySelector(".settings-button").addEventListener('click', toggleSettingsPanel)
+    document.getElementById("settings-button").addEventListener('click', toggleSettingsPanel)
 
     let durationItems = document.querySelectorAll(".duration-item")
     durationItems.forEach(elem => {
@@ -239,7 +240,6 @@ function updateDB(){
                 elem.innerHTML += `<div style="margin: 10px 0; border-radius: 5px" class="${server.status ? 'norm' : 'error'}">${server.host}</div>`
             })
             elem.parentElement.classList.add("border-bottom")
-            console.log(data)
         })
         .catch(error => console.log(error))
 }
