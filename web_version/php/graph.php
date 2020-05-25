@@ -6,7 +6,15 @@ function read_json($filepath)
     if (file_exists($filepath)) return json_decode(file_get_contents($filepath), true);
     else return array();
 }
-function get_graph_from_server($server, $duration)
+function millis_to_date($millis){
+
+    return date("Y-m-d H:i:s", $millis / 1000);
+}
+
+function get_now_php($duration){
+    return (new DateTime())->modify("-1 {$duration}")->format("Y-m-d H:i:s");
+}
+function get_graph_from_server($server, $duration, $min_date)
 {
         $mysqli = new mysqli($server["host"], $server["user"], $server["password"], $server["database"]);
 
@@ -20,7 +28,7 @@ function get_graph_from_server($server, $duration)
                 else $format_date = '%Y-%m-%d %H:%i:%S';
                 $sql = "select date_format(ID_DATETIME, '{$format_date}') as date, ROUND(avg(TIME_UPLOAD_MS), 3) as value from statistics 
                             where HOST_NAME='{$server["host"]}' 
-                            and ID_DATETIME between now() - interval 1 {$duration} and now() 
+                            and ID_DATETIME between '{$min_date}' and now() 
                             and (TIME_CONNECTION_MS < 0 or TIME_CONNECTION_MS is null)
                             group by date";
                 $result = $mysqli->query($sql);
@@ -40,10 +48,10 @@ function get_graph_from_server($server, $duration)
 
 
 $post = json_decode(file_get_contents('php://input'), true);
-if(isset($post["duration"]) && ($post["duration"] == "day" || $post["duration"] == "week" || $post["duration"] == "hour")) {
+if(isset($post["duration"])  && ($post["duration"] == "day" || $post["duration"] == "week" || $post["duration"] == "hour")) {
     $servers = read_json($servers_file);
         foreach ($servers as $server) {
-            $answer = get_graph_from_server($server, $post["duration"]);
+            $answer = get_graph_from_server($server, $post["duration"], (isset($post["minDate"])) ? millis_to_date($post["minDate"]) : get_now_php($post["duration"]));
             if ($answer) {
                 echo json_encode($answer);
                 break;

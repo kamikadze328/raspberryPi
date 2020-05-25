@@ -34,7 +34,7 @@ function getHTMLMainInfoFromServer() {
         .then(response => response.text())
         .then(data => {
             document.getElementById("db-list").innerHTML = data;
-            charts(dataToServer)
+            initCharts()
 
             setNumberDB(document.getElementsByClassName("db"))
             dateToDeltaHTML(document.querySelectorAll(".db-last-conn > :last-child"))
@@ -204,7 +204,8 @@ function chooseDuration(e) {
     document.querySelector(".settings-button").click()
 
     updateChartsMeta()
-    updateChart()
+    initCharts()
+    //updateChart()
     updateMainInfo()
 }
 
@@ -224,7 +225,7 @@ function setEventListenerSettings() {
     })
 
     document.getElementById("db-list").addEventListener('click', () => {if (getSettingsListClasses().contains("close-icon")) closeSettingsPanel(getSettingsListClasses())})
-    document.getElementById("refresh-button").addEventListener('click', ()=>{updateChart(); updateMainInfo()})
+    document.getElementById("refresh-button").addEventListener('click', ()=>{updateCharts(); updateMainInfo()})
     document.getElementById("update-db-button").addEventListener('click', updateDB)
 }
 

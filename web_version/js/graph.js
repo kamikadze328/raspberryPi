@@ -1,32 +1,10 @@
-let chart_data, refreshChartId = 0
+let refreshChartId = 0
 let margin = ({top: 10, right: 0, bottom: 10, left: 35})
-let format_time, deltaForChart
-let new_charts_data = []
-function charts(json_data) {
-    duration = json_data.duration
-    fetch('./php/graph.php', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(json_data),
-    })
-        .then(response => {if(response.ok) return response.json(); else throw response})
-        .then(data => {
-            if (!data.error) {
-                chart_data = data
-                updateChartsMeta()
-                chart_data.forEach(server => {
-                    console.log([server.host, server.data.length])
-                    drawChart(server, false)
-                    console.log(server.data)
-                })
-                window.removeEventListener("resize", resizeCharts)
-                window.addEventListener("resize", resizeCharts)
-                setNewChartUpdater()
-            }
-        }).catch(error => console.log(error));
-}
+let format_time, deltaForChart, date_one_duration_ago
+let charts_data = []
 
-function updateChart() {
+function initCharts() {
+    duration = dataToServer.duration
     fetch('./php/graph.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -35,74 +13,117 @@ function updateChart() {
         .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
             if (!data.error) {
-                chart_data = data
+                charts_data = []
+                updateChartsMeta()
                 d3.selectAll("svg").remove()
-                reDrawAll()
+                data.forEach(server => initChart(server))
+                window.removeEventListener("resize", resizeAllCharts)
+                window.addEventListener("resize", resizeAllCharts)
                 setNewChartUpdater()
             }
         }).catch(error => console.log(error));
 }
 
+function updateCharts() {
+    fetch('./php/graph.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({...dataToServer, minDate: getMinMaxDate().getTime()}),
+    })
+        .then(response => {if(response.ok) return response.json(); else throw response})
+        .then(data => {
+            if (!data.error) {
+                updateAllChartsData(data)
+                redrawAllCharts()
+            }
+        }).catch(error => console.log(error));
+}
+
+function updateAllChartsData(data) {
+    data.forEach(server => {
+        updateChartData(charts_data.find(chart => {
+            return chart.id === "chart-" + getServerId(server.host) ? chart : false
+        }), server.data)
+    })
+}
+
+function updateChartData(chart, newData){
+    let i = 0
+    newData = prepareData(newData)
+    const stopData = date_one_duration_ago(newData[0].date)
+    for(i; i < chart.data.length; i++) {
+        console.log(chart.data[i])
+        if (chart.data[i].date.getTime() >= stopData) break;
+    }
+    chart.data = chart.data.slice(i, chart.data.length - 1)
+    chart.data.push(...newData)
+}
+
 function setNewChartUpdater() {
     const timeout = clearUpdaterAndGetTimeout(refreshChartId);
-    refreshChartId = window.setInterval(updateChart, timeout);
+    refreshChartId = window.setInterval(updateCharts, timeout);
 }
 
-function resizeCharts() {
-    chart_data.forEach(server => drawChart(server, true))
+function resizeAllCharts() {
+    charts_data.forEach(chart => resizeChart(chart))
 }
 
-function reDrawAll() {
-    chart_data.forEach(server => drawChart(server, false))
+function redrawAllCharts() {
+    charts_data.forEach(chart => reDrawChart(chart))
 }
 
-function redrawChart() {
+function reDrawChart(chart){
+    chart.xScale.domain(d3.extent(chart.data, d => d.date))
+    const maxValue = d3.max(chart.data, d => d.value)
+    chart.yScale.domain([0, maxValue ? maxValue : 3]).nice()
+    chart.line = d3.line()
+        .defined(d => !isNaN(d.value))
+        .x(d => chart.xScale(d.date))
+        .y(d => chart.yScale(d.value))
+    chart.svg.select(".main-line")
+        .datum(chart.data.filter(chart.line.defined()))
+    chart.svg.select(".empty-line")
+        .datum(chart.data)
+    resizeChart(chart)
+}
 
+function resizeChart(chart) {
+    let chartHTML = document.getElementById(chart.id)
+    let width = chartHTML.clientWidth - margin.right - margin.left,
+        height = chartHTML.clientHeight - margin.top - margin.bottom;
+
+    chart.xScale.range([margin.left, width - margin.right])
+    chart.yScale.range([height - margin.bottom, margin.top])
+
+    chart.svg.select(".x.axis")
+        .attr("transform", `translate(0, ${height - margin.bottom})`)
+        .call(chart.xAxis.ticks(width / 80))
+    chart.svg.select(".y.axis")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(chart.yAxis);
+
+    chart.svg.select(".main-line")
+        .attr("d", chart.line);
+
+    chart.svg.select(".empty-line")
+        .attr("d", chart.line);
 }
 
 function initChart(server) {
-    let id = getServerId(server.host)
-    let chart = document.getElementById('chart-' + id)
-    let width = chart.clientWidth - margin.right - margin.left,
-        height = chart.clientHeight - margin.top - margin.bottom;
-    const svg = d3.select('#chart-' + id).append('svg')
-        .attr("width", '100%')
-        .attr("height", '100%')
-        .classed("svg-content", true);
+    const id = 'chart-' + getServerId(server.host)
+    const chartHTML = document.getElementById(id)
+    const width = chartHTML.clientWidth - margin.right - margin.left,
+        height = chartHTML.clientHeight - margin.top - margin.bottom,
+        data = prepareData(server.data)
 
-    let data = prepareData(server.data)
-    server.data = data
-    new_charts_data.push(server)
-
-}
-
-function drawChart(server, isResize) {
-    //TODO Сейчас при перерисовке удаляется тег и заново добавляется.
-    //Переделать, чтобы перерисовывалось, а не вот это всё
-    let id = getServerId(server.host)
-    let chart = document.getElementById('chart-' + id)
-    let margin = ({top: 10, right: 0, bottom: 10, left: 35}),
-        width = chart.clientWidth - margin.right - margin.left,
-        height = chart.clientHeight - margin.top - margin.bottom;
-    if (isResize) d3.select(`#chart-${id} > svg`).remove()
-    const svg = d3.select('#chart-' + id).append('svg')
-        .attr("width", '100%')
-        .attr("height", '100%')
-        .classed("svg-content", true);
-
-
-    if (!isResize)
-        server.data = prepareData(server.data)
-
-    let data = server.data
-
-    let xScale = d3.scaleTime()
+    const xScale = d3.scaleTime()
         .range([margin.left, width - margin.right])
         .domain(d3.extent(data, d => d.date))
     const maxValue = d3.max(data, d => d.value)
-    let yScale = d3.scaleLinear()
+
+    const yScale = d3.scaleLinear()
         .range([height - margin.bottom, margin.top])
-        .domain([0, maxValue ? maxValue : 3/* > 3 ? 3 : maxValue*/]).nice()
+        .domain([0, maxValue ? maxValue : 3]).nice()
 
     const xAxis = d3.axisBottom()
         .scale(xScale)
@@ -111,37 +132,51 @@ function drawChart(server, isResize) {
         .scale(yScale)
         .ticks(3);
 
-
-    svg.append("g")
-        .attr("class", "axisWhite")
-        .attr("transform", `translate(0, ${height - margin.bottom})`)
-        .call(xAxis)
-    svg.append("g")
-        .attr("class", "axisWhite")
-        .attr("transform", `translate(${margin.left},0)`)
-        .call(yAxis);
-
-
     const line = d3.line()
         .defined(d => !isNaN(d.value))
         .x(d => xScale(d.date))
         .y(d => yScale(d.value))
 
+    const svg = d3.select('#' + id).append('svg')
+        .attr("width", '100%')
+        .attr("height", '100%')
+        .classed("svg-content", true);
+
+    svg.append("g")
+        .attr("class", "x axis axisWhite")
+        .attr("transform", `translate(0, ${height - margin.bottom})`)
+        .call(xAxis)
+    svg.append("g")
+        .attr("class", "y axis axisWhite")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(yAxis);
 
     svg.append("path")
         .datum(data.filter(line.defined()))
+        .attr("class", "main-line")
         .attr("stroke", "#ff5b57")
         .attr("fill", "none")
         .attr("stroke-width", 1.5)
         .attr("stroke-dasharray", 4)
-        .attr("d", line);
-
+        .attr("d", line)
     svg.append("path")
         .datum(data)
+        .attr("class", "empty-line")
         .attr("stroke", "#348fe2")
         .attr("stroke-width", 1.5)
         .attr("fill", "none")
-        .attr("d", line);
+        .attr("d", line)
+
+    charts_data.push({
+        id,
+        data,
+        xScale,
+        yScale,
+        xAxis,
+        yAxis,
+        svg,
+        line,
+    })
 }
 
 function prepareData(serverData) {
@@ -171,16 +206,25 @@ function prepareData(serverData) {
 function updateChartsMeta(){
     if (duration === 'day') {
         format_time = '%Y-%m-%d %H:%M'
+        date_one_duration_ago = (date) => new Date(date).setDate(date.getDate() - 1)
         //5 minute
         deltaForChart = 300000
     } else if (duration === 'week') {
         format_time = '%Y-%m-%d %H'
+        date_one_duration_ago = (date) => new Date(date).setDate(date.getDate() - 7)
         //60 minute
         deltaForChart = 3600000
     } else {
         format_time = '%Y-%m-%d %H:%M:%S'
+        date_one_duration_ago = (date) => new Date(date).setHours(date.getHours() - 1)
         //5 minute
         deltaForChart = 300000
     }
+}
+
+function getMinMaxDate() {
+    let maxDates = []
+    charts_data.forEach(chart => maxDates.push(chart.data[chart.data.length - 1].date))
+    return d3.min(maxDates)
 }
 
