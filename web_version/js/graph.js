@@ -2,7 +2,7 @@ let refreshChartId = 0
 let margin = ({top: 10, right: 0, bottom: 10, left: 35})
 let format_time, deltaForChart, date_one_duration_ago
 let charts_data = []
-
+let html_chart = []
 function initCharts() {
     duration = dataToServer.duration
     fetch('./php/graph.php', {
@@ -28,7 +28,7 @@ function updateCharts() {
     fetch('./php/graph.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({...dataToServer, minDate: getMinMaxDate().getTime()}),
+        body: JSON.stringify({duration:dataToServer.duration, minDate: getMinMaxDate()}),
     })
         .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
@@ -87,7 +87,7 @@ function reDrawChart(chart){
 }
 
 function resizeChart(chart) {
-    let chartHTML = document.getElementById(chart.id)
+    let chartHTML = html_chart[chart.id]
     let width = chartHTML.clientWidth - margin.right - margin.left,
         height = chartHTML.clientHeight - margin.top - margin.bottom;
 
@@ -111,6 +111,7 @@ function resizeChart(chart) {
 function initChart(server) {
     const id = 'chart-' + getServerId(server.host)
     const chartHTML = document.getElementById(id)
+    html_chart[id] = chartHTML
     const width = chartHTML.clientWidth - margin.right - margin.left,
         height = chartHTML.clientHeight - margin.top - margin.bottom,
         data = prepareData(server.data)
@@ -224,6 +225,6 @@ function updateChartsMeta(){
 function getMinMaxDate() {
     let maxDates = []
     charts_data.forEach(chart => maxDates.push(chart.data[chart.data.length - 1].date))
-    return d3.min(maxDates)
+    return Math.min.apply(null, maxDates)
 }
 

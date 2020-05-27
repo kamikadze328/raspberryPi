@@ -233,7 +233,7 @@ h3{
 .show-settings{
     right: 0 !important;
 }
-.settings-icon{
+#settings-icon{
     display: inline-block;
     font-style: normal;
     font-variant: normal;
@@ -309,7 +309,7 @@ hr {
         right: 210px !important;
     }
 
-    .settings-icon {
+    #settings-icon {
         font-size: 40px;
         margin: 5px 10px 5px 0;
     }
@@ -336,7 +336,7 @@ hr {
         right: 210px !important;
     }
 
-    .settings-icon {
+    #settings-icon {
         font-size: 30px;
         margin: 5px 10px 5px 0;
     }

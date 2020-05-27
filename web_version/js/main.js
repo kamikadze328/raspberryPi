@@ -35,9 +35,8 @@ function getHTMLMainInfoFromServer() {
         .then(data => {
             document.getElementById("db-list").innerHTML = data;
             initCharts()
-
             setNumberDB(document.getElementsByClassName("db"))
-            dateToDeltaHTML(document.querySelectorAll(".db-last-conn > :last-child"))
+            dateToDeltaHTML(document.querySelectorAll(".delta-time"))
             setNewInfoUpdater()
         }).catch(error => console.log(error))
 }
@@ -54,7 +53,7 @@ function updateMainInfo() {
         .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
             setNewInfoUpdater()
-            if (!data.error)
+            if (data && !data.error)
                 data.forEach(server => {
                     const serverID = getServerId(server.host)
 
@@ -84,7 +83,7 @@ function getServerId(serverHost){
 
 function setNumberDB(htmlPath) {
     const numberDB = htmlPath ? htmlPath.length : 0;
-    document.querySelector(".header :first-child").textContent = 'List of ' + numberDB + ' DBs'
+    document.getElementById("number-db").textContent = 'List of ' + numberDB + ' DBs'
 }
 
 function dateToDeltaHTML(htmlCollectionDates) {
@@ -100,7 +99,7 @@ function dateToDelta(str_date) {
 }
 
 function updateDeltaTime() {
-    let dates = document.querySelectorAll(".db-last-conn > :last-child")
+    let dates = document.querySelectorAll(".delta-time")
     for (let dateHTML of dates) {
         let str_delta = String(dateHTML.textContent)
         if (str_delta !== "NAN") {
@@ -118,7 +117,7 @@ function setStatusTime(seconds, elemHTML) {
         status = "norm"
     else if (seconds >= 300 && seconds < 3600)
         status = "warn"
-    elemHTML.className = "text-" + status
+    elemHTML.className = "delta-time text-" + status
     elemHTML.parentElement.firstElementChild.firstElementChild.className = "circle " + status
 }
 
@@ -164,13 +163,13 @@ function updateTime() {
         minute: '2-digit',
         second: '2-digit'
     }
-    document.querySelector(".header :last-child").textContent = date.toLocaleString("ru", options)
+    document.getElementById("time").textContent = date.toLocaleString("ru", options)
     updateDeltaTime()
 
 }
 
 function getSettingsListClasses(){
-    return document.getElementsByClassName("settings-icon")[0].classList
+    return document.getElementById("settings-icon").classList
 }
 
 function toggleSettingsPanel() {
@@ -236,9 +235,11 @@ function updateDB(){
         .then(response => response.json())
         .then(data => {
             let elem = document.getElementById("update-db-info")
+            let html = ''
             data.forEach((server)=>{
-                elem.innerHTML += `<div style="margin: 10px 0; border-radius: 5px" class="${server.status ? 'norm' : 'error'}">${server.host}</div>`
+                html += `<div style="margin: 10px 0; border-radius: 5px" class="${server.status ? 'norm' : 'error'}">${server.host}</div>`
             })
+            elem.innerHTML = html
             elem.parentElement.classList.add("border-bottom")
         })
         .catch(error => console.log(error))

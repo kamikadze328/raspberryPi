@@ -55,7 +55,7 @@ if (!empty($_servers_main_info)) {
                             <div class="circle <?php echo $status_date ?>" id="circle-date-<?php echo $server_id ?>"></div>
                             <div>Last connection</div>
                         </div>
-                        <div id="val-date-<?php echo $server_id ?>" class="text-<?php echo $status_date ?>"><?php echo $server["last_connection"] ?></div>
+                        <div id="val-date-<?php echo $server_id ?>" class="delta-time text-<?php echo $status_date ?>"><?php echo $server["last_connection"] ?></div>
                     </div>
                     <div class="db-number-err row-stat">
                         <div class="flex">
