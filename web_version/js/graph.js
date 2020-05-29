@@ -96,7 +96,7 @@ function resizeChart(chart) {
 
     chart.svg.select(".x.axis")
         .attr("transform", `translate(0, ${height - margin.bottom})`)
-        .call(chart.xAxis.ticks(width / 80))
+        .call(chart.xAxis.ticks(width / 80 <= 10 ? width / 80 : 10))
     chart.svg.select(".y.axis")
         .attr("transform", `translate(${margin.left},0)`)
         .call(chart.yAxis);
@@ -127,7 +127,7 @@ function initChart(server) {
 
     const xAxis = d3.axisBottom()
         .scale(xScale)
-        .ticks(width / 80);
+        .ticks(width / 80 <= 10 ? width / 80 : 10);
     const yAxis = d3.axisLeft()
         .scale(yScale)
         .ticks(3);
