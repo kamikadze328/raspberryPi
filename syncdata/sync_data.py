@@ -34,7 +34,7 @@ table_in_db = {
     'dyn_data': 'data_dyn(id, id_value)',
     'logs': 'logs(id_datetime, log_id, log_text)',
     'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text)',
-    'statistics': 'statistics(id_datetime, host_name, time_upload_ms, time_connection_ms, is_error)',
+    'statistics_syncdata': 'statistics_syncdata(id_datetime, host_name, time_upload_ms, time_connection_ms, is_error)',
 }
 
 
@@ -81,8 +81,8 @@ def read_files_by_type(dir_path, type_files, first_date):
             list_success_files.append(one_file)
     if len(list_broken_files) > 0:
         Logger.write('Can`t read %d files  -->  %s' % (len(list_broken_files), list_broken_files), Logger.LogType.WARN)
-    return data_from_files, list_success_files, list_broken_files[0] if len(list_broken_files) and len(
-        list_success_files) > 0 else None
+
+    return data_from_files, list_success_files, list_broken_files[0] if len(list_broken_files) else None
 
 
 def connect_to_db(server_to_connect):
@@ -205,11 +205,11 @@ def clean():
         'data': '9000-01-01 0000',
         'logs': '9000-01-01 0000',
         'logs_syncdata': '9000-01-01 0000',
-        'statistics': '9000-01-01 0000',
+        'statistics_syncdata': '9000-01-01 0000',
     }
     dates_and_counters = Logger.read_json_file(Logger.last_upload_path)
     for clean_server in dates_and_counters:
-        for name in ['data', 'logs', 'logs_syncdata', 'statistics']:
+        for name in ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']:
             counter = clean_server.get(name + '_counter')
             server_date= datetime.strptime(clean_server.get(name), '%Y-%m-%d %H:%M')
             min_last_dates[name] = min(min_last_dates.get(name), decrease_date(server_date, 0) \
@@ -217,7 +217,7 @@ def clean():
                 else decrease_date(server_date, 30))
 
     for (name, type_files, paths) in [('data', '.dat', data_path), ('logs', '.log', data_path),
-                                      ('logs_syncdata', '.log', my_logs_path), ('statistics', '.stat', stat_path)]:
+                                      ('logs_syncdata', '.log', my_logs_path), ('statistics_syncdata', '.stat', stat_path)]:
         delete_files_by_date(paths, type_files, min_last_dates.get(name))
 
 # =========================================================================================================================================================================================
@@ -241,7 +241,7 @@ for config_server in configs_servers:
             upload_data(prepare_dyn_data(dyn_data), data_path + dyn_data_name, table_in_db.get('dyn_data'))
 
         for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path),
-                                         ('logs_syncdata', '.log', my_logs_path), ('statistics', '.stat', stat_path)]:
+                                         ('logs_syncdata', '.log', my_logs_path), ('statistics_syncdata', '.stat', stat_path)]:
 
             last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
             last_data_from_files, filenames, first_broken_read_file = read_files_by_type(path, type_file, last_date)
@@ -258,8 +258,11 @@ for config_server in configs_servers:
                     last_date_file = last_date_file.split('.')[0]
                     Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0],
                                                   datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
+            elif first_broken_read_file:
+                Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0],
+                                              datetime.strptime(first_broken_read_file.split('.')[0], '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
 
-Logger.save_stat(statistics_rows, table_in_db.get('statistics').split('(')[1][:-1].split(", "))
+Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", "))
 clean()
 
 print "END program"

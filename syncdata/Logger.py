@@ -94,7 +94,7 @@ def read_log_file(file_path):
         data_from_log = []
         for line in f:
             if len(line) > 30:
-                log_type = LogType[line[22:28].strip()] if line[22:28] != '------' else LogType.INFO
+                log_type = LogType[line[22:28].strip().upper()] if line[22:28] != '------' else LogType.INFO
                 data_from_log.append([line[:19], str(log_type.value), line[29:229]])
     return data_from_log
 
@@ -121,8 +121,8 @@ def save_last_upload_dates(host_name, tablename, last_upload_date):
         'logs_counter': 0,
         'logs_syncdata': '1900-01-01 00:00',
         'logs_syncdata_counter': 0,
-        'statistics':'1900-01-01 00:00',
-        'statistics_counter':0,
+        'statistics_syncdata':'1900-01-01 00:00',
+        'statistics_syncdata_counter':0,
         tablename: last_upload_date
     }]
     if not os.path.exists(last_upload_path):
@@ -154,6 +154,7 @@ def save_last_upload_dates(host_name, tablename, last_upload_date):
 def save_stat(statistics, headers):
     """
     Save statistics with rewriting existing statistics
+    :param headers:
     :param statistics: Statistics in json format
     """
     stat_path = __get_stat_filepath()
