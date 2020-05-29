@@ -45,14 +45,14 @@ function get_info_from_server($server, $duration){
             foreach($servers as $server){
                 $info_about_one_server = array("host" => $server["host"]);
 
-                $sql = "SELECT ID_DATETIME from statistics where host_name = '{$server["host"]}' 
+                $sql = "SELECT ID_DATETIME from statistics_syncdata where host_name = '{$server["host"]}' 
                                      and TIME_CONNECTION_MS > 0 ORDER BY id_datetime DESC LIMIT 1";
                 $result = $mysqli->query($sql);
                 $row = mysqli_fetch_array($result);
                 $info_about_one_server["last_connection"] = $row ? $row["ID_DATETIME"]: "NAN";
                 $result->close();
 
-                $sql = "SELECT avg(TIME_UPLOAD_MS) from statistics where HOST_NAME='{$server["host"]}' 
+                $sql = "SELECT avg(TIME_UPLOAD_MS) from statistics_syncdata where HOST_NAME='{$server["host"]}' 
                                              and ID_DATETIME between now() - interval 1 {$duration} and now()
                                              and TIME_UPLOAD_MS > 0";
                 $result = $mysqli->query($sql);
@@ -60,7 +60,7 @@ function get_info_from_server($server, $duration){
                 $info_about_one_server["avg_time_upload"] = $row ? round($row["avg(TIME_UPLOAD_MS)"],3): 0;
                 $result->close();
 
-                $sql = "SELECT avg(TIME_CONNECTION_MS) from statistics where HOST_NAME='{$server["host"]}' 
+                $sql = "SELECT avg(TIME_CONNECTION_MS) from statistics_syncdata where HOST_NAME='{$server["host"]}' 
                                                  and ID_DATETIME between now() - interval 1 {$duration} and now()
                                                  and TIME_CONNECTION_MS > 0";
                 $result = $mysqli->query($sql);
@@ -68,7 +68,7 @@ function get_info_from_server($server, $duration){
                 $info_about_one_server["avg_time_connection"] = $row ? round($row["avg(TIME_CONNECTION_MS)"],3): 0;
                 $result->close();
 
-                $sql = "SELECT count(*) from statistics where HOST_NAME='{$server["host"]}' 
+                $sql = "SELECT count(*) from statistics_syncdata where HOST_NAME='{$server["host"]}' 
                                   and IS_ERROR = 1 
                                   and ID_DATETIME between now() - interval 1 {$duration} and now()";
                 $result = $mysqli->query($sql);

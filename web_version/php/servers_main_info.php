@@ -76,7 +76,6 @@ if (!empty($_servers_main_info)) {
 
                     </div>
                 </div>-->
-
             </div>
         </div>
     <?php }
