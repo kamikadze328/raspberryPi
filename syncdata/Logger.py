@@ -15,13 +15,23 @@ class LogType(Enum):
     """
     Enum with type of message in log
     """
-    FATAL = 3
-    ERROR = 2
-    WARN = 1
-    INFO = 0
+    FATAL = 10
+    ERROR = 6
+    WARN  = 3
+    ALARM = 3
+    INFO  = 0
 
 
 def write(message, log_type=None, file_path=None):
+    """
+    Write a row in a log.
+    :param message: message of log.
+    :type message: str
+    :param log_type: Type og log from enum. Default LogType.INFO.
+    :type log_type: int or LogType
+    :param file_path: Path to log file. Not necessary param.
+    :type file_path: str
+    """
     message = __make_message(message, log_type)
     if file_path is None:
         file_path = __get_logs_filepath()
@@ -34,17 +44,38 @@ def write(message, log_type=None, file_path=None):
 
 
 def __get_logs_filepath():
+    """
+    Get default absolute name of current log file.
+    :return: default filepath to logs.
+    :rtype: str
+    """
     if not os.path.exists(current_path + 'logs/'):
         os.mkdir(current_path + 'logs/')
     return current_path + 'logs/' + d.now().strftime("%Y-%m-%d %H%M") + '.log'
 
 def __get_stat_filepath():
+    """
+     Get default absolute name of current statistics file.
+    :return: default filepath to statistics files.
+    :rtype: str
+    """
     if not os.path.exists(current_path + 'stats/'):
         os.mkdir(current_path + 'stats/')
     return current_path + 'stats/' + d.now().strftime("%Y-%m-%d %H%M") + '.stat'
 
 
 def __make_message(message, log_type=None, time=None):
+    """
+    Make message in right log format.
+    :param message: message of log.
+    :type message: str
+    :param log_type: Type og log from enum. Default LogType.INFO.
+    :type log_type: int or LogType
+    :param time: Time of logs. Default current time. Format Y-m-d H:M:S.
+    :type time: str
+    :return: message in log format.
+    :rtype: str
+    """
     if time is None:
         time = unicode(d.now().strftime('%Y-%m-%d %H:%M:%S'))
     elif isinstance(time, d):
@@ -73,7 +104,7 @@ def read_json_file(file_path, do_check_file=False):
         with open(file_path) as f:
             data_from_file = json.load(f)
     except:
-        write("Can't read file  -->  %s" % file_path, LogType.WARN)
+        write("Can't read file  -->  %s" % file_path, LogType.ALARM)
         return None
     else:
         return data_from_file
@@ -99,7 +130,7 @@ def read_log_file(file_path):
     return data_from_log
 
 
-def read_dat_file(file_path):
+def read_csv_file(file_path):
     """
     Read dat with csv struct, where delimiter is ','
     :param file_path: absolute path to file
@@ -113,17 +144,27 @@ def read_dat_file(file_path):
 
 
 def save_last_upload_dates(host_name, tablename, last_upload_date):
+    """
+    Save last upload dates. It is necessary for uploading not all files and deleting already uploaded files.
+    :param host_name: Name of host.
+    :type host_name: str
+    :param tablename: name of table in db
+    :type tablename: str
+    :param last_upload_date: Date in format 'Y-m-d HM'
+    :type last_upload_date: str
+    """
     pattern_json_data = [{
-        'host': host_name,
-        'data': '1990-01-01 00:00',
+        'data': '1990-01-01 0000',
         'data_counter': 0,
-        'logs': '1900-01-01 00:00',
+        'logs': '1900-01-01 0000',
         'logs_counter': 0,
-        'logs_syncdata': '1900-01-01 00:00',
+        'logs_syncdata': '1900-01-01 0000',
         'logs_syncdata_counter': 0,
-        'statistics_syncdata':'1900-01-01 00:00',
+        'statistics_syncdata':'1900-01-01 0000',
         'statistics_syncdata_counter':0,
-        tablename: last_upload_date
+        'host': host_name,
+        tablename: last_upload_date,
+
     }]
     if not os.path.exists(last_upload_path):
         with open(last_upload_path, 'w') as f:
@@ -153,9 +194,11 @@ def save_last_upload_dates(host_name, tablename, last_upload_date):
 
 def save_stat(statistics, headers):
     """
-    Save statistics with rewriting existing statistics
-    :param headers:
+    Save rows statistics.
     :param statistics: Statistics in json format
+    :type statistics: list[dict]
+    :param headers: headers of dictionary
+    :type headers: list[str]
     """
     stat_path = __get_stat_filepath()
     if not os.path.exists(stat_path):

@@ -32,7 +32,9 @@ def list_to_sql(data_list):
 
 
 class Server(object):
-
+    """
+    Class for work with db
+    """
     def __init__(self, host, user, password, database):
         self.config = {
             'host': host,
@@ -69,14 +71,14 @@ class Server(object):
         return table_name in self.whitelist
 
     def replace_many_rows(self, data, table_name_with_params):
-        start_time = time.time()
         if not self.__is_in_table_whitelist(table_name_with_params.split('(')[0]):
             raise connector.Error('table %s doesn`t exist' % table_name_with_params.split('(')[0].upper())
         sql = 'REPLACE INTO %s VALUES' % table_name_with_params
-        if isinstance(data[0], dict):
-            sql += dict_to_sql(data)
-        else:
+
+        if isinstance(data[0], list):
             sql += list_to_sql(data)
+        else:
+            sql += dict_to_sql(data)
 
         sql = sql[:-1] + ';'
 
@@ -86,7 +88,7 @@ class Server(object):
         self.__con.commit()
         cursor.close()
 
-        return time.time() - start_time, time.time() - start_time_execute
+        return time.time() - start_time_execute
 
     def delete_between_dates(self, date1, date2, table_name, data_column):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):
@@ -109,10 +111,3 @@ class Server(object):
         cursor.close()
         return rows
 
-    def upload_stat(self, statistics):
-        cursor = self.__get_cursor()
-        sql = 'INSERT INTO statistics(id_datetime, host_name, time_upload_ms, time_connection_ms, is_error) ' \
-              'VALUES(%(id_datetime)s, %(host_name)s, %(time_upload_ms)s, %(time_connection_ms)s, %(is_error)s)'
-        cursor.executemany(sql, statistics)
-        self.__con.commit()
-        cursor.close()

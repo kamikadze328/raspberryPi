@@ -3,6 +3,7 @@
 
 import os
 import sys
+import time
 from datetime import datetime
 from datetime import timedelta
 
@@ -14,21 +15,24 @@ import Logger
 reload(sys)
 sys.setdefaultencoding('utf8')
 
+#Paths to my files
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 config_path = '/var/www/html/syncdata_web_version/sync_data.conf.json'
-#config_path = current_path + 'sync_data.conf.json'
 my_logs_path = current_path + 'logs/'
 stat_path = current_path + 'stats/'
+
+# Create not existed dirs
 if not os.path.exists(my_logs_path):
     os.mkdir(my_logs_path)
 if not os.path.exists(stat_path):
     os.mkdir(stat_path)
 
-
+# Path to not my files
 data_path = '/var/www/html/DATA_UNP300/'
-#data_path = '/home/pi/sk/syncdata/DATA_UNP300/'
 dyn_data_name = '.DynDATA.json'
 
+
+# Tables in db with parameters
 table_in_db = {
     'data': 'data(id_datetime, id, id_value)',
     'dyn_data': 'data_dyn(id, id_value)',
@@ -38,10 +42,22 @@ table_in_db = {
 }
 
 
-def filter_files_by_date(dir_path, type_files, first_date):
+def filter_files_by_date(dir_path, type_files, min_date):
+    """
+    Filter file with dates (in names files) more or equals than min_date.
+    There is compering only by string
+    :param dir_path: path to dir with files
+    :type dir_path: str
+    :param type_files: Type of files e.g. '.log' or '.dat'
+    :type type_files: str
+    :param min_date: Min needed date in format 'Y-m-d HM'
+    :type min_date: str
+    :return: list of sorted files
+    :rtype: list
+    """
     files = []
     for one_file in os.listdir(dir_path):
-        if one_file.endswith(type_files) and first_date <= one_file.split('.')[0]:
+        if one_file.endswith(type_files) and min_date <= one_file.split('.')[0]:
             files.append(one_file)
     return sorted(files)
 
@@ -51,7 +67,7 @@ def read_files_by_type(dir_path, type_files, first_date):
     Read data from files with needed type. Now only two types:
         dat with csv data,
         log with my structure.
-    Sorted file on data(because date in filename) and put data from one day in one list
+    Sort files by date (because date in filename) and put data from one day in one list
     :param first_date:
     :type first_date
     :param dir_path: path to dir with file
@@ -60,8 +76,9 @@ def read_files_by_type(dir_path, type_files, first_date):
     :type type_files: str
     :return:
         - list of data;
-        - list of dates of data(only data without time)
-    :rtype: tuple[list, list]
+        - list of dates of successful read data (only data without time)
+        - minimal date of not successful data (only data without time) in format 'Y-m-d HM'
+    :rtype: tuple[list, list, str or None]
     """
     list_files = filter_files_by_date(dir_path, type_files, first_date)
     list_broken_files = []
@@ -72,111 +89,147 @@ def read_files_by_type(dir_path, type_files, first_date):
             if type_file == '.log':
                 data_from_one_file = Logger.read_log_file(dir_path + one_file)
             else:
-                data_from_one_file = Logger.read_dat_file(dir_path + one_file)
+                data_from_one_file = Logger.read_csv_file(dir_path + one_file)
 
         except:
             list_broken_files.append(one_file)
         else:
             data_from_files.append(data_from_one_file)
             list_success_files.append(one_file)
+
     if len(list_broken_files) > 0:
-        Logger.write('Can`t read %d files  -->  %s' % (len(list_broken_files), list_broken_files), Logger.LogType.WARN)
+        Logger.write('Can`t read %d files  -->  %s' % (len(list_broken_files), list_broken_files), Logger.LogType.ALARM)
 
     return data_from_files, list_success_files, list_broken_files[0] if len(list_broken_files) else None
 
 
 def connect_to_db(server_to_connect):
     """
-    Connecting to server via DB module in this project
+    Connecting to server via DB module from this project
     :param server_to_connect: Server for connection
     :type server_to_connect: DB.Server
     :return: Result of connection.
     :rtype bool
     """
-    message = 'Connect to ' + str(server_to_connect.config.get('host')) + '  -->  '
     try:
         connect_time = server_to_connect.connect()
     except:
-        Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
+        Logger.write('Connect to ' + str(server_to_connect.config.get('host')) + '  -->  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
         add_row_statistics(time_connection=-1, with_error=True)
         return False
     else:
-        Logger.write(message + '%4.1fms' % (connect_time * 10))
         add_row_statistics(time_connection=connect_time * 10)
         return True
 
 
-def get_last_data_from_server(db_server, tablename):
+def get_last_date_from_server(db_server, tablename):
     """
-
-    :param db_server:
-    :param tablename:
-    :return: Last date of data on the server
-    :rtype: str or None
+    Get almost last date(average, median of several last rows) from server.
+    :param db_server: Server
+    :type db_server: DB.Server
+    :param tablename: name of table from 'table_in_db'
+    :type tablename: str
+    :return: Last date of data on the server format (Y-m-d HM) or None if server not available
+    :rtype: datetime or None
     """
     try:
         dates = db_server.load_last_data(tablename)
-        if len(dates) == 0:
-            return datetime(1900, 01, 01, 00, 00).strftime("%Y-%m-%d %H%M")
-        else:
+
+        if len(dates) != 0:
             return dates[len(dates) / 2][0].strftime("%Y-%m-%d %H%M")
+        else:
+            return datetime(1900, 01, 01, 00, 00).strftime("%Y-%m-%d %H%M")
     except:
         Logger.write('Can`t check server data -->  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
         return None
 
 
 def get_last_date(db_server, tablename):
+    """
+    Get last date of upload data.
+    It gets from file or if file broken(?) from server
+    :param db_server: The server
+    :type db_server: DB.Server
+    :param tablename: The name of table from 'table_in_db'
+    :type tablename: str
+    :return: Last date of data format (Y-m-d HM) or None if file broken and server not available
+    :rtype: str
+    """
     last_upload_data = Logger.read_json_file(Logger.last_upload_path, True)
     if last_upload_data and len(last_upload_data) > 0:
         for host in last_upload_data:
             if host.get('host') == db_server.config.get('host'):
-                return datetime.strptime(str(host.get(tablename)), '%Y-%m-%d %H:%M').strftime("%Y-%m-%d %H%M")
-
+                return str(host.get(tablename))
     else:
-        return get_last_data_from_server(db_server, tablename)
+        return get_last_date_from_server(db_server, tablename)
 
 
 def upload_data(list_data, list_filenames, table_with_params):
-    table_name = table_with_params.split('(')[0]
-    if dyn_data_name in list_filenames:
-        message = 'Upload dyn data to %s  -->  ' % table_name.upper()
-    else:
-        message = 'Upload data since %s to %s  -->  ' % (list_filenames[0].split('.')[0], table_name.upper())
+    """
+    Upload data to server.
+
+    :param list_data: A list of lists. Each small list send one by one. (usually lists contains data from one file)
+    :type list_data: list[list[str]]
+    :param list_filenames: list of name of uploading files(with dot and format)
+    :type list_filenames: list[str]
+    :param table_with_params: value of table from 'table_in_db'
+    :type table_with_params: str
+    :return:
+        - Index of first broken file or length of list_data.
+        - Number of errors.
+    :rtype: tuple[int, int]
+    """
 
     if len(list_data) > 0:
-        full_time = 0
         upload_time = 0
-        count_rows = 0
         index = 0
+        number_rows = 0
         with_error = False
+        table_name = table_with_params.split('(')[0]
         try:
+            # Stop when get exception
             for one_data in list_data:
                 if len(one_data) > 0:
-                    if table_with_params.startswith('logs') or table_with_params.startswith('statistics'):
+
+                    # Prepare table for logs and statistics because its doesn`t have a primary key.
+                    # So I delete all of data of this minute (I get needed minute from name of file)
+                    if table_with_params.startswith('logs') or table_with_params.startswith('statistics_syncdata'):
                         date1 = datetime.strptime(list_filenames[index].split('.')[0], '%Y-%m-%d %H%M')
                         date2 = date1 + timedelta(seconds=59)
                         server.delete_between_dates(date1, date2, table_name, 'id_datetime')
 
-                    new_full_time, new_upload_time = server.replace_many_rows(one_data, table_with_params)
+                    new_upload_time = server.replace_many_rows(one_data, table_with_params)
                     upload_time += new_upload_time
-                    full_time += new_full_time
-                    count_rows += len(one_data)
+                    number_rows += len(one_data)
                     index += 1
 
         except:
             with_error = True
-            Logger.write(message + str(sys.exc_info()[1]), Logger.LogType.ERROR)
+            Logger.write('Upload %s to %s --> %s' % (list_filenames[index], table_name, str(sys.exc_info()[1])), Logger.LogType.ERROR)
 
-        if count_rows > 0:
-            Logger.write(message + '%d rows in %d files in %4.1fms (fulltime - %4.1fms)' %
-                         (count_rows, index, upload_time * 10, full_time * 10))
+        # Save statistics
+        if number_rows > 0:
             add_row_statistics(time_upload=upload_time*10, with_error=with_error)
         else:
             add_row_statistics(time_upload=-1, with_error=True)
-        return index
+
+        return index, number_rows
+
 
 
 def add_row_statistics(time_upload=None, time_connection=None, with_error=False):
+    """
+    Save one row of statistics.
+    Get host name from current server parameter (from outside the function).
+    Save row with only one from time_upload or time_connection (second param will be null)
+     because to make in db rows with connection stat and upload stat different.
+    :param time_upload: Time of uploading in ms or if upload failed -1.
+    :type time_upload: float
+    :param time_connection: Time of connection in ms or if connection failed -1.
+    :type time_connection: float
+    :param with_error: Was an error in this operation?
+    :type with_error: bool
+    """
     one_row_stat = {
         'id_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'host_name': server.config.get('host'),
@@ -187,38 +240,60 @@ def add_row_statistics(time_upload=None, time_connection=None, with_error=False)
     statistics_rows.append(one_row_stat)
 
 def prepare_dyn_data(dynamic_data):
+    """
+    Prepare dyn data to uploading to db because file and db have different format of data.
+    :param dynamic_data: dynamic data from file.
+    :type dynamic_data: list
+    :return: prepared to uploading dynamic data.
+    :rtype: list[list[str]]
+    """
     new_dyn_data = []
     for one_data in dynamic_data:
         new_dyn_data.append([str(one_data[0]), str(one_data[1])])
     return [new_dyn_data]
 
-def delete_files_by_date(dir_path, type_files, min_date):
+def delete_files_by_date(dir_path, type_files, max_date):
+    """
+    Delete file with dates (in names files) less or equals than max_date.
+    There is compering only by string
+    :param dir_path: path to dir with files
+    :type dir_path: str
+    :param type_files: Type of files e.g. '.log' or '.dat'
+    :type type_files: str
+    :param max_date: Max deleting date in format 'Y-m-d HM'
+    :type max_date: str
+    """
     for one_file in os.listdir(dir_path):
-        if one_file.endswith(type_files) and min_date >= one_file.split('.')[0]:
+        if one_file.endswith(type_files) and max_date >= one_file.split('.')[0]:
             os.remove(dir_path + one_file)
 
-def decrease_date(str_date, minutes):
-    return (str_date - timedelta(minutes=minutes)).strftime("%Y-%m-%d %H%M")
 
 def clean():
+    """
+    Delete old or broken files. The file is broken if the program can't read the file more than 3 times.
+    If the file was read successfully he will delete after 30 minutes.
+    """
     min_last_dates = {
-        'data': '9000-01-01 0000',
-        'logs': '9000-01-01 0000',
-        'logs_syncdata': '9000-01-01 0000',
-        'statistics_syncdata': '9000-01-01 0000',
+        'data': datetime(9000, 12, 31, 23, 59),
+        'logs': datetime(9000, 12, 31, 23, 59),
+        'logs_syncdata': datetime(9000, 12, 31, 23, 59),
+        'statistics_syncdata': datetime(9000, 12, 31, 23, 59),
     }
-    dates_and_counters = Logger.read_json_file(Logger.last_upload_path)
-    for clean_server in dates_and_counters:
-        for name in ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']:
-            counter = clean_server.get(name + '_counter')
-            server_date= datetime.strptime(clean_server.get(name), '%Y-%m-%d %H:%M')
-            min_last_dates[name] = min(min_last_dates.get(name), decrease_date(server_date, 0) \
-                if counter > 3 \
-                else decrease_date(server_date, 30))
+    dates_and_numbers = Logger.read_json_file(Logger.last_upload_path)
 
-    for (name, type_files, paths) in [('data', '.dat', data_path), ('logs', '.log', data_path),
+    # Define minimal dates.
+    for one_server in dates_and_numbers:
+        for data_name in ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']:
+            counter = one_server.get(data_name + '_counter')
+            server_date = datetime.strptime(one_server.get(data_name), '%Y-%m-%d %H%M')
+
+            min_last_dates[data_name] = min(min_last_dates.get(data_name),
+                                            (server_date if counter > 3 else server_date - timedelta(minutes=30)))\
+
+    # Delete files.
+    for (data_name, type_files, paths) in [('data', '.dat', data_path), ('logs', '.log', data_path),
                                       ('logs_syncdata', '.log', my_logs_path), ('statistics_syncdata', '.stat', stat_path)]:
-        delete_files_by_date(paths, type_files, min_last_dates.get(name))
+        delete_files_by_date(paths, type_files, min_last_dates.get(data_name).strftime("%Y-%m-%d %H%M"))
 
 # =========================================================================================================================================================================================
 #  СТАРТ программы
@@ -230,39 +305,55 @@ statistics_rows = []
 
 for config_server in configs_servers:
     server = DB.Server(**config_server)
+    # Try to connect
     if connect_to_db(server):
+        full_number_rows = 0
+        full_number_files = 0
 
+        start_time = time.time()
         # Если добавился новый сервер, следует самому добавить его в статистику
-        # Сам он добавится только если успешно будет работать
+        # Сам он добавится, только если хоть раз успешно подключится
 
         # upload dynamic data
         dyn_data = Logger.read_json_file(data_path + dyn_data_name)
         if dyn_data:
-            upload_data(prepare_dyn_data(dyn_data), data_path + dyn_data_name, table_in_db.get('dyn_data'))
+            current_number_files, current_number_rows = upload_data(prepare_dyn_data(dyn_data), [data_path + dyn_data_name], table_in_db.get('dyn_data'))
+            full_number_files += current_number_files
+            full_number_rows += current_number_rows
 
+        # Upload data in other tables.
         for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path),
                                          ('logs_syncdata', '.log', my_logs_path), ('statistics_syncdata', '.stat', stat_path)]:
 
             last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
             last_data_from_files, filenames, first_broken_read_file = read_files_by_type(path, type_file, last_date)
+
+            number_success_upld_files = 0
+
+            # Upload if read more than nothing
             if len(last_data_from_files):
-                index_broken_or_last_upload_file = upload_data(last_data_from_files, filenames, table_in_db.get(table))
-                if first_broken_read_file or index_broken_or_last_upload_file:
-                    if index_broken_or_last_upload_file:
-                        index_broken_or_last_upload_file -= 1
-                        last_date_file = min(first_broken_read_file, filenames[index_broken_or_last_upload_file]) \
-                            if first_broken_read_file else filenames[index_broken_or_last_upload_file]
-                    else:
-                        last_date_file = first_broken_read_file
+                number_success_upld_files, current_number_rows = upload_data(last_data_from_files, filenames, table_in_db.get(table))
+                full_number_files += number_success_upld_files
+                full_number_rows += current_number_rows
 
-                    last_date_file = last_date_file.split('.')[0]
-                    Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0],
-                                                  datetime.strptime(last_date_file, '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
-            elif first_broken_read_file:
-                Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0],
-                                              datetime.strptime(first_broken_read_file.split('.')[0], '%Y-%m-%d %H%M').strftime("%Y-%m-%d %H:%M"))
+            # Define last upload or last read date. Save min from this dates.
+            last_date_file = last_date
+            if len(filenames):
+                last_date_file = filenames[-1]
+            if not first_broken_read_file and number_success_upld_files != len(filenames):
+                last_date_file = filenames[number_success_upld_files]
+            if first_broken_read_file:
+                last_date_file = min(first_broken_read_file, last_date_file)
 
+            last_date_file = last_date_file.split('.')[0]
+            Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0], last_date_file)
+
+        Logger.write(server.config.get('host') + ' -> %d rows in %d files in %4.1fms' %
+                     (full_number_rows, full_number_files, time.time() - start_time))
+
+# Save statistics
 Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", "))
+# Delete files
 clean()
 
 print "END program"
