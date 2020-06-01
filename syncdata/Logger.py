@@ -126,8 +126,12 @@ def read_log_file(file_path):
         for line in f:
             if len(line) > 30:
                 log_type = LogType[line[22:28].strip().upper()] if line[22:28] != '------' else LogType.INFO
+
                 # Get only 200 symbols from message and delete the last '\n'.
-                data_from_log.append([line[:19], str(log_type.value), line[30:230][0:-2]])
+                log_message = line[30:230]
+                if log_message.endswith('\n'): log_message = log_message[0:-1]
+
+                data_from_log.append([line[:19], str(log_type.value), log_message])
     return data_from_log
 
 
