@@ -61,7 +61,8 @@ body{
 }
 .db {
     height: 100%;
-    max-height: 160px;
+    min-height: 200px;
+    max-height: 250px;
     display: flex;
     flex-direction: row;
     margin: 8px 5px 8px 5px;
@@ -104,7 +105,7 @@ body{
     margin-top: 8px;
     display:flex;
     color: white;
-    font-size: 0.9rem;
+    font-size: 1rem;
 }
 
 .row-stat > :last-child{
@@ -229,6 +230,7 @@ h3{
     background-clip: padding-box;
     border: 0 solid rgba(0,0,0,.15);
     box-shadow: 0 5px 25px rgba(0,0,0,.3);
+    white-space: normal;
 }
 .show-settings{
     right: 0 !important;
@@ -290,7 +292,20 @@ hr {
     background-color: #1a2229;;
 }
 
-@media (max-height:600px) {
+#settings-footer{
+    margin-bottom: 30px;
+}
+#to-main-btn{
+    background-color: #348fe2;
+    box-shadow: 0 0 5px rgba(0,0,0,.5);
+}
+
+.settings-divider-footer{
+    flex-grow: 1;
+
+}
+
+@media (max-height:800px) {
     .text-main {
         margin-bottom: 0;
     }
@@ -318,6 +333,7 @@ hr {
         font-size: 1.1rem;
         padding: 10px 20px;
     }
+
 
 }
 
