@@ -104,7 +104,6 @@ def read_json_file(file_path, do_check_file=False):
         with open(file_path) as f:
             data_from_file = json.load(f)
     except:
-        write("Can't read file  -->  %s" % file_path, LogType.ALARM)
         return None
     else:
         return data_from_file

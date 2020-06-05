@@ -17,7 +17,7 @@ sys.setdefaultencoding('utf8')
 
 #Paths to my files
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
-config_path = '/var/www/html/syncdata_web_version/sync_data.conf.json'
+config_path = '/var/www/html/config/sync_data.conf.json'
 my_logs_path = current_path + 'logs/'
 stat_path = current_path + 'stats/'
 
@@ -77,8 +77,8 @@ def read_files_by_type(dir_path, type_files, first_date):
     :return:
         - list of data;
         - list of dates of successful read data (only data without time)
-        - minimal date of not successful data (only data without time) in format 'Y-m-d HM'
-    :rtype: tuple[list, list, str or None]
+        - list of broken files (name is only data without time in format 'Y-m-d HM')
+    :rtype: tuple[list, list, list]
     """
     list_files = filter_files_by_date(dir_path, type_files, first_date)
     list_broken_files = []
@@ -97,10 +97,7 @@ def read_files_by_type(dir_path, type_files, first_date):
             data_from_files.append(data_from_one_file)
             list_success_files.append(one_file)
 
-    if len(list_broken_files) > 0:
-        Logger.write('Can`t read %d files  -->  %s' % (len(list_broken_files), list_broken_files), Logger.LogType.ALARM)
-
-    return data_from_files, list_success_files, list_broken_files[0] if len(list_broken_files) else None
+    return data_from_files, list_success_files, list_broken_files
 
 
 def connect_to_db(server_to_connect):
@@ -309,6 +306,7 @@ for config_server in configs_servers:
     if connect_to_db(server):
         full_number_rows = 0
         full_number_files = 0
+        broken_files =[]
 
         start_time = time.time()
         # Если добавился новый сервер, следует самому добавить его в статистику
@@ -320,13 +318,19 @@ for config_server in configs_servers:
             current_number_files, current_number_rows = upload_data(prepare_dyn_data(dyn_data), [data_path + dyn_data_name], table_in_db.get('dyn_data'))
             full_number_files += current_number_files
             full_number_rows += current_number_rows
-
+        else:
+            broken_files.append(dyn_data_name)
         # Upload data in other tables.
         for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path),
                                          ('logs_syncdata', '.log', my_logs_path), ('statistics_syncdata', '.stat', stat_path)]:
 
             last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
-            last_data_from_files, filenames, first_broken_read_file = read_files_by_type(path, type_file, last_date)
+            last_data_from_files, filenames, list_broken_files = read_files_by_type(path, type_file, last_date)
+
+            if len(list_broken_files) > 0:
+                broken_files += list_broken_files
+
+            first_broken_read_file = list_broken_files[0] if len(list_broken_files) else None
 
             number_success_upld_files = 0
 
@@ -351,6 +355,8 @@ for config_server in configs_servers:
         Logger.write(server.config.get('host') + ' -> %d rows in %d files in %4.1fms' %
                      (full_number_rows, full_number_files, time.time() - start_time))
 
+        if len(broken_files):
+            Logger.write("Can't read files  -->  %s" % broken_files, Logger.LogType.ALARM)
 # Save statistics
 Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", "))
 # Delete files
