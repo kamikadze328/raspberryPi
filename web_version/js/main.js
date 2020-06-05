@@ -250,4 +250,7 @@ function clearTempSettingsInfo() {
     document.getElementById("update-db-info").parentElement.classList.remove("border-bottom")
 }
 
+function redirectToMain(){
+    window.location.replace('http://' + location.hostname)
+}
 

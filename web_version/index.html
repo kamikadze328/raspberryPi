@@ -3,15 +3,15 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=2.0, minimum-scale=1.0"
         name="viewport">
     <meta content="ie=edge" http-equiv="X-UA-Compatible">
     <script src="js/http_d3js.org_d3.v5.js"></script>
     <link href="css/style.css" rel="stylesheet">
     <link href="css/animations.css" rel="stylesheet">
     <link href="css/chart.css" rel="stylesheet">
-    <script type="text/javascript" src="./js/main.js"></script>
-    <script type="text/javascript" src="./js/graph.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+    <script type="text/javascript" src="js/graph.js"></script>
 
     <title>List of DBs</title>
 
@@ -20,7 +20,8 @@
 <body>
     <div class="header">
         <div id="number-db">Loading DBs...</div>
-        <div id="error-msg"></div>
+        <div id="error-msg" style="display: none"></div>
+
         <div id="time"></div>
     </div>
     <div class="wrapper">
@@ -52,8 +53,12 @@
                 <div id="refresh-button" class="btn">Refresh charts</div>
             </div>
             <div class="settings-block">
-                <div id="update-db-button" class="btn">Update databases</div>
+                <div id="update-db-button" class="btn">Update devices and tags</div>
                 <div id="update-db-info" ></div>
+            </div>
+            <div class="settings-divider-footer"></div>
+            <div id="settings-footer" class="settings-block">
+                <div id="to-main-btn" class="btn" onclick="redirectToMain()">To Main</div>
             </div>
         </div>
     </div>
