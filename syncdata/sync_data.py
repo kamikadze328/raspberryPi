@@ -277,20 +277,44 @@ def clean():
         'statistics_syncdata': datetime(9000, 12, 31, 23, 59),
     }
     dates_and_numbers = Logger.read_json_file(Logger.last_upload_path)
-
+    broken_files_for_delete = []
     # Define minimal dates.
     for one_server in dates_and_numbers:
         for data_name in ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']:
             counter = one_server.get(data_name + '_counter')
-            server_date = datetime.strptime(one_server.get(data_name), '%Y-%m-%d %H%M')
+            server_date = one_server.get(data_name)
 
-            min_last_dates[data_name] = min(min_last_dates.get(data_name),
-                                            (server_date if counter > 3 else server_date - timedelta(minutes=30)))\
+            if counter > 3:
+                path_dir, file_type = get_path_for_name(data_name)
+                broken_file = path_dir + server_date + file_type
+                if broken_file not in broken_files_for_delete:
+                    broken_files_for_delete.append(broken_file)
+
+            server_date = datetime.strptime(server_date, '%Y-%m-%d %H%M')
+            min_last_dates[data_name] = min(min_last_dates.get(data_name), server_date - timedelta(minutes=30))
 
     # Delete files.
     for (data_name, type_files, paths) in [('data', '.dat', data_path), ('logs', '.log', data_path),
                                       ('logs_syncdata', '.log', my_logs_path), ('statistics_syncdata', '.stat', stat_path)]:
         delete_files_by_date(paths, type_files, min_last_dates.get(data_name).strftime("%Y-%m-%d %H%M"))
+
+    for broken_file in broken_files_for_delete:
+        delete_by_name(broken_file)
+
+def delete_by_name(filepath):
+    os.remove(filepath)
+
+
+def get_path_for_name(data_name):
+    if data_name == 'data':
+        return data_path, '.dat'
+    if data_name == 'logs':
+        return data_path, '.log'
+    elif data_name == 'logs_syncdata':
+        return my_logs_path, '.log'
+    elif data_name == 'statistics_syncdata':
+        return stat_path, '.stat'
+
 
 # =========================================================================================================================================================================================
 #  СТАРТ программы
