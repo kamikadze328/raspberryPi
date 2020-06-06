@@ -1,0 +1,60 @@
+
+
+h4 {
+    margin-bottom: 3px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.select-box>*, .select-box{
+    width: 100%;
+}
+
+.select-box>input{
+    width: calc(100% - 1.5rem);
+    padding: .4375rem .75rem;
+    font-size: .75rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #2d353c;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 0;
+    border-radius: 4px;
+}
+
+.select-box{
+    margin: 0 !important;
+    position: relative;
+    white-space: normal;
+}
+
+.select-items {
+    display: none;
+    border-top: 1px #dadada solid;
+    background-color: white;
+    position: absolute;
+
+}
+.select-items>label{
+    border-bottom: 1px #dadada solid;
+    margin: 3px 5px 0 5px;
+    display: flex;
+    align-items: center;
+    min-height: 35px;
+}
+.select-items>label>input{
+    margin-right: 5px;
+}
+.select-items>label, .select-box>input{
+    color: #2d353c;
+    font-size: 1rem;
+    line-height: 20px;
+    font-weight: 600;
+    font-family: "Open Sans",sans-serif;
+}
+
+.select-items>label:focus, .select-items>label:hover {
+    background: #f2f4f5;
+}
+
+

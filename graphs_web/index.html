@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="utf-8">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0" name="viewport">
+    <meta content="ie=edge" http-equiv="X-UA-Compatible">
+    <script src="js/http_d3js.org_d3.v5.js"></script>
+    <link href="css/style.css" rel="stylesheet">
+    <link href="css/chart.css" rel="stylesheet">
+    <link href="css/new_style.css" rel="stylesheet">
+
+    <script type="text/javascript" src="js/main.js"></script>
+    <title>List of DBs</title>
+
+</head>
+
+<body>
+<div class="header">
+    <div id="number-db">Loading DBs...</div>
+    <div id="error-msg"></div>
+    <div id="time"></div>
+</div>
+<div class="wrapper">
+    <div id="db-list">
+        <div class="db">
+            <div class="db-main-info card">
+                <div class="db-name text-main">
+                    Graph
+                </div>
+                <div class="rows-stat">
+                    <div class="row-stat">
+                        <div id="select-temperature" class="select-box">
+                            <h4>Choose Temperature Tags:</h4>
+                            <input class="select-clickable" placeholder="Enter teg id">
+                            <div id="select-temperature-items" class="select-items">
+                                <label for="select-temperature-tag-10101"> <input type="checkbox" id="select-temperature-tag-10101" />10101 Топка</label>
+                                <label for="select-temperature-tag-10102"> <input type="checkbox" id="select-temperature-tag-10102"/>10102 Сушилка левая</label>
+                                <label for="select-temperature-tag-10103"> <input type="checkbox" id="select-temperature-tag-10103"/>10103 Дым газы</label>
+                                <label for="select-temperature-tag-10104"> <input type="checkbox" id="select-temperature-tag-10104" />10104 Сушилка правая</label>
+                                <label for="select-temperature-tag-10105"> <input type="checkbox" id="select-temperature-tag-10105"/>10105 Реактор левый</label>
+                                <label for="select-temperature-tag-10106"> <input type="checkbox" id="select-temperature-tag-10106"/>10106 Выгрузка углерода левая</label>
+                                <label for="select-temperature-tag-10107"> <input type="checkbox" id="select-temperature-tag-10107" />10107 Реактор правый</label>
+                                <label for="select-temperature-tag-10108"> <input type="checkbox" id="select-temperature-tag-10108"/>10108 Выгрузка углерода правая</label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="db-extended-info card">
+
+            </div>
+        </div>
+    </div>
+    <div id="settings-button" class="settings-animation">
+        <div class="show-icon" id="settings-icon"></div>
+    </div>
+    <div id="settings-panel" class="settings-animation">
+        <div class="settings-block border-bottom">
+            <h3 class="border-bottom">Duration</h3>
+            <div class="duration-item">Hour</div>
+            <div class="duration-item">Day</div>
+            <div class="duration-item">Week</div>
+
+        </div>
+        <div class="settings-block">
+            <div id="refresh-button" class="btn">Refresh charts</div>
+        </div>
+
+        <div class="settings-divider-footer"></div>
+        <div id="settings-footer" class="settings-block">
+            <div id="to-main-btn" class="btn" onclick="redirectToMain()">To Main</div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

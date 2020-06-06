@@ -1,0 +1,364 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body,
+.wrapper {
+    height: 100%;
+    width: 100%;
+
+}
+.header{
+    height: 40px;
+    width: 100%;
+    font-size: 1.3rem;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-end;
+    flex-direction: row;
+    justify-content: space-between;
+    box-shadow: 0 0 16px rgba(0,0,0,.15);
+}
+.header > *{
+    border-bottom: 2px solid #2d353c;
+    margin-bottom: 2px;
+}
+.header :first-child{
+    margin-left: 23px;
+}
+.header :last-child{
+    margin-right: 8px;
+}
+.wrapper{
+    margin-top: 40px;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+}
+body{
+    white-space: nowrap;
+    font-family: "Open Sans",sans-serif;
+    font-weight: 400;
+    font-size: .75rem;
+    color: #333;
+    text-align: left;
+    background-color: #d9e0e7;
+}
+
+#db-list {
+    height: calc(100% - 40px);
+    margin-bottom: 5px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+.db-name{
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.db {
+    height: 100%;
+    min-height: 200px;
+    max-height: 250px;
+    display: flex;
+    flex-direction: row;
+    margin: 8px 5px 8px 5px;
+}
+
+.card{
+    position: relative;
+    margin: 0 3px;
+    border-radius: 4px;
+    background-color: #2d353c;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 0 2px rgba(0,0,0,.2), 0 4px 4px -2px rgba(0,0,0,.2);
+}
+
+.db-main-info{
+    padding: 15px;
+    max-width: 240px;
+    min-width: 220px;
+    flex: 2;
+    justify-content: space-between;
+    flex-direction: column;
+}
+#kek{
+    padding: 0;
+}
+.db-extended-info{
+    flex:3
+}
+.text-main {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    font-weight:bold;
+    text-transform: uppercase;
+    color: #b6c2c9;
+}
+.row-stat{
+    justify-content: space-between;
+    margin-top: 8px;
+    display:flex;
+    color: white;
+    font-size: 1rem;
+}
+
+.row-stat > :last-child{
+    margin-left: auto;
+    font-weight: 600;
+}
+.flex{
+
+    display:flex;
+    align-items: center;
+}
+
+
+.circle{
+    height: 8px;
+    width: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.error{
+    background-color: #ff5b57
+}
+.text-error{
+    color:#ff5b57;
+}
+.warn{
+background-color: #f59c1a;
+}
+.text-warn{
+    color:#f59c1a;
+}
+
+.norm{
+    background-color: #90ca4b;
+}
+
+.action-dropdown{
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    color: #627884;
+}
+.fa-ellipsis-v {
+    font-weight: 900;
+    font-size: 1.5rem;
+    cursor: pointer
+}
+.fa-ellipsis-v:after {
+    content: '\2807';
+
+}
+
+.fa-ellipsis-v:hover, .fa-ellipsis-v:focus {
+    color: #8a9da8
+}
+
+.show{
+    display: block;
+}
+.show-menu {
+    position: absolute;
+    transform: translate(-80px, 8px);
+    top: 0;
+    will-change: transform;
+}
+.duration-item{
+    padding: 5px 15px;
+    color: #4e5c68;
+    text-decoration: none;
+    display: block;
+    clear: both;
+    text-align: center;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    cursor: pointer;
+}
+.duration-item:focus, .duration-item:hover {
+    color: #2d353c;
+    text-decoration: none;
+    background: #f2f4f5;
+}
+.border-bottom{
+    border-bottom-color: #d5dbe0;
+    border-bottom-width: 1px;
+    border-bottom-style: solid;
+}
+h3{
+    text-align: left;
+    margin-top: 8px;
+    line-height: 1.2;
+    font-size: 1.4rem;
+}
+.settings-animation{
+    -webkit-transition: right .2s linear;
+    -moz-transition: right .2s linear;
+    -ms-transition: right .2s linear;
+    -o-transition: right .2s linear;
+    transition: right .2s linear;
+    -webkit-border-radius: 4px 0 0 4px;
+}
+#settings-panel{
+    overflow-y: auto;
+    height: 100%;
+    width: 220px;
+    right: -220px;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    border-radius: 4px 0 0 4px;
+    min-width: 1rem;
+    padding: .5rem 0;
+    font-family: "Open Sans",sans-serif;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    list-style: none;
+    background: #fff;
+    background-clip: padding-box;
+    border: 0 solid rgba(0,0,0,.15);
+    box-shadow: 0 5px 25px rgba(0,0,0,.3);
+    white-space: normal;
+}
+.show-settings{
+    right: 0 !important;
+}
+#settings-icon{
+    display: inline-block;
+    font-style: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    line-height: 1;
+}
+.close-icon:before{
+    content: '\2716';
+}
+.show-icon:before{
+    content: "\2630";
+}
+.show-button{
+    right: 220px !important;
+}
+#settings-button{
+    z-index: 1;
+    position: absolute;
+    right: 0;
+    margin-top: -15px;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 18px;
+    color: #2d353c;
+    background: #fff;
+    text-align: center;
+    border-radius: 4px 0 0 4px;
+    top: 30%;
+    cursor: pointer;
+}
+.settings-block{
+    margin: 10px 20px;
+}
+.duration-choice{
+    color: #348fe2;
+    font-weight: 800;
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background: #d5dbe0;
+}
+.btn{
+    cursor: pointer;
+    border-radius: 200px;
+    background-color: #2d353c;
+    border-color: #2d353c;
+    color: white;
+    padding: .4375rem .75rem;
+}
+.btn:focus, .btn:hover{
+    background-color: #1a2229;;
+}
+
+#settings-footer{
+    margin-bottom: 30px;
+}
+#to-main-btn{
+    background-color: #348fe2;
+    box-shadow: 0 0 5px rgba(0,0,0,.5);
+}
+
+.settings-divider-footer{
+    flex-grow: 1;
+
+}
+
+@media (max-height:800px) {
+    .text-main {
+        margin-bottom: 0;
+    }
+
+    .db {
+        margin: 4px 4px;
+    }
+
+    #settings-button {
+        width: 55px;
+        height: 50px;
+        right: -10px;
+    }
+
+    .show-button {
+        right: 210px !important;
+    }
+
+    #settings-icon {
+        font-size: 40px;
+        margin: 5px 10px 5px 0;
+    }
+
+    .duration-item {
+        font-size: 1.1rem;
+        padding: 10px 20px;
+    }
+
+
+}
+
+@media(max-width: 800px) {
+    .db-main-info {
+        max-width: 220px;
+    }
+
+    #settings-button {
+        width: 45px;
+        height: 40px;
+        right: -10px;
+    }
+
+    .show-button {
+        right: 210px !important;
+    }
+
+    #settings-icon {
+        font-size: 30px;
+        margin: 5px 10px 5px 0;
+    }
+
+    .duration-item {
+        font-size: 1.1rem;
+        padding: 10px 20px;
+    }
+}
