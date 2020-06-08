@@ -20,6 +20,7 @@ class LogType(Enum):
     WARN  = 3
     ALARM = 3
     INFO  = 0
+    HIDDEN= -1
 
 
 def write(message, log_type=None, file_path=None):

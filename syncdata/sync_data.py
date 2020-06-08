@@ -290,8 +290,7 @@ def clean():
                 if broken_file not in broken_files_for_delete:
                     broken_files_for_delete.append(broken_file)
 
-            server_date = datetime.strptime(server_date, '%Y-%m-%d %H%M')
-            min_last_dates[data_name] = min(min_last_dates.get(data_name), server_date - timedelta(minutes=30))
+            min_last_dates[data_name] = min(min_last_dates.get(data_name), datetime.strptime(server_date, '%Y-%m-%d %H%M') - timedelta(minutes=30))
 
     # Delete files.
     for (data_name, type_files, paths) in [('data', '.dat', data_path), ('logs', '.log', data_path),
