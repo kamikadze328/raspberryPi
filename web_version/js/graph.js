@@ -99,7 +99,7 @@ function resizeChart(chart) {
         .call(chart.xAxis.ticks(width / 80 <= 10 ? width / 80 : 10))
     chart.svg.select(".y.axis")
         .attr("transform", `translate(${margin.left},0)`)
-        .call(chart.yAxis);
+        .call(chart.yAxis)
 
     chart.svg.select(".main-line")
         .attr("d", chart.line);
