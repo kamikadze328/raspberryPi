@@ -47,7 +47,7 @@ body{
     background-color: #d9e0e7;
 }
 
-#db-list {
+#row-list {
     height: calc(100% - 40px);
     margin-bottom: 5px;
     overflow-y: auto;
@@ -59,7 +59,7 @@ body{
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.db {
+.row {
     height: 100%;
     min-height: 200px;
     max-height: 250px;
@@ -79,7 +79,7 @@ body{
     box-shadow: 0 0 2px rgba(0,0,0,.2), 0 4px 4px -2px rgba(0,0,0,.2);
 }
 
-.db-main-info{
+.main-info{
     padding: 15px;
     max-width: 240px;
     min-width: 220px;
@@ -90,7 +90,7 @@ body{
 #kek{
     padding: 0;
 }
-.db-extended-info{
+.extended-info{
     flex:3
 }
 .text-main {
@@ -310,7 +310,7 @@ hr {
         margin-bottom: 0;
     }
 
-    .db {
+    .row {
         margin: 4px 4px;
     }
 
@@ -338,7 +338,7 @@ hr {
 }
 
 @media(max-width: 800px) {
-    .db-main-info {
+    .main-info {
         max-width: 220px;
     }
 
