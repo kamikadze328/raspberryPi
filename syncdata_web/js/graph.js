@@ -203,7 +203,7 @@ function prepareData(serverData) {
             })
         preparedData.push(preparedElem)
     }, serverData)
-    if (new Date - preparedData[preparedData.length - 1].date > deltaForChart)
+    if (preparedData[preparedData.length - 1] && new Date - preparedData[preparedData.length - 1].date > deltaForChart)
         preparedData.push({
             data: new Date,
             value: undefined
