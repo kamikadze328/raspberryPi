@@ -14,7 +14,7 @@ function initCharts() {
     })
         .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
-            if (!data.error) {
+            if (data && !data.error) {
                 charts_data = []
                 updateChartsMeta()
                 d3.selectAll("svg").remove()
@@ -34,7 +34,7 @@ function updateCharts() {
     })
         .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
-            if (!data.error) {
+            if (data && !data.error) {
                 updateAllChartsData(data)
                 redrawAllCharts()
             }
@@ -198,14 +198,14 @@ function prepareData(serverData) {
         const prev = preparedData[preparedData.length - 1]
         if (elem.value && prev && preparedElem.date - prev.date > deltaForChart)
             preparedData.push({
-                data: new Date(prev.date.getTime() + 1),
+                date: new Date(prev.date.getTime() + 1),
                 value: undefined
             })
         preparedData.push(preparedElem)
     }, serverData)
-    if (preparedData[preparedData.length - 1] && new Date - preparedData[preparedData.length - 1].date > deltaForChart)
+    if (new Date - preparedData[preparedData.length - 1].date > deltaForChart)
         preparedData.push({
-            data: new Date,
+            date: new Date,
             value: undefined
         })
     return preparedData
@@ -232,7 +232,8 @@ function updateChartsMeta(){
 
 function getMinMaxDate() {
     let maxDates = []
-    charts_data.forEach(chart => maxDates.push(chart.data[chart.data.length - 1].date))
+    charts_data.forEach(chart => {
+        maxDates.push(chart.data[chart.data.length - 1].date)})
     return Math.min.apply(null, maxDates)
 }
 
