@@ -1,4 +1,3 @@
-import codecs
 import csv
 import json
 import os
@@ -37,10 +36,10 @@ def write(message, log_type=None, file_path=None):
     if file_path is None:
         file_path = __get_logs_filepath()
     if not os.path.exists(file_path):
-        with codecs.open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, 'w') as f:
             f.write(message)
     else:
-        with codecs.open(file_path, 'a', encoding='utf-8') as f:
+        with open(file_path, 'a') as f:
             f.write(message)
 
 
