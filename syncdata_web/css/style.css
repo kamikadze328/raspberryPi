@@ -84,7 +84,7 @@ body{
     max-width: 240px;
     min-width: 220px;
     flex: 2;
-    justify-content: space-between;
+    justify-content: space-around;
     flex-direction: column;
 }
 #kek{
