@@ -1,5 +1,5 @@
 <?php
-$servers_file = "../sync_data.conf.json";
+$servers_file = "../../config/sync_data.conf.json";
 
 function read_json($filepath)
 {

@@ -1,7 +1,7 @@
 <?php
 mysqli_report(MYSQLI_REPORT_STRICT);
 
-$servers_file = "../sync_data.conf.json";
+$servers_file = "../../config/sync_data.conf.json";
 $tags_file = "../../DATA_UNP300/.Conf_Teg.json";
 $devices_file = "../../DATA_UNP300/.Conf_Dev.json";
 

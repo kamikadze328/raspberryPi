@@ -1,6 +1,6 @@
 <?php
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-$servers_file = "../sync_data.conf.json";
+$servers_file = "../../config/sync_data.conf.json";
 
 function read_json($filepath)
 {
