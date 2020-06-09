@@ -3,6 +3,8 @@ let margin = ({top: 10, right: 0, bottom: 10, left: 35})
 let format_time, deltaForChart, date_one_duration_ago
 let charts_data = []
 let html_chart = []
+
+
 function initCharts() {
     duration = dataToServer.duration
     fetch('./php/graph.php', {
@@ -55,6 +57,12 @@ function updateChartData(chart, newData){
         if (chart.data[i].date.getTime() >= stopData) break;
     }
     chart.data = chart.data.slice(i, chart.data.length - 1)
+
+    if (chart.data.length && newData[0] && newData[0].date - chart.data[chart.data.length - 1].date > deltaForChart)
+        chart.data.push({
+            data: new Date(newData[0].date.getTime() - 1),
+            value: undefined
+        })
     chart.data.push(...newData)
 }
 
@@ -190,7 +198,7 @@ function prepareData(serverData) {
         const prev = preparedData[preparedData.length - 1]
         if (elem.value && prev && preparedElem.date - prev.date > deltaForChart)
             preparedData.push({
-                data: new Date(prev.date.getMilliseconds() + 1),
+                data: new Date(prev.date.getTime() + 1),
                 value: undefined
             })
         preparedData.push(preparedElem)
