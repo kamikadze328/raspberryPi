@@ -40,6 +40,8 @@ table_in_db = {
     'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text)',
     'statistics_syncdata': 'statistics_syncdata(id_datetime, host_name, time_upload_ms, time_connection_ms, is_error)',
 }
+data_names = ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']
+
 
 
 def filter_files_by_date(dir_path, type_files, min_date):
@@ -86,7 +88,7 @@ def read_files_by_type(dir_path, type_files, first_date):
     data_from_files = []
     for one_file in list_files:
         try:
-            if type_file == '.log':
+            if type_files == '.log':
                 data_from_one_file = Logger.read_log_file(dir_path + one_file)
             else:
                 data_from_one_file = Logger.read_csv_file(dir_path + one_file)
@@ -130,7 +132,7 @@ def get_last_date_from_server(db_server, tablename):
     :rtype: datetime or None
     """
     try:
-        dates = db_server.load_last_data(tablename)
+        dates = db_server.load_last_date(tablename)
 
         if len(dates) != 0:
             return dates[len(dates) / 2][0].strftime("%Y-%m-%d %H%M")
@@ -285,16 +287,16 @@ def clean():
             server_date = one_server.get(data_name)
 
             if counter > 3:
-                path_dir, file_type = get_path_for_name(data_name)
+                path_dir, file_type = get_path_and_type_for_name(data_name)
                 broken_file = path_dir + server_date + file_type
                 if broken_file not in broken_files_for_delete:
                     broken_files_for_delete.append(broken_file)
 
-            min_last_dates[data_name] = min(min_last_dates.get(data_name), datetime.strptime(server_date, '%Y-%m-%d %H%M') - timedelta(minutes=30))
+            min_last_dates[data_name] = min(min_last_dates.get(data_name), datetime.strptime(server_date, '%Y-%m-%d %H%M') - timedelta(minutes=10))
 
     # Delete files.
-    for (data_name, type_files, paths) in [('data', '.dat', data_path), ('logs', '.log', data_path),
-                                      ('logs_syncdata', '.log', my_logs_path), ('statistics_syncdata', '.stat', stat_path)]:
+    for data_name in data_names:
+        paths, type_files = get_path_and_type_for_name(table)
         delete_files_by_date(paths, type_files, min_last_dates.get(data_name).strftime("%Y-%m-%d %H%M"))
 
     for broken_file in broken_files_for_delete:
@@ -304,7 +306,7 @@ def delete_by_name(filepath):
     os.remove(filepath)
 
 
-def get_path_for_name(data_name):
+def get_path_and_type_for_name(data_name):
     if data_name == 'data':
         return data_path, '.dat'
     if data_name == 'logs':
@@ -332,8 +334,6 @@ for config_server in configs_servers:
         broken_files =[]
 
         start_time = time.time()
-        # Если добавился новый сервер, следует самому добавить его в статистику
-        # Сам он добавится, только если хоть раз успешно подключится
 
         # upload dynamic data
         dyn_data = Logger.read_json_file(data_path + dyn_data_name)
@@ -343,17 +343,18 @@ for config_server in configs_servers:
             full_number_rows += current_number_rows
         else:
             broken_files.append(dyn_data_name)
+
         # Upload data in other tables.
-        for (table, type_file, path) in [('data', '.dat', data_path), ('logs', '.log', data_path),
-                                         ('logs_syncdata', '.log', my_logs_path), ('statistics_syncdata', '.stat', stat_path)]:
+        for table in data_names:
+            path, files_type = get_path_and_type_for_name(table)
 
             last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
-            last_data_from_files, filenames, list_broken_files = read_files_by_type(path, type_file, last_date)
+            last_data_from_files, filenames, list_unread_files = read_files_by_type(path, files_type, last_date)
 
-            if len(list_broken_files) > 0:
-                broken_files += list_broken_files
-
-            first_broken_read_file = list_broken_files[0] if len(list_broken_files) else None
+            first_broken_read_file = None
+            if len(list_unread_files):
+                broken_files += list_unread_files
+                first_broken_read_file = list_unread_files[0]
 
             number_success_upld_files = 0
 
