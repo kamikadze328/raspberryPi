@@ -101,7 +101,7 @@ class Server(object):
         self.__con.commit()
         cursor.close()
 
-    def load_last_data(self, table_name):
+    def load_last_date(self, table_name):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):
             raise connector.Error('table %s doesn`t exist' % table_name.upper())
         cursor = self.__get_cursor()
