@@ -16,6 +16,8 @@ h4 {
     background-clip: padding-box;
     border: 0;
     border-radius: 4px;
+    font-size: 0.8rem !important;
+
 }
 
 .select-box{
@@ -30,7 +32,8 @@ h4 {
     border-top: 1px #dadada solid;
     background-color: white;
     position: absolute;
-
+    max-height: 200px;
+    overflow-y: auto;
 }
 .select-items>label{
     border-bottom: 1px #dadada solid;
@@ -49,7 +52,6 @@ h4 {
     font-weight: 600;
     font-family: "Open Sans",sans-serif;
 }
-
 
 .select-items>label:focus, .select-items>label:hover {
     background: #f2f4f5;
