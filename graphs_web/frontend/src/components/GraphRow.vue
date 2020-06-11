@@ -6,15 +6,35 @@
             </div>
             <div class="rows-stat">
                 <div class="row-stat">
-                    <div id="select-temperature" class="select-box">
+                    <div :id="'select-di-' + config.id" class="select-box">
+                        <h4>Choose Digital Input Tags:</h4>
+                        <input v-on:click="toggleVisibility"
+                               v-on:input="filterSelectorItems"
+                               class="select-clickable"
+                               placeholder="Enter tag id or name">
+                        <div class="select-items">
+                            <label v-for="tag in this.$root.store.state.tagsDigitalInput"
+                                   :key="'select-di-row-' + config.id + '-' + tag.id"
+                                   :for="'select-di-tag-' + config.id + '-' + tag.id">
+                                <input type="checkbox"
+                                       v-model="selectedTagsDigitalInputs"
+                                       :value="tag.id"
+                                       :id="'select-di-tag-' + config.id + '-' + tag.id"/>
+                                {{tag.id}} {{tag.description}}
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-stat">
+                    <div :id="'select-temperature-' + config.id" class="select-box">
                         <h4>Choose Temperature Tags:</h4>
                         <input v-on:click="toggleVisibility"
                                v-on:input="filterSelectorItems"
                                class="select-clickable"
-                               placeholder="Enter teg id or name">
-                        <div :id="'select-temperature-items-' + config.id" class="select-items">
-                            <label v-for="tag in tagsTemperature"
-                                   v-bind:key="'select-temperature-row-' + config.id + '-' + tag.id"
+                               placeholder="Enter tag id or name">
+                        <div class="select-items">
+                            <label v-for="tag in this.$root.store.state.tagsTemperature"
+                                   :key="'select-temperature-row-' + config.id + '-' + tag.id"
                                    :for="'select-temperature-tag-' + config.id + '-' + tag.id">
                                 <input type="checkbox"
                                        v-model="selectedTagsTemperature"
@@ -30,8 +50,9 @@
         </div>
         <div :id="'chart-' + config.id" class="extended-info card">
             <Chart
-                   v-bind:tagsTemperature="selectedTagsTemperature"
-                   v-bind:id="config.id"/>
+                   :selectedTagsTemperature="selectedTagsTemperature"
+                   :selectedTagsDigitalInputs="selectedTagsDigitalInputs"
+                   :id="config.id"/>
         </div>
     </div>
 </template>
@@ -42,35 +63,24 @@
         name: "GraphRow",
         components: {Chart},
         props: {
-            config: {
-                type: Object
-            }
+            config: Object,
         },
         data() {
             return {
-                tagsTemperature: [
-                    {id: 10101, description: 'Топка'},
-                    {id: 10102, description: 'Сушилка левая'},
-                    {id: 10103, description: 'Дым газы'},
-                    {id: 10104, description: 'Сушилка правая'},
-                    {id: 10105, description: 'Реактор левый'},
-                    {id: 10106, description: 'Выгрузка углерода левая'},
-                    {id: 10107, description: 'Реактор правый'},
-                    {id: 10108, description: 'Выгрузка углерода правая'},
-                ],
-                selectedTagsTemperature:[]
+                selectedTagsTemperature:[],
+                selectedTagsDigitalInputs:[],
             }
         },
         methods: {
             toggleVisibility: function (e) {
                 const elemTarget = e.target.nextElementSibling
                 document.querySelectorAll('.select-clickable').forEach((elem => {
-                    if(elem.nextElementSibling.id !== elemTarget.id) elem.nextElementSibling.style.display = "none"
+                    if(elem.parentElement.id !== e.target.parentElement.id) elem.nextElementSibling.style.display = 'none'
                 }))
-                elemTarget.style.display = elemTarget.style.display === "block" ? "none" : "block"
+                elemTarget.style.display = elemTarget.style.display === 'block' ? 'none' : 'block'
             },
             filterSelectorItems: function (e) {
-                document.getElementById('select-temperature-items-' + this.config.id).style.display = "block"
+                e.target.nextElementSibling.style.display = "block"
 
                 const userText = e.target.value.toLowerCase()
                 const items = e.target.nextElementSibling.children
@@ -83,7 +93,6 @@
             },
         },
         mounted() {
-
         }
     }
 </script>
