@@ -262,10 +262,12 @@ def delete_files_by_date(dir_path, type_files, max_date):
     :param max_date: Max deleting date in format 'Y-m-d HM'
     :type max_date: str
     """
+    count = 0
     for one_file in os.listdir(dir_path):
         if one_file.endswith(type_files) and max_date >= one_file.split('.')[0]:
             os.remove(dir_path + one_file)
-
+            count += 1
+    return count
 
 def clean():
     """
@@ -295,16 +297,22 @@ def clean():
             min_last_dates[data_name] = min(min_last_dates.get(data_name), datetime.strptime(server_date, '%Y-%m-%d %H%M') - timedelta(minutes=10))
 
     # Delete files.
+    number_deleted_files = 0
     for data_name in data_names:
-        paths, type_files = get_path_and_type_for_name(table)
-        delete_files_by_date(paths, type_files, min_last_dates.get(data_name).strftime("%Y-%m-%d %H%M"))
+        paths, type_files = get_path_and_type_for_name(data_name)
+        number_deleted_files = delete_files_by_date(paths, type_files, min_last_dates.get(data_name).strftime("%Y-%m-%d %H%M"))
 
     for broken_file in broken_files_for_delete:
-        delete_by_name(broken_file)
+        if delete_by_name(str(broken_file)):
+            number_deleted_files += 1
+    Logger.write('Deleted %d files' % number_deleted_files)
 
 def delete_by_name(filepath):
-    os.remove(filepath)
-
+    try:
+        os.remove(filepath)
+        return True
+    except:
+        return False
 
 def get_path_and_type_for_name(data_name):
     if data_name == 'data':
