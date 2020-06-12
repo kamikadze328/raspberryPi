@@ -33,3 +33,39 @@ json файл (default name = "sync_time.conf.json") вида -
 - last_upload_date.json.		В файле хранятся даты последних загруженных файлов и количетсво попыток их загрузить.
 - stats/*.stat.					Файлы со статистикой работы программы.
 - logs/*.log.					Файлы с логами.
+
+----------
+Как запустить демона.  
+sudo nano /lib/systemd/system/sync-data.service
+  
+  
+[Unit]  
+Description=Sync data with db.  
+After=multi-user.target  
+Wants=network.target  
+  
+[Service]  
+Type=idle  
+Restart=always  
+RestartSec=60
+RuntimeMaxSec=43200 
+ExecStart=/usr/bin/python /home/pi/sk/syncdata/sync_data.py  
+WorkingDirectory=/home/pi/sk/syncdata  
+  
+[Install]  
+WantedBy=multi-user.target   
+  
+  
+Комментарии:
+Type=idle - The effect of this service type is subject to a 5s timeout, after which the service program is invoked anyway.
+RuntimeMaxSec=43200 - 12 hours
+sudo systemctl daemon-reload  
+sudo systemctl enable get-time-oven  
+sudo reboot  
+  
+Команда для просмотра статуса демона.  
+sudo systemctl status get-time-oven  
+
+Теперь данный система будет запускать демона после выполнения всех остальных демонов(Type=idle)  
+https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/  
+https://jlk.fjfi.cvut.cz/arch/manpages/man/systemd.service.5#OPTIONS  

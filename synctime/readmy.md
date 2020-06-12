@@ -48,7 +48,7 @@ After=multi-user.target
 Wants=network.target
 
 [Service]
-Type=idle			#The effect of this service type is subject to a 5s timeout, after which the service program is invoked anyway.
+Type=idle			
 Restart=on-failure
 RestartSec=5
 ExecStart=/usr/bin/python /home/pi/sk/synctime/get_time_oven.py
@@ -58,6 +58,8 @@ WorkingDirectory=/home/pi/sk/synctime
 WantedBy=multi-user.target
 
 
+Комментарии:
+Type=idle - The effect of this service type is subject to a 5s timeout, after which the service program is invoked anyway.
 
 sudo systemctl daemon-reload
 sudo systemctl enable get-time-oven
