@@ -284,7 +284,7 @@ def clean():
     broken_files_for_delete = []
     # Define minimal dates.
     for one_server in dates_and_numbers:
-        for data_name in ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']:
+        for data_name in data_names:
             counter = one_server.get(data_name + '_counter')
             server_date = one_server.get(data_name)
 
