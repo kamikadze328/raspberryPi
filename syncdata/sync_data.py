@@ -384,7 +384,7 @@ for config_server in configs_servers:
             last_date_file = last_date_file.split('.')[0]
             Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0], last_date_file)
 
-        Logger.write(server.config.get('host') + ' -> %d rows in %d files in %4.1fms' %
+        Logger.write(server.config.get('host') + ' -> %d rows in %d files in %4.1fs' %
                      (full_number_rows, full_number_files, time.time() - start_time))
 
         if len(broken_files):
