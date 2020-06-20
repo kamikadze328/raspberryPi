@@ -25,7 +25,7 @@
             updateDuration: function (e) {
                 this.$emit('changeduration')
                 const duration = e.target.textContent.toLowerCase()
-                this.$root.store.setDuration(duration)
+                this.$store.commit('setDuration', {duration})
                 let durationItems = this.$el.querySelectorAll(".duration-item")
                 durationItems.forEach(elem =>
                     this.setChoiceDuration(elem, duration))
@@ -43,7 +43,7 @@
         mounted() {
             this.$el.querySelectorAll(".duration-item")
                 .forEach(elem =>
-                    this.setChoiceDuration(elem, this.$root.store.getDuration()))
+                    this.setChoiceDuration(elem, this.$store.getters.duration))
         }
     }
 </script>

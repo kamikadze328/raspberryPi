@@ -1,18 +1,22 @@
 <template>
     <svg :id="'svg-'+ id" class="svg-content">
-        <g class="x axis axisWhite"></g>
+        <clipPath :id="'clip-'+ id">
+            <rect/>
+        </clipPath>
+        <g class="x axis axisWhite" :clip-path="'url(#clip-' + id + ')'"></g>
         <g class="y axis axisWhite"></g>
         <g class="lines" stroke="#348fe2" fill="none" stroke-width="1.5">
-            <path v-for="tag in this.$root.store.state.tagsTemperature"
+            <path v-for="tag in this.$store.state.tagsTemperature"
                   :key="'line-temper-'+id + '-' + tag.id"
                   :id="'line-temper-'+id + '-' + tag.id"
-                  display="none"/>
+                  :clip-path="'url(#clip-' + id + ')'"
+                  display="none" opacity="0.7" d=""/>
         </g>
-        <g class="lines" stroke="#ff5b57" fill="none" stroke-width="1.5">
-            <path v-for="tag in this.$root.store.state.tagsDigitalInput"
+        <g class="lines" stroke="#ff5b57" fill="none" stroke-width="1.5" :clip-path="'url(#clip-' + id + ')'">
+            <path v-for="tag in this.$store.state.tagsDigitalInput"
                   :key="'line-di-'+id + '-' + tag.id"
                   :id="'line-di-'+id + '-' + tag.id"
-                  display="none"/>
+                  display="none" opacity="0.7" d=""/>
         </g>
     </svg>
 </template>
@@ -44,13 +48,24 @@
             dataTemper: function () {
                 //this.initTemperCharts()
             },
-            isDataReady: function (val) {
-                if (val[0])
-                    this.initTemperCharts()
-                if (val[0] && val[1])
-                    this.initDICharts()
-            }
+            isDataReady: function (val, oldValue) {
 
+
+                console.log(1)
+
+                console.log(val)
+                console.log(oldValue)
+                console.log(val.temper)
+                console.log(oldValue.temper)
+                if (val.temper !== oldValue.temper && !this.isInit.temper) {
+                    this.initTemperCharts()
+                }
+                if (val.temper && val.di !== oldValue.di && this.isInit.temper) {
+                    console.log('default call initDI')
+                    this.initDICharts()
+                }
+
+            }
         },
         data() {
             return {
@@ -63,16 +78,23 @@
                 xAxis: null,
                 yAxis: null,
                 lines: [],
-                linesDI:[],
+                linesDI: [],
                 svgD3: null,
                 dataTemper: null,
-                isDataReady: null,
-                maxValue: 0,
-                minValue: 0,
+                isDataReady: {temper:false, di:false},
+                isInit:{temper:false, di:false},
+                minMaxData: {
+                    minValue: null,
+                    maxValue: null,
+                    minDate: null,
+                    MaxDate: null
+                },
+                zoom: null,
+
             }
         },
         methods: {
-            watchSelectedCharts: function(val, oldVal, chartName){
+            watchSelectedCharts: function (val, oldVal, chartName) {
                 const isAdded = val.length > oldVal.length
                 for (let i = 0; i < (isAdded ? val.length : val.length + 1); i++)
                     if (val[i] !== oldVal[i]) {
@@ -82,20 +104,39 @@
                         break
                     }
             },
+            onZoom: function () {
+                this.$emit('zoomer')
+                this.xScale.range(this.getXRange().map(d => d3.event.transform.applyX(d)))
+                this.redrawLines()
+                this.svgD3.select(".x.axis")
+                    .call(this.xAxis
+                        .scale(this.xScale)
+                        .ticks(this.getWidthTickNumber()))
+
+            },
+
             resize: function () {
                 this.updateSizeHTML()
+                console.log(this.yScale)
                 this.xScale.range(this.getXRange())
                 this.yScale.range(this.getYRange())
                 this.svgD3.select(".x.axis")
                     .attr("transform", this.getTransformX())
-                    .call(this.xAxis.ticks(this.width / 80 <= 10 ? this.width / 80 : 10))
+                    .call(this.xAxis.ticks(this.getWidthTickNumber()))
                 this.svgD3.select(".y.axis")
                     .attr("transform", this.getTransformY())
                     .call(this.yAxis.ticks(5))
+                this.svgD3.select('#clip-' + this.id + ' > rect')
+                    .attr("x", this.margin.left)
+                    .attr("width", this.width - this.margin.right - 10)
+                    .attr("height", this.height)
 
+                this.redrawLines()
+                //d3.dispatch('zoom')
+            },
+            redrawLines: function () {
                 this.lines.forEach(line => this.svgD3.select(line.id).attr("d", line.line), this)
                 this.linesDI.forEach(line => this.svgD3.select(line.id).attr("d", line.line), this)
-
             },
             getXRange: function () {
                 return [this.margin.left, this.width - this.margin.right]
@@ -113,14 +154,19 @@
                 this.width = document.getElementById(this.idParent).clientWidth - this.margin.right - this.margin.left
                 this.height = document.getElementById(this.idParent).clientHeight - this.margin.top - this.margin.bottom
             },
-            initTemperCharts: function () {
-                const dataTemper = this.$root.store.state.dataTemperature
-                if (dataTemper && dataTemper.length) {
-                    let minValue = dataTemper[0].data[0].value
-                    let maxValue = dataTemper[0].data[0].value
-                    let minDate = dataTemper[0].data[0].date
-                    let maxDate = dataTemper[0].data[0].date
-                    dataTemper.forEach(tag => {
+            getWidthTickNumber: function () {
+
+                const mbNumber = this.svgD3.select('.x.axis').node().getBoundingClientRect().width / 100
+
+                return (mbNumber >= 5) ? mbNumber : 5
+            },
+            setMaxMinVariables: function (data) {
+                if (data && data.length) {
+                    let minValue = data[0].data[0].value
+                    let maxValue = data[0].data[0].value
+                    let minDate = data[0].data[0].date
+                    let maxDate = data[0].data[0].date
+                    data.forEach(tag => {
                         tag.data.forEach(data => {
                             if (data.value > maxValue) maxValue = data.value
                             if (data.value < minValue) minValue = data.value
@@ -128,28 +174,51 @@
                             if (data.date < minDate) minDate = data.date
                         })
                     })
-                    this.minValue = minValue - 5
-                    this.maxValue = maxValue + 5
-                    this.xScale = d3.scaleTime()
-                        .domain([minDate, maxDate])
-                    this.yScale = d3.scaleLinear()
-                        .domain([minValue - 5, maxValue + 5]).nice()
-                    this.xAxis = d3.axisBottom()
-                        .scale(this.xScale)
-                    this.yAxis = d3.axisLeft()
-                        .scale(this.yScale)
-                    this.svgD3 = d3.select('#svg-' + this.id)
+                    this.minMaxData = {minValue, maxValue, minDate, maxDate}
+                    return true
+                }
+            },
+            initChart: function () {
+                this.updateSizeHTML()
+                this.xScale = d3.scaleTime()
+                    .domain([this.minMaxData.minDate, this.minMaxData.maxDate])
+                this.yScale = d3.scaleLinear()
+                    .domain([this.minMaxData.minValue, this.minMaxData.maxValue])
+                this.xAxis = d3.axisBottom()
+                    .scale(this.xScale)
+                this.yAxis = d3.axisLeft()
+                    .scale(this.yScale)
+                this.svgD3 = d3.select('#svg-' + this.id)
 
-                    this.xScale.range(this.getXRange())
-                    this.yScale.range(this.getYRange())
-                    this.svgD3.select(".x.axis")
-                        .attr("transform", this.getTransformX())
-                        .call(this.xAxis.ticks(this.width / 80 <= 10 ? this.width / 80 : 10))
-                    this.svgD3.select(".y.axis")
-                        .attr("transform", this.getTransformY())
-                        .call(this.yAxis.ticks(5))
+                this.xScale.range(this.getXRange())
+                this.yScale.range(this.getYRange())
+                this.svgD3.select(".x.axis")
+                    .attr("transform", this.getTransformX())
+                    .call(this.xAxis.ticks(this.getWidthTickNumber()))
+                this.svgD3.select(".y.axis")
+                    .attr("transform", this.getTransformY())
+                    .call(this.yAxis.ticks(5))
+                console.log(this.width)
+
+                this.svgD3.select('clipPath>rect')
+                    .attr("x", this.margin.left)
+                    .attr("width", this.width - this.margin.right - 10)
+                    .attr("height", this.height)
 
 
+                this.zoom = d3.zoom()
+                    .scaleExtent([1, 30])
+                    .extent([[this.margin.left, 0], [this.width - this.margin.right, this.height]])
+                    .translateExtent([[this.margin.left, -Infinity], [this.width - this.margin.right, Infinity]])
+                    .on("zoom", this.onZoom)
+                this.svgD3.call(this.zoom)
+
+            },
+
+            initTemperCharts: function () {
+                const dataTemper = this.$store.getters.dataTemperature
+                if (dataTemper && dataTemper.length && this.setMaxMinVariables(dataTemper) && !this.isInit.temper) {
+                    this.initChart()
                     dataTemper.forEach(tag => {
                         const line = d3.line()
                             //.defined((d, i) => !isNaN(tag.values[i]))
@@ -161,20 +230,27 @@
                             .attr("d", line)
                         this.lines.push({line, id})
                     }, this)
+
+                    this.isInit.temper = true
                 }
             },
-            initDICharts: function(){
-                const dataDigitalInputs = this.$root.store.state.dataDigitalInputs
-                if (dataDigitalInputs && dataDigitalInputs.length) {
+            initDICharts: function () {
+                console.log("init")
+                const dataDigitalInputs = this.$store.getters.dataDigitalInputs
+                console.log('test init: ' + (dataDigitalInputs && dataDigitalInputs.length && !isNaN(this.minMaxData.minValue) && !this.isInit.di))
+                console.log('!this.isInit.di: ' + !this.isInit.di)
+
+                if (dataDigitalInputs && dataDigitalInputs.length && !isNaN(this.minMaxData.minValue) && !this.isInit.di) {
+                    console.log("really init")
 
                     this.svgD3 = d3.select('#svg-' + this.id)
-                    const coefficient = (this.maxValue + this.minValue)/2
+                    const coefficient = (this.maxValue + this.minMaxData.minValue) / 2
                     dataDigitalInputs.forEach(tag => {
                         const line = d3.line()
                             .x(d => this.xScale(d.date))
-                            .y(d => this.yScale(d.value ? d.value*coefficient : this.minValue))
-                        .curve(d3.curveStepAfter)
-                        console.log(this.minValue)
+                            .y(d => this.yScale(d.value ? d.value * coefficient : this.minMaxData.minValue))
+                            .curve(d3.curveStepAfter)
+                        console.log(this.minMaxData.minValue)
                         const id = '#line-di-' + this.id + '-' + tag.id
                         this.svgD3.select(id)
                             .datum(tag.data)
@@ -182,17 +258,23 @@
 
                         this.lines.push({line, id})
                     }, this)
+
+                    this.isInit.di = true
+                    console.log("inited. this.isInit.di:" + this.isInit.di )
                 }
             }
+
         },
         mounted() {
             this.idParent = 'chart-' + this.id
             window.addEventListener("resize", this.resize);
             this.updateSizeHTML()
-            this.dataTemper = this.$root.store.state.dataTemperature
-            if(this.dataTemper && this.dataTemper.length)
+            this.initChart()
+
+            this.dataTemper = this.$store.getters.dataTemperature
+            if (this.dataTemper && this.dataTemper.length)
                 this.initTemperCharts()
-            this.isDataReady = this.$root.store.state.isDataReady
+            this.isDataReady = this.$store.getters.isDataReady
         },
     }
 
@@ -213,6 +295,7 @@
     .axisWhite >>> line {
         shape-rendering: optimizeSpeed;
         stroke: white;
+
     }
 
     .axisWhite >>> path {

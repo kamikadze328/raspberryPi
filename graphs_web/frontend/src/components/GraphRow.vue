@@ -13,7 +13,7 @@
                                class="select-clickable"
                                placeholder="Enter tag id or name">
                         <div class="select-items">
-                            <label v-for="tag in this.$root.store.state.tagsDigitalInput"
+                            <label v-for="tag in this.$store.getters.tagsDigitalInput"
                                    :key="'select-di-row-' + config.id + '-' + tag.id"
                                    :for="'select-di-tag-' + config.id + '-' + tag.id">
                                 <input type="checkbox"
@@ -33,7 +33,7 @@
                                class="select-clickable"
                                placeholder="Enter tag id or name">
                         <div class="select-items">
-                            <label v-for="tag in this.$root.store.state.tagsTemperature"
+                            <label v-for="tag in this.$store.getters.tagsTemperature"
                                    :key="'select-temperature-row-' + config.id + '-' + tag.id"
                                    :for="'select-temperature-tag-' + config.id + '-' + tag.id">
                                 <input type="checkbox"
@@ -49,8 +49,7 @@
             </div>
         </div>
         <div :id="'chart-' + config.id" class="extended-info card">
-            <Chart
-                   :selectedTagsTemperature="selectedTagsTemperature"
+            <Chart :selectedTagsTemperature="selectedTagsTemperature"
                    :selectedTagsDigitalInputs="selectedTagsDigitalInputs"
                    :id="config.id"/>
         </div>
@@ -58,7 +57,7 @@
 </template>
 
 <script>
-    import Chart from "@/components/Chart";
+    import Chart from "./Chart";
     export default {
         name: "GraphRow",
         components: {Chart},

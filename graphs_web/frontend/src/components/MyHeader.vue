@@ -1,7 +1,7 @@
 <template>
     <div class="header">
         <div id="number-db">Graph</div>
-        <div id="error-msg"></div>
+        <div id="error-msg">{{errorMessaga}}</div>
         <div id="time">{{time}}</div>
     </div>
 </template>
@@ -9,6 +9,9 @@
 <script>
     export default {
         name: "Header",
+        props:{
+            errorMessaga: String
+        },
         data () {
             return {
                 time: ''
@@ -36,5 +39,9 @@
 </script>
 
 <style scoped>
-
+    #error-msg{
+        color:#ff5b57;
+        font-weight: 700;
+        border-bottom: 0;
+    }
 </style>
