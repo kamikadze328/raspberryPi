@@ -48,7 +48,7 @@ Wants=network.target
 Type=idle  
 Restart=always  
 RestartSec=60
-RuntimeMaxSec=43200 
+RuntimeMaxSec=21600 
 ExecStart=/usr/bin/python /home/pi/sk/syncdata/sync_data.py  
 WorkingDirectory=/home/pi/sk/syncdata  
   
@@ -58,7 +58,7 @@ WantedBy=multi-user.target
   
 Комментарии:
 Type=idle - The effect of this service type is subject to a 5s timeout, after which the service program is invoked anyway.
-RuntimeMaxSec=43200 - 12 hours
+RuntimeMaxSec=21600 - 6 hours
 sudo systemctl daemon-reload  
 sudo systemctl enable get-time-oven  
 sudo reboot  
