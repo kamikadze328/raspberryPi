@@ -188,27 +188,29 @@ function initChart(server) {
 }
 
 function prepareData(serverData) {
-    let preparedData = []
-    let parseDate = d3.timeParse(format_time)
-    serverData.forEach(elem => {
-        let preparedElem = {
-            date: parseDate(elem.date),
-            value: (elem.value && elem.value > 0) ? +elem.value : undefined
-        }
-        const prev = preparedData[preparedData.length - 1]
-        if (elem.value && prev && preparedElem.date - prev.date > deltaForChart)
+    if(serverData && serverData.length) {
+        let preparedData = []
+        let parseDate = d3.timeParse(format_time)
+        serverData.forEach(elem => {
+            let preparedElem = {
+                date: parseDate(elem.date),
+                value: (elem.value && elem.value > 0) ? +elem.value : undefined
+            }
+            const prev = preparedData[preparedData.length - 1]
+            if (elem.value && prev && preparedElem.date - prev.date > deltaForChart)
+                preparedData.push({
+                    date: new Date(prev.date.getTime() + 1),
+                    value: undefined
+                })
+            preparedData.push(preparedElem)
+        }, serverData)
+        if (new Date - preparedData[preparedData.length - 1].date > deltaForChart)
             preparedData.push({
-                date: new Date(prev.date.getTime() + 1),
+                date: new Date,
                 value: undefined
             })
-        preparedData.push(preparedElem)
-    }, serverData)
-    if (new Date - preparedData[preparedData.length - 1].date > deltaForChart)
-        preparedData.push({
-            date: new Date,
-            value: undefined
-        })
-    return preparedData
+        return preparedData
+    } else return serverData
 }
 
 function updateChartsMeta(){
