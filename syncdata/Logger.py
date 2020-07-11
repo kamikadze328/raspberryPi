@@ -6,7 +6,7 @@ from datetime import datetime as d
 from enum import Enum
 
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
-tmp_path = '/var/tmp/syncdata/'
+tmp_path = '/var/RAMdisk/syncdata/'
 current_path = tmp_path
 last_upload_path = current_path + 'last_upload_date.json'
 statistics_path = current_path + 'statistics.json'
@@ -160,43 +160,47 @@ def save_last_upload_dates(host_name, tablename, last_upload_date):
     :type last_upload_date: str
     """
     pattern_json_data = [{
-        'data': '1990-01-01 0000',
+        'data': '2000-01-01 0000',
         'data_counter': 0,
-        'logs': '1900-01-01 0000',
+        'logs': '2000-01-01 0000',
         'logs_counter': 0,
-        'logs_syncdata': '1900-01-01 0000',
+        'logs_syncdata': '2000-01-01 0000',
         'logs_syncdata_counter': 0,
-        'statistics_syncdata':'1900-01-01 0000',
+        'statistics_syncdata':'2000-01-01 0000',
         'statistics_syncdata_counter':0,
         'host': host_name,
         tablename: last_upload_date,
 
     }]
-    if not os.path.exists(last_upload_path):
+    try:
+        if not os.path.exists(last_upload_path):
+            with open(last_upload_path, 'w') as f:
+                json.dump(pattern_json_data, f, indent=4)
+
+        else:
+            with open(last_upload_path, 'r') as f:
+                new_upload_data = json.load(f)
+
+            if len([host for host in new_upload_data if host.get('host') == host_name]) > 0:
+                for host in new_upload_data:
+                    if host.get('host') == host_name:
+                        counter = host.get(tablename + '_counter')
+                        if counter is not None:
+                            if last_upload_date == host.get(tablename):
+                                counter = int(counter) + 1
+                                host[tablename + '_counter'] = counter
+                            else:
+                                host[tablename + '_counter'] = 0
+                        host[tablename] = last_upload_date
+            else:
+                new_upload_data.append(pattern_json_data[0])
+
+            with open(last_upload_path, 'w') as f:
+                json.dump(new_upload_data, f, indent=4)
+    except:
+        os.remove(last_upload_path)
         with open(last_upload_path, 'w') as f:
             json.dump(pattern_json_data, f, indent=4)
-
-    else:
-        with open(last_upload_path, 'r') as f:
-            new_upload_data = json.load(f)
-
-        if len([host for host in new_upload_data if host.get('host') == host_name]) > 0:
-            for host in new_upload_data:
-                if host.get('host') == host_name:
-                    counter = host.get(tablename + '_counter')
-                    if counter is not None:
-                        if last_upload_date == host.get(tablename):
-                            counter = int(counter) + 1
-                            host[tablename + '_counter'] = counter
-                        else:
-                            host[tablename + '_counter'] = 0
-                    host[tablename] = last_upload_date
-        else:
-            new_upload_data.append(pattern_json_data[0])
-
-        with open(last_upload_path, 'w') as f:
-            json.dump(new_upload_data, f, indent=4)
-
 
 def save_stat(statistics, headers):
     """
