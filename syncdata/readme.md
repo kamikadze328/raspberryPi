@@ -1,4 +1,5 @@
 Описание:
+-----------------------
 Программа загружает в базы данных информацию из локальных файлов. Каждый успешно считанный и отправленный файл удаляется. 
 Если что-то пошло не так, то файл удаляется после трёх неудачных попыток отправки или прочтения. Удаляются ВСЕ свои файлы и немного чужих.
 
@@ -34,10 +35,11 @@ json файл (default name = "sync_time.conf.json") вида -
 - stats/*.stat.					Файлы со статистикой работы программы.
 - logs/*.log.					Файлы с логами.
 
-----------
+
 Как запустить демона.  
+----------------------------------------
 sudo nano /lib/systemd/system/sync-data.service
-  
+Пишем в файл следующее:
   
 [Unit]  
 Description=Sync data with db.  
@@ -60,12 +62,43 @@ WantedBy=multi-user.target
 Type=idle - The effect of this service type is subject to a 5s timeout, after which the service program is invoked anyway.
 RuntimeMaxSec=21600 - 6 hours
 sudo systemctl daemon-reload  
-sudo systemctl enable get-time-oven  
+sudo systemctl enable sync-data
 sudo reboot  
   
 Команда для просмотра статуса демона.  
-sudo systemctl status get-time-oven  
+sudo systemctl status sync-data
 
 Теперь данный система будет запускать демона после выполнения всех остальных демонов(Type=idle)  
 https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/  
 https://jlk.fjfi.cvut.cz/arch/manpages/man/systemd.service.5#OPTIONS  
+
+
+Создание директории в ОЗУ:
+------------------------------------------------------------------
+
+Пусть будет директория /var/tmp
+
+mkdir /var/tmp
+sudo nano /etc/fstab
+
+Здесь добавляем строчку:
+tmpfs /var/tmp tmpfs defaults 0 0
+Сохраняем
+sudo mount -a
+sudo reboot
+
+Проверка результата:
+df
+
+Должна быть подобная строчка
+tmpfs   474152   36   474116   0%   /var/tmp
+
+-----------------------------------------------------------------
+Выполнение скриптов после запуска малинки:
+Например, хочется, чтобы директории внутри /var/tmp создавались сами.
+
+sudo nano /etc/rc.local
+Здесь добавляем нужный скрипт, например:
+mkdir /var/tmp/DATA_UNP300
+Сохраняем
+sudo reboot
