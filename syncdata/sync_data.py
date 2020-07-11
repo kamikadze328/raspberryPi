@@ -18,17 +18,22 @@ sys.setdefaultencoding('utf8')
 #Paths to my files
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 config_path = '/var/www/html/config/sync_data.conf.json'
+tmp_path = '/var/tmp/syncdata/'
+current_path = tmp_path
+
 my_logs_path = current_path + 'logs/'
 stat_path = current_path + 'stats/'
 
 # Create not existed dirs
+if not os.path.exists(current_path):
+    os.mkdir(current_path)
 if not os.path.exists(my_logs_path):
     os.mkdir(my_logs_path)
 if not os.path.exists(stat_path):
     os.mkdir(stat_path)
 
 # Path to not my files
-data_path = '/var/www/html/DATA_UNP300/'
+data_path = tmp_path + 'DATA_UNP300/'
 dyn_data_name = '.DynDATA.json'
 
 
@@ -354,6 +359,7 @@ for config_server in configs_servers:
 
         # Upload data in other tables.
         for table in data_names:
+            Logger.write(server.config.get('host') + ': ' + table)
             path, files_type = get_path_and_type_for_name(table)
 
             last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
