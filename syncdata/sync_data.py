@@ -18,8 +18,8 @@ sys.setdefaultencoding('utf8')
 #Paths to my files
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 config_path = '/var/www/html/config/sync_data.conf.json'
-tmp_path = '/var/tmp/syncdata/'
-current_path = tmp_path
+tmp_path = '/var/RAMdisk/'
+current_path = tmp_path + 'syncdata/'
 
 my_logs_path = current_path + 'logs/'
 stat_path = current_path + 'stats/'
