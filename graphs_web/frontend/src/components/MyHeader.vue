@@ -1,7 +1,7 @@
 <template>
     <div class="header">
         <div id="number-db">Graph</div>
-        <div id="error-msg">{{errorMessaga}}</div>
+        <div id="error-msg">{{errorMessage}}</div>
         <div id="time">{{time}}</div>
     </div>
 </template>
@@ -10,7 +10,7 @@
     export default {
         name: "Header",
         props:{
-            errorMessaga: String
+            errorMessage: String
         },
         data () {
             return {

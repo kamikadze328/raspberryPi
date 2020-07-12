@@ -17,9 +17,11 @@ function millis_to_date($millis)
 function get_tags_str($tags)
 {
     $str = '';
-    foreach ($tags as $tag) $str .= "id={$tag} or ";
+    foreach ($tags as $tag) $str .= "(data.id={$tag} and tags.id={$tag}) or ";
     return substr($str, 0, -4);
 }
+
+
 
 function get_graph_from_server($server, $tags, $min_date, $maxDate)
 {
@@ -28,30 +30,33 @@ function get_graph_from_server($server, $tags, $min_date, $maxDate)
     if (!$mysqli->connect_errno) {
         $mysqli->set_charset("utf8");
 
-        $sql = "select id, ID_DATETIME as date, IF(ID_VALUE > 10000000, null, ID_VALUE) as value
-                    from data
-                    where ID_DATETIME between '{$min_date}' and '{$maxDate}'
+        $sql = "select data.ID as id, data.ID_DATETIME as date, IF(data.ID_VALUE > 10000000, null, data.ID_VALUE) as value, tags.TAG_TYPE as type
+                    from data, tags
+                    where data.ID_DATETIME between '{$min_date}' and '{$maxDate}'
                         and ({$tags})
-                    group by id, ID_DATETIME
                     order by id, ID_DATETIME";
 
         $result = $mysqli->query($sql);
         $rows = $result->fetch_all(MYSQLI_ASSOC);
         $answer = array();
         global $tags_arr;
-        $prev_tag = $tags_arr[0];
+        $prev_tag = intval($tags_arr[0]);
+        $prev_type = $rows[0]['type'];
         $data = array();
         foreach ($rows as $row) {
             if ($prev_tag != $row['id']) {
-                $answer[] = array('id' => $prev_tag, 'data' => $data);
+                $answer[] = array('id' => $prev_tag, 'type' =>$row['ID'], 'data' => $data);
                 $data = array();
-                $prev_tag = $row['id'];
+                $prev_tag = intval($row['id']);
+                $prev_type = $row['type'];
             }
-            $data[] = array('value' => strcasecmp($row['value'], 'null') ? intval($row['value']) : NAN,
-                'date' => strtotime($row['date']) * 1000);
+            $data[] = array(
+                'value' => $row['value'],
+                'date' => strtotime($row['date']) * 1000,
+            );
 
         }
-        if (count($rows)) $answer[] = array('id' => $prev_tag, 'data' => $data);
+        if (count($rows)) $answer[] = array('id' => $prev_tag, 'type' => $prev_type, 'data' => $data);
 
         $result->close();
         $mysqli->close();

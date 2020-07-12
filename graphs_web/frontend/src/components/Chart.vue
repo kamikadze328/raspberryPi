@@ -1,22 +1,17 @@
 <template>
-    <svg :id="'svg-'+ id" class="svg-content">
-        <clipPath :id="'clip-'+ id">
+    <svg :id="'svg-'+ configId" class="svg-content">
+        <clipPath :id="'clip-'+ configId">
             <rect/>
         </clipPath>
-        <g class="x axis axisWhite" :clip-path="'url(#clip-' + id + ')'"></g>
-        <g class="y axis axisWhite"></g>
-        <g class="lines" stroke="#348fe2" fill="none" stroke-width="1.5">
-            <path v-for="tag in this.$store.state.tagsTemperature"
-                  :key="'line-temper-'+id + '-' + tag.id"
-                  :id="'line-temper-'+id + '-' + tag.id"
-                  :clip-path="'url(#clip-' + id + ')'"
-                  display="none" opacity="0.7" d=""/>
-        </g>
-        <g class="lines" stroke="#ff5b57" fill="none" stroke-width="1.5" :clip-path="'url(#clip-' + id + ')'">
-            <path v-for="tag in this.$store.state.tagsDigitalInput"
-                  :key="'line-di-'+id + '-' + tag.id"
-                  :id="'line-di-'+id + '-' + tag.id"
-                  display="none" opacity="0.7" d=""/>
+        <g :clip-path="`url(#clip-${configId})`" class="x axis axisWhite"/>
+        <g class="y axis axisWhite"/>
+        <g :clip-path="`url(#clip-${configId})`" class="lines" fill="none"
+           stroke-width="1.5">
+            <path :id="getLineIdHTML(id, false)"
+                  :key="id"
+                  d=""
+                  v-for="id in selectedTagsId"
+            />
         </g>
     </svg>
 </template>
@@ -28,96 +23,91 @@
         name: "Chart",
 
         props: {
-            id: Number,
-            selectedTagsTemperature: {
+            configId: {
+                type: Number,
+                required: true
+            },
+            selectedTagsId: {
                 type: Array,
                 required: true
             },
-            selectedTagsDigitalInputs: {
-                type: Array,
-                required: true
-            }
+
         },
-        watch: {
-            selectedTagsTemperature: function (val, oldVal) {
-                this.watchSelectedCharts(val, oldVal, 'temper')
-            },
-            selectedTagsDigitalInputs: function (val, oldVal) {
-                this.watchSelectedCharts(val, oldVal, 'di')
-            },
-            dataTemper: function () {
-                //this.initTemperCharts()
-            },
-            isDataReady: function (val, oldValue) {
-
-
-                console.log(1)
-
-                console.log(val)
-                console.log(oldValue)
-                console.log(val.temper)
-                console.log(oldValue.temper)
-                if (val.temper !== oldValue.temper && !this.isInit.temper) {
-                    this.initTemperCharts()
+        computed: {
+            coefficient: function () {
+                return {
+                    AI: 1,
+                    DI: this.minMaxData.maxValue * 0.66,
+                    DO: this.minMaxData.maxValue * 0.66
                 }
-                if (val.temper && val.di !== oldValue.di && this.isInit.temper) {
-                    console.log('default call initDI')
-                    this.initDICharts()
-                }
+            },
 
-            }
         },
         data() {
             return {
-                idParent: '',
-                margin: ({top: 10, right: 0, bottom: 10, left: 35}),
-                width: 0,
-                height: 0,
+                curveD3: {
+                    AI: d3.curveLinear,
+                    DI: d3.curveStepAfter,
+                    DO: d3.curveStepAfter,
+                },
+
+                margin: ({top: 10, right: 0, bottom: 10, left: 45}),
                 xScale: null,
                 yScale: null,
                 xAxis: null,
                 yAxis: null,
                 lines: [],
-                linesDI: [],
+                colors: [],
                 svgD3: null,
-                dataTemper: null,
-                isDataReady: {temper:false, di:false},
-                isInit:{temper:false, di:false},
                 minMaxData: {
-                    minValue: null,
-                    maxValue: null,
-                    minDate: null,
-                    MaxDate: null
+                    minValue: +Infinity,
+                    maxValue: -Infinity,
+                    minDate: new Date(8640000000000000),
+                    maxDate: new Date(-8640000000000000)
                 },
                 zoom: null,
-
+                currentColorsNumber: 0,
             }
         },
+
         methods: {
-            watchSelectedCharts: function (val, oldVal, chartName) {
-                const isAdded = val.length > oldVal.length
-                for (let i = 0; i < (isAdded ? val.length : val.length + 1); i++)
-                    if (val[i] !== oldVal[i]) {
-                        const id = isAdded ? val[i] : oldVal[i]
-                        this.svgD3.select('#line-' + chartName + '-' + this.id + '-' + id)
-                            .attr('display', isAdded ? 'block' : 'none')
-                        break
-                    }
+            getCurveD3: function (type) {
+                return this.curveD3[type] ? this.curveD3[type] : this.curveD3.AI
+            },
+            getChartCoefficient: function (type) {
+                return this.coefficient[type] ? this.coefficient[type] : this.coefficient.AI
+            },
+            getWrapperWidth: function () {
+                return this.$parent.getChartWidth() - this.margin.right - this.margin.left
+            },
+            getWrapperHeight: function () {
+                return this.$parent.getChartHeight() - this.margin.top - this.margin.bottom
+            },
+            getLineIdHTML: function (id, withH) {
+                const idHTML = `path-${this.configId}-${id}`
+                return withH ? '#' + idHTML : idHTML
+
             },
             onZoom: function () {
+                console.log(d3.event.transform)
+                console.log(this.getXRange().map(d => d3.event.transform.applyX(d)))
                 this.$emit('zoomer')
+                console.log('onZoom')
+            },
+            zoomer: function () {
+                console.log('inside zoomer')
                 this.xScale.range(this.getXRange().map(d => d3.event.transform.applyX(d)))
                 this.redrawLines()
                 this.svgD3.select(".x.axis")
                     .call(this.xAxis
                         .scale(this.xScale)
                         .ticks(this.getWidthTickNumber()))
-
             },
-
+            onResize: function () {
+                this.resize()
+                this.redrawLines()
+            },
             resize: function () {
-                this.updateSizeHTML()
-                console.log(this.yScale)
                 this.xScale.range(this.getXRange())
                 this.yScale.range(this.getYRange())
                 this.svgD3.select(".x.axis")
@@ -126,60 +116,57 @@
                 this.svgD3.select(".y.axis")
                     .attr("transform", this.getTransformY())
                     .call(this.yAxis.ticks(5))
-                this.svgD3.select('#clip-' + this.id + ' > rect')
+                this.svgD3.select('#clip-' + this.configId + ' > rect')
                     .attr("x", this.margin.left)
-                    .attr("width", this.width - this.margin.right - 10)
-                    .attr("height", this.height)
-
-                this.redrawLines()
-                //d3.dispatch('zoom')
+                    .attr("width", this.getWrapperWidth() - this.margin.right - 10)
+                    .attr("height", this.getWrapperHeight())
+                console.log(this.getWrapperWidth())
+            },
+            clearMinMax: function () {
+                this.minMaxData = {
+                    minValue: +Infinity,
+                    maxValue: -Infinity,
+                    minDate: new Date(8640000000000000),
+                    maxDate: new Date(-8640000000000000)
+                }
             },
             redrawLines: function () {
-                this.lines.forEach(line => this.svgD3.select(line.id).attr("d", line.line), this)
-                this.linesDI.forEach(line => this.svgD3.select(line.id).attr("d", line.line), this)
+                for (const line of this.lines)
+                    this.svgD3.select(line.idHTML).attr("d", line.line)
             },
             getXRange: function () {
-                return [this.margin.left, this.width - this.margin.right]
+                return [this.margin.left, this.getWrapperWidth() - this.margin.right]
             },
             getYRange: function () {
-                return [this.height - this.margin.bottom, this.margin.top]
+                return [this.getWrapperHeight() - this.margin.bottom, this.margin.top]
             },
             getTransformX: function () {
-                return `translate(0, ${this.height - this.margin.bottom})`
+                return `translate(0, ${this.getWrapperHeight() - this.margin.bottom})`
             },
             getTransformY: function () {
                 return `translate(${this.margin.left},0)`
             },
-            updateSizeHTML: function () {
-                this.width = document.getElementById(this.idParent).clientWidth - this.margin.right - this.margin.left
-                this.height = document.getElementById(this.idParent).clientHeight - this.margin.top - this.margin.bottom
-            },
             getWidthTickNumber: function () {
-
                 const mbNumber = this.svgD3.select('.x.axis').node().getBoundingClientRect().width / 100
-
                 return (mbNumber >= 5) ? mbNumber : 5
             },
-            setMaxMinVariables: function (data) {
-                if (data && data.length) {
-                    let minValue = data[0].data[0].value
-                    let maxValue = data[0].data[0].value
-                    let minDate = data[0].data[0].date
-                    let maxDate = data[0].data[0].date
-                    data.forEach(tag => {
-                        tag.data.forEach(data => {
-                            if (data.value > maxValue) maxValue = data.value
-                            if (data.value < minValue) minValue = data.value
-                            if (data.date > maxDate) maxDate = data.date
-                            if (data.date < minDate) minDate = data.date
-                        })
-                    })
-                    this.minMaxData = {minValue, maxValue, minDate, maxDate}
-                    return true
-                }
+            setMaxMinVariables: function (minMaxData) {
+                if (minMaxData.minValue !== undefined && minMaxData.minValue < this.minMaxData.minValue)
+                    this.minMaxData.minValue = minMaxData.minValue
+
+                if (minMaxData.maxValue !== undefined && minMaxData.maxValue > this.minMaxData.maxValue)
+                    this.minMaxData.maxValue = minMaxData.maxValue
+
+                if (minMaxData.minDate < this.minMaxData.minDate)
+                    this.minMaxData.minDate = minMaxData.minDate
+
+                if (minMaxData.maxDate > this.minMaxData.maxDate)
+                    this.minMaxData.maxDate = minMaxData.maxDate
+
+                this.xScale.domain([this.minMaxData.minDate, this.minMaxData.maxDate])
+                this.yScale.domain([this.minMaxData.minValue, this.minMaxData.maxValue])
             },
-            initChart: function () {
-                this.updateSizeHTML()
+            reArrangeChart: function () {
                 this.xScale = d3.scaleTime()
                     .domain([this.minMaxData.minDate, this.minMaxData.maxDate])
                 this.yScale = d3.scaleLinear()
@@ -188,93 +175,129 @@
                     .scale(this.xScale)
                 this.yAxis = d3.axisLeft()
                     .scale(this.yScale)
-                this.svgD3 = d3.select('#svg-' + this.id)
-
+                this.onResize()
+            },
+            initChart: function () {
+                this.xScale = d3.scaleTime()
+                    .domain([this.minMaxData.minDate, this.minMaxData.maxDate])
+                this.yScale = d3.scaleLinear()
+                    .domain([this.minMaxData.minValue, this.minMaxData.maxValue])
+                this.xAxis = d3.axisBottom()
+                    .scale(this.xScale)
+                this.yAxis = d3.axisLeft()
+                    .scale(this.yScale)
+                this.svgD3 = d3.select('#svg-' + this.configId)
                 this.xScale.range(this.getXRange())
                 this.yScale.range(this.getYRange())
+
                 this.svgD3.select(".x.axis")
                     .attr("transform", this.getTransformX())
                     .call(this.xAxis.ticks(this.getWidthTickNumber()))
                 this.svgD3.select(".y.axis")
                     .attr("transform", this.getTransformY())
                     .call(this.yAxis.ticks(5))
-                console.log(this.width)
 
                 this.svgD3.select('clipPath>rect')
                     .attr("x", this.margin.left)
-                    .attr("width", this.width - this.margin.right - 10)
-                    .attr("height", this.height)
-
+                    .attr("width", this.getWrapperWidth() - this.margin.right - 10)
+                    .attr("height", this.getWrapperHeight())
 
                 this.zoom = d3.zoom()
                     .scaleExtent([1, 30])
-                    .extent([[this.margin.left, 0], [this.width - this.margin.right, this.height]])
-                    .translateExtent([[this.margin.left, -Infinity], [this.width - this.margin.right, Infinity]])
+                    .extent([[this.margin.left, 0], [this.getWrapperWidth() - this.margin.right, this.getWrapperHeight()]])
+                    .translateExtent([[this.margin.left, -Infinity], [this.getWrapperWidth() - this.margin.right, Infinity]])
                     .on("zoom", this.onZoom)
                 this.svgD3.call(this.zoom)
-
             },
 
-            initTemperCharts: function () {
-                const dataTemper = this.$store.getters.dataTemperature
-                if (dataTemper && dataTemper.length && this.setMaxMinVariables(dataTemper) && !this.isInit.temper) {
-                    this.initChart()
-                    dataTemper.forEach(tag => {
-                        const line = d3.line()
-                            //.defined((d, i) => !isNaN(tag.values[i]))
-                            .x(d => this.xScale(d.date))
-                            .y(d => this.yScale(d.value))
-                        const id = '#line-temper-' + this.id + '-' + tag.id
-                        this.svgD3.select(id)
-                            .datum(tag.data)
-                            .attr("d", line)
-                        this.lines.push({line, id})
-                    }, this)
+            addLine: function (tag) {
+                console.log('addLine: ' + tag.id)
+                console.log(tag.minMaxData.minValue)
+                this.setMaxMinVariables(tag.minMaxData)
+                const type = tag.type,
+                    curve = this.getCurveD3(type),
+                    line = d3.line()
+                        .defined(d => !isNaN(d.value))
+                        .x(d => this.xScale(d.date))
+                        .y(d => this.yScale(d.value ? d.value * this.getChartCoefficient(type) : this.minMaxData.minValue))
+                        .curve(curve),
+                    color = this.$store.getters.color(this.colors),
+                    idHTML = this.getLineIdHTML(tag.id, true)
 
-                    this.isInit.temper = true
-                }
+                console.log('type: ' + type)
+                console.log('coeff:' + this.getChartCoefficient(type))
+                console.log('max value: ' + this.minMaxData.maxValue)
+                console.log(this.minMaxData.minValue)
+
+                this.svgD3.select(idHTML)
+                    .datum(tag.data)
+                    .attr("d", line)
+                    .attr('stroke', color)
+
+                this.lines.push({line, idHTML, type, color})
+                this.addColor(color, tag)
+
+                this.reArrangeChart()
             },
-            initDICharts: function () {
-                console.log("init")
-                const dataDigitalInputs = this.$store.getters.dataDigitalInputs
-                console.log('test init: ' + (dataDigitalInputs && dataDigitalInputs.length && !isNaN(this.minMaxData.minValue) && !this.isInit.di))
-                console.log('!this.isInit.di: ' + !this.isInit.di)
+            reDrawLine: function (tag, line) {
+                console.log('addLine: ' + tag.id)
+                this.setMaxMinVariables(tag.minMaxData)
 
-                if (dataDigitalInputs && dataDigitalInputs.length && !isNaN(this.minMaxData.minValue) && !this.isInit.di) {
-                    console.log("really init")
+                this.svgD3.select(line.idHTML)
+                    .datum(tag.data)
+                    .attr("d", line.line)
 
-                    this.svgD3 = d3.select('#svg-' + this.id)
-                    const coefficient = (this.maxValue + this.minMaxData.minValue) / 2
-                    dataDigitalInputs.forEach(tag => {
-                        const line = d3.line()
-                            .x(d => this.xScale(d.date))
-                            .y(d => this.yScale(d.value ? d.value * coefficient : this.minMaxData.minValue))
-                            .curve(d3.curveStepAfter)
-                        console.log(this.minMaxData.minValue)
-                        const id = '#line-di-' + this.id + '-' + tag.id
-                        this.svgD3.select(id)
-                            .datum(tag.data)
-                            .attr("d", line)
+                this.reArrangeChart()
+            },
+            getIndexLineById: function (id) {
+                const neededIdHTML = this.getLineIdHTML(id, true)
+                for (let i = 0; i < this.lines.length; i++)
+                    if (this.lines[i].idHTML === neededIdHTML) return i
+            },
+            removeLine: function (tagId) {
+                console.log('removeLine: ' + tagId)
+                const index = this.getIndexLineById(tagId)
+                this.lines.splice(index, 1)
 
-                        this.lines.push({line, id})
-                    }, this)
+                this.removeColor(tagId, index)
 
-                    this.isInit.di = true
-                    console.log("inited. this.isInit.di:" + this.isInit.di )
-                }
-            }
-
+                this.updateAllMinMax()
+                this.reArrangeChart()
+            },
+            addColor: function (color, tagWithData) {
+                const id = tagWithData.id,
+                    description = this.$store.getters.getTagsDescription(id),
+                    tag = {id, description}
+                this.colors.push(color)
+                this.$emit('addcolor', color, tag)
+            },
+            removeColor: function (tagId, indexColor) {
+                this.colors.splice(indexColor, 1)
+                this.$emit('removecolor', tagId)
+            },
+            updateCharts: function () {
+                this.clearMinMax()
+                this.updateLines()
+                this.onResize()
+            },
+            updateAllMinMax: function () {
+                this.clearMinMax()
+                this.selectedTagsId.forEach(tagId =>
+                        this.setMaxMinVariables(this.$store.getters.tagById(tagId).minMaxData),
+                    this)
+            },
+            updateLines: function () {
+                for (let i = 0; i < this.lines.length; i++)
+                    this.reDrawLine(this.$store.getters.tagById(this.selectedTagsId[i]), this.lines[i])
+            },
         },
         mounted() {
-            this.idParent = 'chart-' + this.id
-            window.addEventListener("resize", this.resize);
-            this.updateSizeHTML()
+            window.addEventListener("resize", this.onResize);
             this.initChart()
+            //this.initChart()
 
-            this.dataTemper = this.$store.getters.dataTemperature
-            if (this.dataTemper && this.dataTemper.length)
-                this.initTemperCharts()
-            this.isDataReady = this.$store.getters.isDataReady
+            /*if (this.dataTemper && this.dataTemper.length)
+                this.initTemperCharts()*/
         },
     }
 
@@ -285,11 +308,6 @@
     svg {
         width: 100%;
         height: 100%;
-    }
-
-    .line {
-        fill: none;
-        stroke: steelblue;
     }
 
     .axisWhite >>> line {

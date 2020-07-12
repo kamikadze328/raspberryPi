@@ -3,102 +3,184 @@ import App from './App.vue'
 
 Vue.config.productionTip = false
 import Vuex from 'vuex'
+
 Vue.use(Vuex)
 
-const store =  new Vuex.Store({
-  debug: true,
-  state: {
-    tags: {
-      tagsTemperature: [
-        {id: 10101, description: 'Топка'},
-        {id: 10102, description: 'Сушилка левая'},
-        {id: 10103, description: 'Дым газы'},
-        {id: 10104, description: 'Сушилка правая'},
-        {id: 10105, description: 'Реактор левый'},
-        {id: 10106, description: 'Выгрузка углерода левая'},
-        {id: 10107, description: 'Реактор правый'},
-        {id: 10108, description: 'Выгрузка углерода правая'},
-      ],
-      tagsDigitalInput: [
-        {id: 12101, description: 'Бункер подачи сырья'},
-        {id: 12102, description: 'Пересыпка сушилки левая'},
-        {id: 12103, description: 'Пересыпка сушилки правая'},
-        {id: 12104, description: 'Выход углерода левый'},
-        {id: 12105, description: 'Выход углерода правый'},
-      ],
+const store = new Vuex.Store({
+    debug: true,
+    state: {
+        devices: [
+            {
+                id: 10000,
+                description: 'Контроллер 8 аналоговых входов',
+                tags: [
+                    {id: 10101, description: 'Топка'},
+                    {id: 10102, description: 'Сушилка левая'},
+                    {id: 10103, description: 'Дым газы'},
+                    {id: 10104, description: 'Сушилка правая'},
+                    {id: 10105, description: 'Реактор левый'},
+                    {id: 10106, description: 'Выгрузка углерода левая'},
+                    {id: 10107, description: 'Реактор правый'},
+                    {id: 10108, description: 'Выгрузка углерода правая'},
+                ]
+            },
+            {
+                id: 12000,
+                description: 'Контроллер дискретных выходов (24 реле)',
+                tags: [
+                    {id: 12101, description: 'Бункер подачи сырья'},
+                    {id: 12102, description: 'Пересыпка сушилки левая'},
+                    {id: 12103, description: 'Пересыпка сушилки правая'},
+                    {id: 12104, description: 'Выход углерода левый'},
+                    {id: 12105, description: 'Выход углерода правый'},
+                ]
+            },
+        ],
+        tags: {
+            tagsTemperature: [
+                {id: 10101, description: 'Топка'},
+                {id: 10102, description: 'Сушилка левая'},
+                {id: 10103, description: 'Дым газы'},
+                {id: 10104, description: 'Сушилка правая'},
+                {id: 10105, description: 'Реактор левый'},
+                {id: 10106, description: 'Выгрузка углерода левая'},
+                {id: 10107, description: 'Реактор правый'},
+                {id: 10108, description: 'Выгрузка углерода правая'},
+            ],
+            tagsDigitalInput: [
+                {id: 12101, description: 'Бункер подачи сырья'},
+                {id: 12102, description: 'Пересыпка сушилки левая'},
+                {id: 12103, description: 'Пересыпка сушилки правая'},
+                {id: 12104, description: 'Выход углерода левый'},
+                {id: 12105, description: 'Выход углерода правый'},
+            ],
+        },
+        data: {
+            temperature: [],
+            digitalInputs: [],
+        },
+        tagsData: [
+            //{id, type, data}
+        ],
+        settings: {
+            duration: 'week',
+            date: {min: new Date, max: new Date},
+            isUserInput: false,
+        },
+        colorScheme: [
+            '#348fe2',
+            '#f59c1a',
+            '#32a932',
+            '#ff5b57',
+            '#00acac',
+            '#8753de',
+            '#fb5597',
+            '#6c757d',
+            '#ffd900',
+        ],
     },
-    data: {
-      dataTemperature: [],
-      dataDigitalInputs: [],
-    },
-    duration: 'week',
-    date: {min: new Date, max: new Date},
-    isDataReady: {temper: false, di: false},
-  },
-  mutations: {
-    updateDate(state, {min, max}) {
-      state.date.max = max
-      state.date.min = min
-    },
-    setTemperatureReady(state, {isReady}) {
-      state.isDataReady.temper = isReady
-    },
-    setDigitalInputReady(state, {isReady}) {
-      state.isDataReady.di = isReady
-    },
-    setDataTemperature(state, {newData}) {
-      this.commit('prepareNewData', {newData, oldData: state.data.dataTemperature})
-    },
-    setDataDigitalInputs(state, {newData}) {
-      this.commit('prepareNewData', {newData, oldData: state.data.dataDigitalInputs})
-    },
-    setDuration(state, {duration}) {
-      state.duration = duration
-    },
-    prepareNewData(state, {newData, oldData}){
-      oldData.length = 0
-      newData.forEach((tag, i) => {
-        newData[i].data.forEach((data, j) => {
-          newData[i].data[j].date = new Date(data.date)
-        })
-        oldData.push(newData[i])
-      })
-    },
-  },
-  actions: {
+    mutations: {
+        useUserDataInput(state, {isUserInput}) {
+            state.settings.isUserInput = isUserInput
+        },
+        updateDate(state, {min, max}) {
+            state.settings.date.max = max
+            state.settings.date.min = min
+        },
+        setDuration(state, {duration}) {
+            state.settings.duration = duration
+        },
+        addNewTag(state, {newTag}) {
+            let minValue = Number.MAX_VALUE,
+                maxValue = Number.MIN_VALUE
 
-  },
-  getters: {
-    date: state => {
-      let min = new Date
-      const max = new Date
-      const duration = state.duration
-      if (duration === 'day')
-        min = min.setDate(max.getDate() - 1)
-      else if (duration === 'week')
-        min = min.setDate(max.getDate() - 7)
-      else
-        min = min.setHours(max.getHours() - 1)
+            const id = Number(newTag.id),
+                type = String(newTag.type).toUpperCase(),
+                data = newTag.data.map(d => {
+                    const value = d.value ? Number(d.value) : undefined,
+                        date = new Date(d.date)
 
-      store.commit('updateDate', {max, min: new Date(min)})
-      return state.date
+                    if (d && value > maxValue) maxValue = value
+                    if (d && value < minValue) minValue = value
+                    return {date, value}
+                }),
+                minDate = data[0].date,
+                maxDate = data[data.length - 1].date
+
+            Vue.set(state.tagsData, newTag.id, {id, type, data, minMaxData: {minValue, maxValue, minDate, maxDate}})
+            console.log(state.tagsData)
+        },
+        setDevicesAndTags(state, {data}){
+            state.devices = data
+        },
     },
-    duration: state => {
-      return state.duration
+    actions: {
     },
-    tagsTemperature: state => {
-      return state.tags.tagsTemperature
+    getters: {
+        devices: state=>{
+            return state.devices
+        },
+        loadedTags: state => {
+            let tags = []
+            state.tagsData.forEach(tag => tags.push(tag.id))
+            return tags
+        },
+        isTagsLoaded: state => id =>{
+          return !!state.tagsData[id]
+        },
+        tagsData: state => {
+            return state.tagsData
+        },
+        tagById: state => id => {
+            return state.tagsData[id]
+        },
+        date: state => {
+            if (!state.settings.isUserInput) {
+                let min = new Date
+                const max = new Date
+                const duration = state.settings.duration
+                if (duration === 'day')
+                    min = min.setDate(max.getDate() - 1)
+                else if (duration === 'week')
+                    min = min.setDate(max.getDate() - 7)
+                else
+                    min = min.setHours(max.getHours() - 1)
+
+                store.commit('updateDate', {max, min: new Date(min)})
+            }
+            return state.settings.date
+        },
+        duration: state => {
+            return state.settings.duration
+        },
+
+        getTagsDescription: state => id => {
+            for (let device of state.devices)
+                if (Math.floor(device.id / 1000) === Math.floor(id / 1000))
+                    for (let tag of device.tags)
+                        if (tag.id === id)
+                            return tag.description
+        },
+        color: state => currentColors => {
+            const currentNumber = currentColors.length
+            let index = 0
+            console.log('number of colors: ' + currentNumber)
+            let color
+            if (currentNumber < state.colorScheme.length)
+                do {
+                    color = state.colorScheme[index]
+                    index++
+                } while (currentColors.indexOf(color) >= 0)
+            else
+                color = '#' + (Math.random().toString(16) + '000000').substring(2, 8)
+
+            store.commit('addColor', {color})
+            return color
+        }
     },
-    tagsDigitalInput: state => {
-      return state.tags.tagsDigitalInput
-    },
-    isDataReady: state => {
-      return state.isDataReady
-    },
-  },
 })
 
 new Vue({
-  render: h => h(App),
-  store
+    render: h => h(App),
+    store
 }).$mount('#app')
