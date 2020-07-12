@@ -102,3 +102,9 @@ sudo nano /etc/rc.local
 mkdir /var/tmp/DATA_UNP300
 Сохраняем
 sudo reboot
+
+
+Check lifetime sd card
+----------------------
+uptime
+cat /sys/block/mmcblk0/stat | awk '{printf "Uptime read: %.3fMiB (%.1f%% I/Os merged) written: %.3f MiB (%.1f%% I/Os merged)\n", $3*512/1048576, $2/$1*100, $7*512/1048576, $6/$5*100}'
