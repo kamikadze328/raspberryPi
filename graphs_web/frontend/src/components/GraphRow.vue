@@ -102,12 +102,24 @@
             },
             changedSelected: function(e) {
                 const tagId = Number(e.target.value)
-                if (this.selectedTagsId.indexOf(tagId) >= 0) {
-                    if (!this.$store.getters.isTagsLoaded(tagId)) {
-                        this.$emit('newtag', tagId)
-                        this.waitedTagsId.push(tagId)
-                    } else this.waitedForDrawTagsId.push(tagId)
-                } else this.waitedForRemove.push(tagId)
+                if (this.selectedTagsId.indexOf(tagId) >= 0)
+                    this.addTag(tagId)
+                else
+                    this.removeTag(tagId)
+            },
+            addTag: function(tagId){
+                if (!this.$store.getters.isTagsLoaded(tagId)) {
+                    this.$emit('newtag', tagId)
+                    this.waitedTagsId.push(tagId)
+                } else this.waitedForDrawTagsId.push(tagId)
+            },
+            removeTag: function(tagId){
+                if (this.waitedForDrawTagsId.indexOf(tagId) > -1) {
+                    this.waitedForDrawTagsId.shift()
+                } else if (this.waitedTagsId.indexOf(tagId) > -1) {
+                    this.waitedTagsId.shift()
+                } else
+                    this.waitedForRemove.push(tagId)
             },
             addColor: function (color, tag) {
                 this.legend.push({color, tag})
