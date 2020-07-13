@@ -1,7 +1,10 @@
 <template>
     <div id="app">
-        <MyHeader v-bind:errorMessage="errorMessage"/>
+        <MyHeader v-bind:errorMessage="errorMessage"
+                    @update-date="updateCharts"
+        />
         <div class="wrapper" v-on:click="closeAll">
+
             <div id="row-list">
                 <GraphRow :config="row"
                           :key="row.id"
@@ -13,9 +16,6 @@
                     <div class="text-add-btn">&#x2b;</div>
                 </div>
             </div>
-            <SettingsButton/>
-            <SettingsPanel @hangeduration="updateCharts"
-                           @updatecharts="updateCharts"/>
         </div>
     </div>
 </template>
@@ -25,14 +25,10 @@
     import MyHeader from "./components/MyHeader";
     import GraphRow from "./components/GraphRow";
     import axios from 'axios';
-    import SettingsButton from "./components/SettingsButton";
-    import SettingsPanel from "./components/SettingsPanel";
 
     export default {
         name: 'App',
         components: {
-            SettingsPanel,
-            SettingsButton,
             GraphRow,
             MyHeader,
         },
@@ -68,8 +64,8 @@
                 const loc = window.location.pathname
                 const dir = loc.substring(0, loc.lastIndexOf('/'))
 
-                if (!minDate) minDate = this.$store.getters.date.min.getTime()
-                if (!maxDate) maxDate = this.$store.getters.date.max.getTime()
+                if (!minDate) minDate = this.$store.getters.minDate.getTime()
+                if (!maxDate) maxDate = this.$store.getters.maxDate.getTime()
                 console.log(new Date(minDate))
                 console.log(new Date(maxDate))
                 return axios({
@@ -94,6 +90,7 @@
                     })
             },
             updateCharts: function () {
+                console.log('update')
                 const tags = this.$store.getters.loadedTags
                 console.log(tags)
                 if (tags && tags.length) {
@@ -185,5 +182,11 @@
         margin: auto auto;
         font-weight: bolder;
         font-size: 3rem;
+    }
+    .wrapper {
+        margin-top: 105px;
+        position: fixed;
+        top: 0;
+        bottom: 0;
     }
 </style>

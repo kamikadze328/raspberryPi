@@ -63,9 +63,7 @@ const store = new Vuex.Store({
             //{id, type, data}
         ],
         settings: {
-            duration: 'week',
             date: {min: new Date, max: new Date},
-            isUserInput: false,
         },
         colorScheme: [
             '#348fe2',
@@ -80,15 +78,10 @@ const store = new Vuex.Store({
         ],
     },
     mutations: {
-        useUserDataInput(state, {isUserInput}) {
-            state.settings.isUserInput = isUserInput
-        },
         updateDate(state, {min, max}) {
             state.settings.date.max = max
             state.settings.date.min = min
-        },
-        setDuration(state, {duration}) {
-            state.settings.duration = duration
+            console.log(state.settings.date.min)
         },
         addNewTag(state, {newTag}) {
             let minValue = Number.MAX_VALUE,
@@ -117,7 +110,7 @@ const store = new Vuex.Store({
     actions: {
     },
     getters: {
-        devices: state=>{
+        devices: state => {
             return state.devices
         },
         loadedTags: state => {
@@ -125,8 +118,8 @@ const store = new Vuex.Store({
             state.tagsData.forEach(tag => tags.push(tag.id))
             return tags
         },
-        isTagsLoaded: state => id =>{
-          return !!state.tagsData[id]
+        isTagsLoaded: state => id => {
+            return !!state.tagsData[id]
         },
         tagsData: state => {
             return state.tagsData
@@ -134,21 +127,11 @@ const store = new Vuex.Store({
         tagById: state => id => {
             return state.tagsData[id]
         },
-        date: state => {
-            if (!state.settings.isUserInput) {
-                let min = new Date
-                const max = new Date
-                const duration = state.settings.duration
-                if (duration === 'day')
-                    min = min.setDate(max.getDate() - 1)
-                else if (duration === 'week')
-                    min = min.setDate(max.getDate() - 7)
-                else
-                    min = min.setHours(max.getHours() - 1)
-
-                store.commit('updateDate', {max, min: new Date(min)})
-            }
-            return state.settings.date
+        minDate: state => {
+            return state.settings.date.min
+        },
+        maxDate: state => {
+            return state.settings.date.max
         },
         duration: state => {
             return state.settings.duration

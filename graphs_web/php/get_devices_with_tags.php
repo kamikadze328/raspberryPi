@@ -59,7 +59,6 @@ function get_devices_with_tags($server)
 $answer = null;
 $error_message = "internal server error";
 $servers = read_json($servers_file);
-$tags_arr = $post["tags"];
 if (is_array($servers) || is_object($servers)) {
     foreach ($servers as $server) {
         $answer = get_devices_with_tags($server);
