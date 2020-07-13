@@ -48,7 +48,6 @@
             }
         },
         created() {
-            console.log(new Date(this.dateStr.split(' — ')[0]))
             this.$store.commit('updateDate', {min: new Date(this.dateStr.split(' — ')[0]), max: new Date(this.dateStr.split(' — ')[1])})
         }
     }

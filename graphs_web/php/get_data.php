@@ -68,7 +68,13 @@ function get_graph_from_server($server, $tags, $min_date, $maxDate)
 
 $post = json_decode(file_get_contents('php://input'), true);
 $isOK = false;
+$answers = array(
+    1 => "no available db servers",
+    2 => "no available data",
+    3 => "wrong request"
+    );
 $answer = null;
+$errno = null;
 $error_message = "internal server error";
 if (isset($post["minDate"]) && isset($post["maxDate"]) && isset($post["tags"])) {
     $servers = read_json($servers_file);
@@ -82,15 +88,14 @@ if (isset($post["minDate"]) && isset($post["maxDate"]) && isset($post["tags"])) 
                 break;
             }
         }
-        if (!empty($answer)) $message = "no available db servers";
-        else $message = "no available data";
-    } else $message = "no available db servers";
+        if (!empty($answer)) $errno = 1;
+        else $errno = 2;
+    } else  $errno = 1;
 } else {
-    $out["error"] = array("message" => "empty request", "request-body" => $post);
-    echo json_encode($out);
+    $errno = 3;
 }
 if (!$isOK) {
-    $out["error"] = array("message" => $message, "answerDB" => $answer, "request-body" => $post);
+    $out["error"] = array("message" => $answers[$errno], "answerDB" => $answer, "request-body" => $post, "errno" => $errno);
     echo json_encode($out);
 }
 
