@@ -55,6 +55,10 @@
                 },)
             },
             closeAll: function (e) {
+                console.log(e.target)
+                document.querySelectorAll('.select-box').forEach(elem =>{
+                    console.log(elem)
+                })
                 document.querySelectorAll(".select-items").forEach(elem => {
                     if ((!e.target.classList.contains('select-clickable') && e.target.parentNode.tagName !== 'LABEL' && e.target.tagName !== 'LABEL'))
                         elem.style.display = "none"
@@ -83,11 +87,20 @@
                 })
                     .catch(error => {
                         console.log(error.response)
-                        if (error.response)
-                            this.errorMessage = error.response.status + ': ' + error.response.statusText
-                        else
-                            this.errorMessage = error.message
+                        console.log(error)
+                        if(error.errno && error.errno === 2) {
+                            const tags = error['request-body'].tags
+                            this.errorMessage = tags.toString() + ': ' + error.message
+                            tags.forEach(tagId => this.unCheckTag(tagId), this)
+                        }
+                        else this.errorMessage = error.message
+
                     })
+            },
+            unCheckTag:function(tagId){
+                this.$refs['graph'].forEach(graph => {
+                    document.getElementById('select-tag-'+graph.config.id+'-' + tagId).checked = false
+                })
             },
             updateCharts: function () {
                 console.log('update')

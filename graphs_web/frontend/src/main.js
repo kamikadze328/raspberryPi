@@ -81,7 +81,6 @@ const store = new Vuex.Store({
         updateDate(state, {min, max}) {
             state.settings.date.max = max
             state.settings.date.min = min
-            console.log(state.settings.date.min)
         },
         addNewTag(state, {newTag}) {
             let minValue = Number.MAX_VALUE,
