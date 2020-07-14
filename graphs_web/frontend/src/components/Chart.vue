@@ -89,13 +89,9 @@
 
             },
             onZoom: function () {
-                console.log(d3.event.transform)
-                console.log(this.getXRange().map(d => d3.event.transform.applyX(d)))
                 this.$emit('zoomer')
-                console.log('onZoom')
             },
             zoomer: function () {
-                console.log('inside zoomer')
                 this.xScale.range(this.getXRange().map(d => d3.event.transform.applyX(d)))
                 this.redrawLines()
                 this.svgD3.select(".x.axis")
@@ -120,7 +116,6 @@
                     .attr("x", this.margin.left)
                     .attr("width", this.getWrapperWidth() - this.margin.right - 10)
                     .attr("height", this.getWrapperHeight())
-                console.log(this.getWrapperWidth())
             },
             clearMinMax: function () {
                 this.minMaxData = {
@@ -212,7 +207,6 @@
 
             addLine: function (tag) {
                 console.log('addLine: ' + tag.id)
-                console.log(tag.minMaxData.minValue)
                 this.setMaxMinVariables(tag.minMaxData)
                 const type = tag.type,
                     curve = this.getCurveD3(type),
@@ -223,11 +217,6 @@
                         .curve(curve),
                     color = this.$store.getters.color(this.colors),
                     idHTML = this.getLineIdHTML(tag.id, true)
-
-                console.log('type: ' + type)
-                console.log('coeff:' + this.getChartCoefficient(type))
-                console.log('max value: ' + this.minMaxData.maxValue)
-                console.log(this.minMaxData.minValue)
 
                 this.svgD3.select(idHTML)
                     .datum(tag.data)
@@ -240,7 +229,7 @@
                 this.reArrangeChart()
             },
             reDrawLine: function (tag, line) {
-                console.log('addLine: ' + tag.id)
+                console.log('reDrawLine: ' + tag.id)
                 this.setMaxMinVariables(tag.minMaxData)
 
                 this.svgD3.select(line.idHTML)
@@ -269,11 +258,11 @@
                     description = this.$store.getters.getTagsDescription(id),
                     tag = {id, description}
                 this.colors.push(color)
-                this.$emit('addcolor', color, tag)
+                this.$emit('add-color', color, tag)
             },
             removeColor: function (tagId, indexColor) {
                 this.colors.splice(indexColor, 1)
-                this.$emit('removecolor', tagId)
+                this.$emit('remove-color', tagId)
             },
             updateCharts: function () {
                 this.clearMinMax()

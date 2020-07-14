@@ -37,15 +37,14 @@
                             </div>
                 </div>
             </div>
-            <ChartLegend :legend="legend" :selectedTags="selectedTagsId"/>
+            <ChartLegend :legend="legend" :selectedTags="selectedTagsId" @remove-tag="removeTagFromLegend"/>
         </div>
         <div ref="chart-wrapper" :id="'chart-wrapper-' + config.id" class="extended-info card">
             <Chart :configId="config.id"
                    ref="chart"
                    :selectedTagsId="selectedTagsId"
-                   @addcolor="addColor"
-                   @removecolor="removeColor"
-                   @clearcolors="clearColors"
+                   @add-color="addColor"
+                   @remove-color="removeColor"
                    @zoomer="$emit('zoomer')"/>
         </div>
     </div>
@@ -102,11 +101,13 @@
             },
             changedSelected: function(e) {
                 const tagId = Number(e.target.value)
+
                 if (this.selectedTagsId.indexOf(tagId) >= 0)
                     this.addTag(tagId)
                 else
                     this.removeTag(tagId)
             },
+
             addTag: function(tagId){
                 if (!this.$store.getters.isTagsLoaded(tagId)) {
                     this.$emit('newtag', tagId)
@@ -121,18 +122,19 @@
                 } else
                     this.waitedForRemove.push(tagId)
             },
+            removeTagFromLegend: function(tagId){
+                this.removeTag(tagId)
+                this.selectedTagsId.splice(this.selectedTagsId.indexOf(tagId), 1)
+            },
             addColor: function (color, tag) {
                 this.legend.push({color, tag})
             },
             removeColor: function(tagId){
                 for(let i = 0; i < this.legend.length; i++)
-                    if(this.legend[i].tag.id === tagId) {
+                    if (this.legend[i].tag.id === tagId) {
                         this.legend.splice(i, 1)
                         break
                     }
-            },
-            clearColors: function () {
-                this.legend.length = 0
             },
             toggleVisibilityTags: function () {
                 this.visibilityTags = !this.visibilityTags

@@ -1,6 +1,6 @@
 <?php
-$servers_file = "../../config/sync_data.conf.json";
-
+//$servers_file = "../../config/sync_data.conf.json";
+$servers_file = "../sync_data.conf.json";
 function read_json($filepath)
 {
     if (file_exists($filepath)) return json_decode(file_get_contents($filepath), true);
