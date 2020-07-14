@@ -10,27 +10,7 @@ body,
     width: 100%;
 
 }
-.header{
-    height: 40px;
-    width: 100%;
-    font-size: 1.3rem;
-    font-weight: 500;
-    display: flex;
-    align-items: flex-end;
-    flex-direction: row;
-    justify-content: space-between;
-    box-shadow: 0 0 16px rgba(0,0,0,.15);
-}
-.header > *{
-    border-bottom: 2px solid #2d353c;
-    margin-bottom: 2px;
-}
-.header :first-child{
-    margin-left: 23px;
-}
-.header :last-child{
-    margin-right: 8px;
-}
+
 .wrapper{
     margin-top: 40px;
     position: fixed;

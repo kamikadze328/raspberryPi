@@ -1,7 +1,8 @@
 <template>
     <div id="app">
         <MyHeader v-bind:errorMessage="errorMessage"
-                    @update-date="updateCharts"
+                  @update-date="updateCharts"
+                  @clear-error-msg="clearErrorMsg"
         />
         <div class="wrapper" v-on:click="closeAll">
 
@@ -48,6 +49,9 @@
             };
         },
         methods: {
+            clearErrorMsg: function(){
+              this.errorMessage = null
+            },
             addConfig: function(){
                 this.graphConfigs.push({
                     id: this.graphConfigs.length,
@@ -192,7 +196,7 @@
         font-size: 3rem;
     }
     .wrapper {
-        margin-top: 105px;
+        margin-top: 60px;
         position: fixed;
         top: 0;
         bottom: 0;
