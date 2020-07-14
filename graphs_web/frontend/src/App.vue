@@ -91,16 +91,15 @@
                         if(error.errno && error.errno === 2) {
                             const tags = error['request-body'].tags
                             this.errorMessage = tags.toString() + ': ' + error.message
-                            tags.forEach(tagId => this.unCheckTag(tagId), this)
+                            for(const tagId of tags) this.unCheckTag(tagId)
                         }
                         else this.errorMessage = error.message
 
                     })
             },
             unCheckTag:function(tagId){
-                this.$refs['graph'].forEach(graph => {
+                for(const graph of this.$refs['graph'])
                     document.getElementById('select-tag-'+graph.config.id+'-' + tagId).checked = false
-                })
             },
             updateCharts: function () {
                 console.log('update')
@@ -108,9 +107,8 @@
                 console.log(tags)
                 if (tags && tags.length) {
                     this.getAllServerData(tags).then(() => {
-                        this.graphConfigs.forEach(config => {
+                        for(const config of this.graphConfigs)
                             this.$refs['graph'][config.id].updateCharts()
-                        })
                     })
                 }
             },
@@ -119,10 +117,9 @@
                 this.errorMessage = ''
                 return this.getServerData(tags)
                     .then(data => {
-                        if(data)
-                            data.forEach(tag => {
+                        if (data)
+                            for (const tag of data)
                                 this.$store.commit('addNewTag', {newTag: tag})
-                            })
                     })
                     .catch(error => {
                         console.log(error.response ? error.response : error)
@@ -151,10 +148,8 @@
             },
 
             zoomAll: function () {
-                console.log('zoomer')
-                this.graphConfigs.forEach(graph => {
+                for(const graph of this.graphConfigs)
                     this.$refs['graph'][graph.id].refChart.zoomer()
-                })
             },
             getTagData: function (tagId) {
                 this.getServerData([tagId])

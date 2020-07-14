@@ -93,6 +93,7 @@
             },
             zoomer: function () {
                 this.xScale.range(this.getXRange().map(d => d3.event.transform.applyX(d)))
+                console.log(d3.event.transform)
                 this.redrawLines()
                 this.svgD3.select(".x.axis")
                     .call(this.xAxis
@@ -271,9 +272,8 @@
             },
             updateAllMinMax: function () {
                 this.clearMinMax()
-                this.selectedTagsId.forEach(tagId =>
-                        this.setMaxMinVariables(this.$store.getters.tagById(tagId).minMaxData),
-                    this)
+                for(const tagId of this.selectedTagsId)
+                    this.setMaxMinVariables(this.$store.getters.tagById(tagId).minMaxData)
             },
             updateLines: function () {
                 for (let i = 0; i < this.lines.length; i++)
