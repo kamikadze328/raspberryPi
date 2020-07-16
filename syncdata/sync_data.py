@@ -285,7 +285,7 @@ def clean():
         'logs_syncdata': datetime(9000, 12, 31, 23, 59),
         'statistics_syncdata': datetime(9000, 12, 31, 23, 59),
     }
-    dates_and_numbers = Logger.read_json_file(Logger.last_upload_path)
+    dates_and_numbers = Logger.read_json_file(Logger.last_upload_path, do_check_file=True)
     broken_files_for_delete = []
     # Define minimal dates.
     for one_server in dates_and_numbers:
@@ -333,7 +333,7 @@ def get_path_and_type_for_name(data_name):
 # =========================================================================================================================================================================================
 #  СТАРТ программы
 # =========================================================================================================================================================================================
-print "START program"
+print "START SYNCDATA program"
 
 configs_servers = Logger.read_json_file(config_path)
 statistics_rows = []
@@ -400,4 +400,4 @@ Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('
 # Delete files
 clean()
 
-print "END program"
+print "END SYNCDATA program"
