@@ -107,9 +107,8 @@
             },
             updateCharts: function () {
                 console.log('update')
-                const tags = this.$store.getters.loadedTags
+                const tags = this.getAllSelectedTags()
                 console.log(tags)
-                console.log(this.getAllSelectedTags())
                 if (tags && tags.length) {
                     this.getAllServerData(tags).then(() => {
                         for (const config of this.graphConfigs)
