@@ -88,15 +88,15 @@ const store = new Vuex.Store({
 
             const id = Number(newTag.id),
                   type = String(newTag.type).toUpperCase()
-
-            newTag.data.forEach(d => {
-                const value = d.value ? Number(d.value) : undefined,
-                      date = new Date(d.date)
+            for(let i = 0; i < newTag.data.length; i++){
+                const d = newTag.data[i],
+                      value = d.value ? Number(d.value) : undefined
 
                 if (d && value > maxValue) maxValue = value
                 if (d && value < minValue) minValue = value
-                return {date, value}
-            })
+                newTag.data[i] = {date:new Date(d.date), value}
+            }
+
 
             const data = newTag.data,
                   minDate = data[0].date,
@@ -117,7 +117,8 @@ const store = new Vuex.Store({
         },
         loadedTags: state => {
             let tags = []
-            for(const tag of  state.tagsData) tags.push(tag.id)
+            console.log(state.tagsData)
+            state.tagsData.forEach(tag => tags.push(tag.id))
             return tags
         },
         isTagsLoaded: state => id => {
