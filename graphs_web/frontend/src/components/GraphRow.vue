@@ -11,42 +11,42 @@
                 </div>
             </div>
             <div class="rows-stat select-box" v-show="visibilityTags">
-                        <input class="select-clickable"
-                               placeholder="Enter tag id or name"
-                               v-on:click="toggleVisibility"
-                               v-on:input="filterSelectorItems">
-                        <div class="select-items">
-                            <div :key="device.id"
-                                 v-for="device in this.$store.getters.devices">
-                                <div class="select-parent select-clickable"
-                                     v-on:click="toggleVisibilityChild"><span>&#x2BC6;</span> {{device.id}}
-                                    {{device.description}}
-                                </div>
-                                <div class="select-child-box">
-                                    <label :for="'select-tag-' + config.id + '-' + tag.id"
-                                           :key="'select-row-' + config.id + '-' + tag.id"
-                                           v-for="tag in device.tags">
-                                        <input :id="'select-tag-' + config.id + '-' + tag.id"
-                                               :value="tag.id"
-                                               type="checkbox"
-                                               v-model="selectedTagsId"
-                                               v-on:change="changedSelected"/>
-                                        {{tag.id}} {{tag.description}}
-                                    </label>
-                                </div>
-                            </div>
+                <input class="select-clickable"
+                       placeholder="Enter tag id or name"
+                       v-on:click="toggleVisibility"
+                       v-on:input="filterSelectorItems">
+                <div class="select-items">
+                    <div :key="device.id"
+                         v-for="device in this.$store.getters.devices">
+                        <div class="select-parent select-clickable"
+                             v-on:click="toggleVisibilityChild"><span>&#x2BC6;</span> {{device.id}}
+                            {{device.description}}
+                        </div>
+                        <div class="select-child-box">
+                            <label :for="'select-tag-' + config.id + '-' + tag.id"
+                                   :key="'select-row-' + config.id + '-' + tag.id"
+                                   v-for="tag in device.tags">
+                                <input :id="'select-tag-' + config.id + '-' + tag.id"
+                                       :value="tag.id"
+                                       type="checkbox"
+                                       v-model="selectedTagsId"
+                                       v-on:change="changedSelected"/>
+                                {{tag.id}} {{tag.description}}
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
             <ChartLegend :legend="legend" :selectedTags="selectedTagsId" @remove-tag="removeTagFromLegend"/>
         </div>
-        <div ref="chart-wrapper" :id="'chart-wrapper-' + config.id" class="extended-info card">
-            <Chart :configId="config.id"
-                   ref="chart"
-                   :selectedTagsId="selectedTagsId"
-                   @add-color="addColor"
-                   @remove-color="removeColor"
-                   @zoomer="$emit('zoomer')"/>
-        </div>
+
+        <Chart :configId="config.id"
+               :selectedTagsId="selectedTagsId"
+               @add-color="addColor"
+               @remove-color="removeColor"
+               @zoomer="$emit('zoomer')"
+               @mouse-moover="$emit('mouse-moover')"
+               ref="chart"/>
     </div>
 </template>
 
@@ -93,44 +93,41 @@
             },
         },
         methods: {
-            getChartWidth: function(){
-                return this.$refs['chart-wrapper'].clientWidth
-            },
-            getChartHeight: function(){
-                return this.$refs['chart-wrapper'].clientHeight
-            },
-            changedSelected: function(e) {
+            changedSelected: function (e) {
                 const tagId = Number(e.target.value)
-
+                console.log(this.selectedTagsId)
                 if (this.selectedTagsId.indexOf(tagId) >= 0)
                     this.addTag(tagId)
                 else
                     this.removeTag(tagId)
             },
 
-            addTag: function(tagId){
+            addTag: function (tagId) {
                 if (!this.$store.getters.isTagsLoaded(tagId)) {
                     this.$emit('newtag', tagId)
                     this.waitedTagsId.push(tagId)
                 } else this.waitedForDrawTagsId.push(tagId)
             },
-            removeTag: function(tagId){
-                if (this.waitedForDrawTagsId.indexOf(tagId) > -1) {
-                    this.waitedForDrawTagsId.shift()
-                } else if (this.waitedTagsId.indexOf(tagId) > -1) {
-                    this.waitedTagsId.shift()
+            removeTag: function (tagId) {
+                let index
+                if ((index = this.waitedForDrawTagsId.indexOf(tagId)) > -1) {
+                    this.waitedForDrawTagsId.splice(index, 1)
+                } else if ((index = this.waitedTagsId.indexOf(tagId)) > -1) {
+                    this.waitedTagsId.splice(index, 1)
                 } else
                     this.waitedForRemove.push(tagId)
             },
-            removeTagFromLegend: function(tagId){
+            removeTagFromLegend: function (tagId) {
                 this.removeTag(tagId)
                 this.selectedTagsId.splice(this.selectedTagsId.indexOf(tagId), 1)
             },
             addColor: function (color, tag) {
+
                 this.legend.push({color, tag})
+                console.log(this.legend)
             },
-            removeColor: function(tagId){
-                for(let i = 0; i < this.legend.length; i++)
+            removeColor: function (tagId) {
+                for (let i = 0; i < this.legend.length; i++)
                     if (this.legend[i].tag.id === tagId) {
                         this.legend.splice(i, 1)
                         break
@@ -173,9 +170,9 @@
         },
 
         updated() {
-            if(this.waitedForDrawTagsId.length)
+            if (this.waitedForDrawTagsId.length)
                 this.refChart.addLine(this.$store.getters.tagById(this.waitedForDrawTagsId.shift()))
-            if(this.waitedForRemove.length)
+            if (this.waitedForRemove.length)
                 this.refChart.removeLine(this.waitedForRemove.shift())
         },
 

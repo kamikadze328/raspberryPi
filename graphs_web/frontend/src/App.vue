@@ -12,6 +12,7 @@
                           ref="graph"
                           @newtag="getTagData"
                           @zoomer="zoomAll"
+                          @mouse-moover="mouseMoveAll"
                           v-for="row in graphConfigs"/>
                 <div class="add-btn" v-on:click="addConfig">
                     <div class="text-add-btn">&#x2b;</div>
@@ -49,10 +50,10 @@
             };
         },
         methods: {
-            clearErrorMsg: function(){
-              this.errorMessage = null
+            clearErrorMsg: function () {
+                this.errorMessage = null
             },
-            addConfig: function(){
+            addConfig: function () {
                 this.graphConfigs.push({
                     id: this.graphConfigs.length,
                     config: {}
@@ -60,7 +61,7 @@
             },
             closeAll: function (e) {
                 console.log(e.target)
-                document.querySelectorAll('.select-box').forEach(elem =>{
+                document.querySelectorAll('.select-box').forEach(elem => {
                     console.log(elem)
                 })
                 document.querySelectorAll(".select-items").forEach(elem => {
@@ -92,29 +93,37 @@
                     .catch(error => {
                         console.log(error.response)
                         console.log(error)
-                        if(error.errno && error.errno === 2) {
+                        if (error.errno && error.errno === 2) {
                             const tags = error['request-body'].tags
                             this.errorMessage = tags.toString() + ': ' + error.message
-                            for(const tagId of tags) this.unCheckTag(tagId)
-                        }
-                        else this.errorMessage = error.message
+                            for (const tagId of tags) this.unCheckTag(tagId)
+                        } else this.errorMessage = error.message
 
                     })
             },
-            unCheckTag:function(tagId){
-                for(const graph of this.$refs['graph'])
-                    document.getElementById('select-tag-'+graph.config.id+'-' + tagId).checked = false
+            unCheckTag: function (tagId) {
+                for (const graph of this.$refs['graph'])
+                    document.getElementById('select-tag-' + graph.config.id + '-' + tagId).checked = false
             },
             updateCharts: function () {
                 console.log('update')
                 const tags = this.$store.getters.loadedTags
                 console.log(tags)
+                console.log(this.getAllSelectedTags())
                 if (tags && tags.length) {
                     this.getAllServerData(tags).then(() => {
-                        for(const config of this.graphConfigs)
+                        for (const config of this.graphConfigs)
                             this.$refs['graph'][config.id].updateCharts()
                     })
                 }
+            },
+            getAllSelectedTags: function () {
+                let uniqueTagsId = new Set()
+                for (const graph of this.$refs['graph'])
+                    for (const selectedTagId of graph.selectedTagsId)
+                        uniqueTagsId.add(selectedTagId)
+                return Array.from(uniqueTagsId)
+
             },
             getAllServerData: function (tags) {
                 console.log(tags)
@@ -129,7 +138,7 @@
                         console.log(error.response ? error.response : error)
                     })
             },
-            getDevicesAndTags: function() {
+            getDevicesAndTags: function () {
                 const loc = window.location.pathname
                 const dir = loc.substring(0, loc.lastIndexOf('/'))
 
@@ -152,8 +161,12 @@
             },
 
             zoomAll: function () {
-                for(const graph of this.graphConfigs)
+                for (const graph of this.graphConfigs)
                     this.$refs['graph'][graph.id].refChart.zoomer()
+            },
+            mouseMoveAll: function () {
+                for (const graph of this.graphConfigs)
+                    this.$refs['graph'][graph.id].refChart.moover()
             },
             getTagData: function (tagId) {
                 this.getServerData([tagId])
@@ -167,8 +180,6 @@
                     })
             },
         },
-
-
         mounted() {
             this.getDevicesAndTags()
         },

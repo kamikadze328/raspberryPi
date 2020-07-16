@@ -1,27 +1,33 @@
 <template>
-    <svg :id="'svg-'+ configId" class="svg-content">
-        <clipPath :id="'clip-'+ configId">
-            <rect/>
-        </clipPath>
-        <g :clip-path="`url(#clip-${configId})`" class="x axis axisWhite"/>
-        <g class="y axis axisWhite"/>
-        <g :clip-path="`url(#clip-${configId})`" class="lines" fill="none"
-           stroke-width="1.5">
-            <path :id="getLineIdHTML(id, false)"
-                  :key="id"
-                  d=""
-                  v-for="id in selectedTagsId"
-            />
-        </g>
-    </svg>
+    <div :id="'chart-wrapper-' + configId" class="extended-info card" ref="chart-wrapper">
+        <svg :id="'svg-'+ configId" class="svg-content"
+             @mouseout="showTooltip=false">
+            <clipPath :id="'clip-'+ configId">
+                <rect/>
+            </clipPath>
+            <g :clip-path="`url(#clip-${configId})`" class="x axis axisWhite"/>
+            <g class="y axis axisWhite"/>
+            <g :clip-path="`url(#clip-${configId})`" class="lines" fill="none"
+               stroke-width="1.5">
+                <path :id="getLineIdHTML(id, false)"
+                      :key="id"
+                      d=""
+                      v-for="id in selectedTagsId"
+                />
+            </g>
+        </svg>
+        <Tooltip ref="tooltip" :lines="lines" :show-tooltip="tooltip.show" :tooltip-date="tooltip.date" :translate="tooltip.translate"/>
+    </div>
 </template>
 
 <script>
     import * as d3 from 'd3';
+    import Tooltip from "./Tooltip";
+    import { mapGetters } from 'vuex';
 
     export default {
         name: "Chart",
-
+        components: {Tooltip},
         props: {
             configId: {
                 type: Number,
@@ -34,6 +40,10 @@
 
         },
         computed: {
+                ...mapGetters([
+                    'minDate',
+                    'maxDate',
+                ]),
             coefficient: function () {
                 return {
                     AI: 1,
@@ -41,16 +51,19 @@
                     DO: this.minMaxData.maxValue * 0.66
                 }
             },
-
         },
         data() {
             return {
+                tooltip:{
+                    date: new Date,
+                    show: false,
+                    translate: {x: 0, y:0},
+                },
                 curveD3: {
                     AI: d3.curveLinear,
                     DI: d3.curveStepAfter,
                     DO: d3.curveStepAfter,
                 },
-
                 margin: ({top: 10, right: 0, bottom: 10, left: 45}),
                 xScale: null,
                 yScale: null,
@@ -59,17 +72,15 @@
                 lines: [],
                 colors: [],
                 svgD3: null,
+                tooltipD3: null,
                 minMaxData: {
                     minValue: +Infinity,
                     maxValue: -Infinity,
-                    minDate: new Date(8640000000000000),
-                    maxDate: new Date(-8640000000000000)
                 },
                 zoom: null,
                 currentColorsNumber: 0,
             }
         },
-
         methods: {
             getCurveD3: function (type) {
                 return this.curveD3[type] ? this.curveD3[type] : this.curveD3.AI
@@ -78,10 +89,10 @@
                 return this.coefficient[type] ? this.coefficient[type] : this.coefficient.AI
             },
             getWrapperWidth: function () {
-                return this.$parent.getChartWidth() - this.margin.right - this.margin.left
+                return this.$refs['chart-wrapper'].clientWidth - this.margin.right - this.margin.left
             },
             getWrapperHeight: function () {
-                return this.$parent.getChartHeight() - this.margin.top - this.margin.bottom
+                return this.$refs['chart-wrapper'].clientHeight - this.margin.top - this.margin.bottom
             },
             getLineIdHTML: function (id, withH) {
                 const idHTML = `path-${this.configId}-${id}`
@@ -90,6 +101,9 @@
             },
             onZoom: function () {
                 this.$emit('zoomer')
+            },
+            onMouseMove: function(){
+                this.$emit('mouse-moover')
             },
             zoomer: function () {
                 this.xScale.range(this.getXRange().map(d => d3.event.transform.applyX(d)))
@@ -113,7 +127,7 @@
                 this.svgD3.select(".y.axis")
                     .attr("transform", this.getTransformY())
                     .call(this.yAxis.ticks(5))
-                this.svgD3.select('#clip-' + this.configId + ' > rect')
+                this.svgD3.select('#clip-' + this.configId + '>rect')
                     .attr("x", this.margin.left)
                     .attr("width", this.getWrapperWidth() - this.margin.right - 10)
                     .attr("height", this.getWrapperHeight())
@@ -122,8 +136,6 @@
                 this.minMaxData = {
                     minValue: +Infinity,
                     maxValue: -Infinity,
-                    minDate: new Date(8640000000000000),
-                    maxDate: new Date(-8640000000000000)
                 }
             },
             redrawLines: function () {
@@ -153,18 +165,11 @@
                 if (minMaxData.maxValue !== undefined && minMaxData.maxValue > this.minMaxData.maxValue)
                     this.minMaxData.maxValue = minMaxData.maxValue
 
-                if (minMaxData.minDate < this.minMaxData.minDate)
-                    this.minMaxData.minDate = minMaxData.minDate
-
-                if (minMaxData.maxDate > this.minMaxData.maxDate)
-                    this.minMaxData.maxDate = minMaxData.maxDate
-
-                this.xScale.domain([this.minMaxData.minDate, this.minMaxData.maxDate])
                 this.yScale.domain([this.minMaxData.minValue, this.minMaxData.maxValue])
             },
             reArrangeChart: function () {
                 this.xScale = d3.scaleTime()
-                    .domain([this.minMaxData.minDate, this.minMaxData.maxDate])
+                    .domain([this.minDate, this.maxDate])
                 this.yScale = d3.scaleLinear()
                     .domain([this.minMaxData.minValue, this.minMaxData.maxValue])
                 this.xAxis = d3.axisBottom()
@@ -175,7 +180,7 @@
             },
             initChart: function () {
                 this.xScale = d3.scaleTime()
-                    .domain([this.minMaxData.minDate, this.minMaxData.maxDate])
+                    .domain([this.minDate, this.maxDate])
                 this.yScale = d3.scaleLinear()
                     .domain([this.minMaxData.minValue, this.minMaxData.maxValue])
                 this.xAxis = d3.axisBottom()
@@ -193,7 +198,7 @@
                     .attr("transform", this.getTransformY())
                     .call(this.yAxis.ticks(5))
 
-                this.svgD3.select('clipPath>rect')
+                this.svgD3.select('#clip-' + this.configId + '>rect')
                     .attr("x", this.margin.left)
                     .attr("width", this.getWrapperWidth() - this.margin.right - 10)
                     .attr("height", this.getWrapperHeight())
@@ -204,8 +209,49 @@
                     .translateExtent([[this.margin.left, -Infinity], [this.getWrapperWidth() - this.margin.right, Infinity]])
                     .on("zoom", this.onZoom)
                 this.svgD3.call(this.zoom)
+
+                this.svgD3.on('mousemove', this.onMouseMove)
             },
 
+            moover: function () {
+                const x = d3.event.offsetX,
+                    y = d3.event.offsetY
+                this.tooltip.show = this.lines.length
+                    && x > this.margin.left
+                    && x < this.getWrapperWidth() - this.margin.right
+                    && y > this.margin.top
+                    && y < this.getWrapperHeight() - this.margin.bottom
+                if (this.tooltip.show) {
+                    const date = this.xScale.invert(x)
+                    const bisectDate = d3.bisector(d => d.date).left
+                    for (const line of this.lines) {
+                        const tagId = line.tagId,
+                            data = this.$store.getters.tagById(tagId).data
+                        const i = bisectDate(data, date, 1),
+                            d0 = i ? data[i - 1] : null,
+                            d1 = data[i]
+                        let value
+                        if (d0.value === undefined) value = d1.value
+                        else if (d1.value === undefined) value = d0.value
+                        else value = (date - d0.date > d1.date - date) ? d1.value : d0.value
+                        this.tooltip.date = date
+                        this.lines[this.getIndexLineById(tagId)].value = value
+                    }
+                    const tooltipHTML = this.$refs['tooltip'].$el
+
+                    if(x + 30 + tooltipHTML.clientWidth < this.getWrapperWidth())
+                        this.tooltip.translate.x = x + 30
+                    else
+                        this.tooltip.translate.x = x - 30 - tooltipHTML.clientWidth
+
+                    if(y + tooltipHTML.clientHeight / 2 > this.getWrapperHeight())
+                        this.tooltip.translate.y = this.getWrapperHeight() - tooltipHTML.clientHeight
+                    else if(y - tooltipHTML.clientHeight / 2 < 0)
+                        this.tooltip.translate.y = 0
+                    else
+                        this.tooltip.translate.y = y - tooltipHTML.clientHeight / 2
+                }
+            },
             addLine: function (tag) {
                 console.log('addLine: ' + tag.id)
                 this.setMaxMinVariables(tag.minMaxData)
@@ -224,7 +270,7 @@
                     .attr("d", line)
                     .attr('stroke', color)
 
-                this.lines.push({line, idHTML, type, color})
+                this.lines.push({line, idHTML, type, color, tagId: tag.id, value: undefined})
                 this.addColor(color, tag)
 
                 this.reArrangeChart()
@@ -239,10 +285,9 @@
 
                 this.reArrangeChart()
             },
-            getIndexLineById: function (id) {
-                const neededIdHTML = this.getLineIdHTML(id, true)
+            getIndexLineById: function (neededId) {
                 for (let i = 0; i < this.lines.length; i++)
-                    if (this.lines[i].idHTML === neededIdHTML) return i
+                    if (this.lines[i].tagId === neededId) return i
             },
             removeLine: function (tagId) {
                 console.log('removeLine: ' + tagId)
@@ -272,7 +317,7 @@
             },
             updateAllMinMax: function () {
                 this.clearMinMax()
-                for(const tagId of this.selectedTagsId)
+                for (const tagId of this.selectedTagsId)
                     this.setMaxMinVariables(this.$store.getters.tagById(tagId).minMaxData)
             },
             updateLines: function () {
@@ -316,4 +361,5 @@
         fill: white;
         font-size: 0.8rem;
     }
+
 </style>
