@@ -98,11 +98,9 @@ const store = new Vuex.Store({
             }
 
 
-            const data = newTag.data,
-                  minDate = data[0].date,
-                  maxDate = data[data.length - 1].date
+            const data = newTag.data
 
-            Vue.set(state.tagsData, newTag.id, {id, type, data, minMaxData: {minValue, maxValue, minDate, maxDate}})
+            Vue.set(state.tagsData, newTag.id, {id, type, data, minMaxData: {minValue, maxValue}})
             console.log(state.tagsData)
         },
         setDevicesAndTags(state, {data}){

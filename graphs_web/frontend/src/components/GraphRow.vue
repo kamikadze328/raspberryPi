@@ -27,6 +27,7 @@
                                    :key="'select-row-' + config.id + '-' + tag.id"
                                    v-for="tag in device.tags">
                                 <input :id="'select-tag-' + config.id + '-' + tag.id"
+                                       :ref="'select-tag-' + tag.id"
                                        :value="tag.id"
                                        type="checkbox"
                                        v-model="selectedTagsId"
@@ -68,7 +69,9 @@
                 selectedTagsId: [],
                 waitedTagsId: [],
                 waitedForDrawTagsId: [],
-                waitedForRemove: []
+                waitedForRemove: [],
+                colorTagWithData: '#2d353c',
+                colorTagWithoutData: '#ff5b57'
             }
         },
         computed: {
@@ -101,7 +104,9 @@
                 else
                     this.removeTag(tagId)
             },
-
+            setColorSelectedInput: function(tagId, isWithData){
+                this.$refs['select-tag-' + tagId][0].labels[0].style.color = isWithData ? this.colorTagWithData : this.colorTagWithoutData
+            },
             addTag: function (tagId) {
                 if (!this.$store.getters.isTagsLoaded(tagId)) {
                     this.$emit('newtag', tagId)

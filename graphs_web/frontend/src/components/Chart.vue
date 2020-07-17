@@ -1,7 +1,7 @@
 <template>
     <div :id="'chart-wrapper-' + configId" class="extended-info card" ref="chart-wrapper">
         <svg :id="'svg-'+ configId" class="svg-content"
-             @mouseout="showTooltip=false">
+             @mouseleave="showTooltip=false">
             <clipPath :id="'clip-'+ configId">
                 <rect/>
             </clipPath>
@@ -100,10 +100,12 @@
 
             },
             onZoom: function () {
-                this.$emit('zoomer')
+                if(this.lines.length)
+                    this.$emit('zoomer')
             },
             onMouseMove: function(){
-                this.$emit('mouse-moover')
+                if(this.lines.length)
+                    this.$emit('mouse-moover')
             },
             zoomer: function () {
                 this.xScale.range(this.getXRange().map(d => d3.event.transform.applyX(d)))
@@ -318,11 +320,13 @@
             updateAllMinMax: function () {
                 this.clearMinMax()
                 for (const tagId of this.selectedTagsId)
-                    this.setMaxMinVariables(this.$store.getters.tagById(tagId).minMaxData)
+                    if(this.$store.getters.tagById(tagId))
+                        this.setMaxMinVariables(this.$store.getters.tagById(tagId).minMaxData)
             },
             updateLines: function () {
                 for (let i = 0; i < this.lines.length; i++)
-                    this.reDrawLine(this.$store.getters.tagById(this.selectedTagsId[i]), this.lines[i])
+                    if(this.$store.getters.tagById(this.selectedTagsId[i]))
+                        this.reDrawLine(this.$store.getters.tagById(this.selectedTagsId[i]), this.lines[i])
             },
         },
         mounted() {

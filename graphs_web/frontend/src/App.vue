@@ -50,6 +50,7 @@
             };
         },
         methods: {
+
             clearErrorMsg: function () {
                 this.errorMessage = null
             },
@@ -96,14 +97,14 @@
                         if (error.errno && error.errno === 2) {
                             const tags = error['request-body'].tags
                             this.errorMessage = tags.toString() + ': ' + error.message
-                            for (const tagId of tags) this.unCheckTag(tagId)
+                            for (const tagId of tags) this.setCheckedTag(tagId, false)
                         } else this.errorMessage = error.message
 
                     })
             },
-            unCheckTag: function (tagId) {
+            setCheckedTag: function(tagId, isWithData){
                 for (const graph of this.$refs['graph'])
-                    document.getElementById('select-tag-' + graph.config.id + '-' + tagId).checked = false
+                    graph.setColorSelectedInput(tagId, isWithData,)
             },
             updateCharts: function () {
                 console.log('update')
@@ -131,7 +132,7 @@
                     .then(data => {
                         if (data)
                             for (const tag of data)
-                                this.$store.commit('addNewTag', {newTag: tag})
+                                    this.addNewTag(tag)
                     })
                     .catch(error => {
                         console.log(error.response ? error.response : error)
@@ -171,13 +172,21 @@
                 this.getServerData([tagId])
                     .then(data => {
                         if (data && data.length) {
-                            this.$store.commit('addNewTag', {newTag: data[0]})
+                            this.addNewTag(data[0])
                         }
                     })
                     .catch(error => {
                         console.log(error.response ? error.response : error)
                     })
             },
+            addNewTag: function (tag) {
+                if(tag) {
+                    if (tag.data && tag.data.length) {
+                        this.$store.commit('addNewTag', {newTag: tag})
+                        this.setCheckedTag(tag.id, true)
+                    } else this.setCheckedTag(tag.id, false)
+                }
+            }
         },
         mounted() {
             this.getDevicesAndTags()
