@@ -47,6 +47,8 @@
                @remove-color="removeColor"
                @zoomer="$emit('zoomer')"
                @mouse-moover="$emit('mouse-moover')"
+               @clicker="$emit('clicker')"
+               @db-clicker="$emit('db-clicker')"
                ref="chart"/>
     </div>
 </template>

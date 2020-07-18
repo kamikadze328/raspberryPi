@@ -128,6 +128,9 @@ const store = new Vuex.Store({
         tagById: state => id => {
             return state.tagsData[id]
         },
+        tagDataById: state => id => {
+            return state.tagsData[id].data
+        },
         minDate: state => {
             return state.settings.date.min
         },

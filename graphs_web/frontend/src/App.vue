@@ -13,6 +13,8 @@
                           @newtag="getTagData"
                           @zoomer="zoomAll"
                           @mouse-moover="mouseMoveAll"
+                          @clicker="clickSVGAll"
+                          @db-clicker="doubleClickSVGAll"
                           v-for="row in graphConfigs"/>
                 <div class="add-btn" v-on:click="addConfig">
                     <div class="text-add-btn">&#x2b;</div>
@@ -112,10 +114,13 @@
                 console.log(tags)
                 if (tags && tags.length) {
                     this.getAllServerData(tags).then(() => {
-                        for (const config of this.graphConfigs)
-                            this.$refs['graph'][config.id].updateCharts()
+                        this.updateAllGraphs()
                     })
-                }
+                } else this.updateAllGraphs()
+            },
+            updateAllGraphs : function(){
+                for (const config of this.graphConfigs)
+                    this.$refs['graph'][config.id].updateCharts()
             },
             getAllSelectedTags: function () {
                 let uniqueTagsId = new Set()
@@ -167,6 +172,14 @@
             mouseMoveAll: function () {
                 for (const graph of this.graphConfigs)
                     this.$refs['graph'][graph.id].refChart.moover()
+            },
+            clickSVGAll: function(){
+                for (const graph of this.graphConfigs)
+                    this.$refs['graph'][graph.id].refChart.clicker()
+            },
+            doubleClickSVGAll: function(){
+                for (const graph of this.graphConfigs)
+                    this.$refs['graph'][graph.id].refChart.doubleClicker()
             },
             getTagData: function (tagId) {
                 this.getServerData([tagId])
