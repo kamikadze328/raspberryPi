@@ -76,8 +76,18 @@ const store = new Vuex.Store({
             '#6c757d',
             '#ffd900',
         ],
+        tooltipInfo: {
+            dates: []
+        }
     },
     mutations: {
+        addTooltipLine(state, {date}){
+            if(state.tooltipInfo.dates.indexOf(date.getTime()) === -1)
+                state.tooltipInfo.dates.push(date.getTime())
+        },
+        clearTooltipLines(state){
+          state.tooltipInfo.dates.splice(0)
+        },
         updateDate(state, {min, max}) {
             state.settings.date.max = max
             state.settings.date.min = min
@@ -107,9 +117,13 @@ const store = new Vuex.Store({
             state.devices = data
         },
     },
-    actions: {
-    },
     getters: {
+        tooltipLineDates: state => {
+            const dates = []
+            for (const date of state.tooltipInfo.dates)
+                dates.push(new Date(date))
+            return dates
+        },
         devices: state => {
             return state.devices
         },
@@ -151,7 +165,6 @@ const store = new Vuex.Store({
         color: state => currentColors => {
             const currentNumber = currentColors.length
             let index = 0
-            console.log('number of colors: ' + currentNumber)
             let color
             if (currentNumber < state.colorScheme.length)
                 do {

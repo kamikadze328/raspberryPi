@@ -27,7 +27,7 @@
         props: {
             lines: Array,
             showTooltip:Boolean,
-            tooltipDate: Object,
+            tooltipDate: Date,
             translate: {x:Number, y:Number},
         },
 

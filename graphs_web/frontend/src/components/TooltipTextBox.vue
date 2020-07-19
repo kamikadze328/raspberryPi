@@ -1,7 +1,7 @@
 <template>
-    <div class="tooltip-line-text-box" :style="style">
-        <div class="tooltip-line-text" v-for="d in data" :key="data.indexOf(d)"
-             :style="'transform: translate(0, ' + d.y + 'px); color:' + d.color + ';'">
+    <div class="tooltip-line-text-box" :style="styleBox">
+        <div class="tooltip-line-text disable-selection-text" v-for="d in data" :key="data.indexOf(d)"
+             :style="styleChild(d)">
             {{d.value}}
         </div>
     </div>
@@ -13,13 +13,21 @@
         props: {
             data: Array,
             absolutePositionX: Number,
-            paddingTop:Number,
-            paddingBottom: Number
+            paddingTop: Number,
+            paddingBottom: Number,
+            maxX: Number,
+            minX: Number,
         },
         computed: {
-          style: function () {
-                return 'left:' + this.absolutePositionX + 'px;'
-          }
+            styleBox: function () {
+                return this.absolutePositionX < this.maxX && this.absolutePositionX > this.minX ?
+                    'left:' + this.absolutePositionX + 'px;'
+                    : 'display: none'
+            },
+            styleChild: function () {
+                return d => 'transform: translate(0, ' + d.y + 'px);'
+                    + ' color:' + d.color + ';'
+            }
         },
     }
 </script>
