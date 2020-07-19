@@ -6,17 +6,10 @@
 html,
 body,
 .wrapper {
-    height: 100%;
     width: 100%;
-
 }
 
-.wrapper{
-    margin-top: 40px;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-}
+
 body{
     white-space: nowrap;
     font-family: "Open Sans",sans-serif;
@@ -27,14 +20,7 @@ body{
     background-color: #d9e0e7;
 }
 
-#row-list {
-    height: calc(100% - 40px);
-    margin-bottom: 5px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-}
+
 .db-name{
     overflow: hidden;
     text-overflow: ellipsis;

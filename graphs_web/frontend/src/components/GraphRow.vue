@@ -1,5 +1,5 @@
 <template>
-    <div class="row">
+    <div class="row" @mouseenter="visibilityRemoveBtn = true" @mouseleave="visibilityRemoveBtn = false">
         <div class="main-info card">
             <div class="name-and-settings">
                 <div class="db-name text-main">
@@ -7,15 +7,16 @@
                 </div>
                 <div :id="'toggleAddedList' + config.id"
                      class="text-main list-added-tag"
-                     v-on:click="toggleVisibilityTags">&#x2BC8;
+                     v-on:click="toggleVisibilityTags"
+                     ref="select-box-btn">&#x2BC8;
                 </div>
             </div>
-            <div class="rows-stat select-box" v-show="visibilityTags">
+            <div class="rows-stat select-box" v-show="visibilityTags" ref="select-box">
                 <input class="select-clickable"
                        placeholder="Enter tag id or name"
                        v-on:click="toggleVisibility"
                        v-on:input="filterSelectorItems">
-                <div class="select-items">
+                <div class="select-items" ref="select-items">
                     <div :key="device.id"
                          v-for="device in this.$store.getters.devices">
                         <div class="select-parent select-clickable"
@@ -50,6 +51,9 @@
                @clicker="$emit('clicker')"
                @db-clicker="$emit('db-clicker')"
                ref="chart"/>
+        <div class="remove-tag-btn remove-graph-row-btn"
+             v-show="visibilityRemoveBtn"
+             @click="$emit('remove-row', config.id)">&#x2716;</div>
     </div>
 </template>
 
@@ -66,6 +70,7 @@
         },
         data() {
             return {
+                visibilityRemoveBtn: false,
                 legend: [],
                 visibilityTags: false,
                 selectedTagsId: [],
@@ -80,7 +85,7 @@
             ...mapGetters(['tagsData']),
             refChart: function () {
                 return this.$refs['chart']
-            }
+            },
         },
         watch: {
             tagsData: {
@@ -129,9 +134,7 @@
                 this.selectedTagsId.splice(this.selectedTagsId.indexOf(tagId), 1)
             },
             addColor: function (color, tag) {
-
                 this.legend.push({color, tag})
-                console.log(this.legend)
             },
             removeColor: function (tagId) {
                 for (let i = 0; i < this.legend.length; i++)
@@ -142,6 +145,27 @@
             },
             toggleVisibilityTags: function () {
                 this.visibilityTags = !this.visibilityTags
+                /*if(this.visibilityTags) {
+                    let height
+                    try {
+                        console.log(document.getElementById('row-list').clientHeight)
+                        console.log(document.getElementById('row-list').scrollHeight)
+                        console.log(this.$refs['select-box-btn'].getBoundingClientRect())
+                        console.log(window.screenX)
+                        console.log(window.innerHeight)
+                        console.log(window.outerHeight)
+                        console.log(window.pageYOffset)
+
+                        const pageMax = document.getElementById('row-list').scrollHeight,
+                            boxY = this.$refs['select-box-btn'].getBoundingClientRect().y,
+                            availableHeight = pageMax - boxY
+                        console.log(availableHeight)
+                        height = availableHeight > 600 ? 600 : availableHeight
+                    } catch {
+                        height = 600
+                    } finally {
+                        this.$refs['select-box'].style.height = '' + height + 'px'
+                    }*/
             },
             toggleVisibility: function (e) {
                 const elemTarget = e.target.nextElementSibling
@@ -187,6 +211,9 @@
 </script>
 
 <style scoped>
+    .row{
+        position: relative;
+    }
     .name-and-settings {
         display: flex;
         justify-content: space-between;
@@ -271,6 +298,13 @@
 
     .select-items label {
         padding-left: 30px;
+    }
+    .remove-graph-row-btn{
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        font-size: 1rem;
+        visibility: visible;
     }
 
 </style>

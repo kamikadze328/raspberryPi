@@ -15,6 +15,7 @@
                           @mouse-moover="mouseMoveAll"
                           @clicker="clickSVGAll"
                           @db-clicker="doubleClickSVGAll"
+                          @remove-row="removeRow"
                           v-for="row in graphConfigs"/>
                 <div class="add-btn" v-on:click="addConfig">
                     <div class="text-add-btn">&#x2b;</div>
@@ -52,15 +53,18 @@
             };
         },
         methods: {
-
+            removeRow: function(configId){
+              this.graphConfigs.splice(this.graphConfigs.findIndex(config => config.id === configId), 1)
+            },
             clearErrorMsg: function () {
                 this.errorMessage = null
             },
             addConfig: function () {
-                this.graphConfigs.push({
-                    id: this.graphConfigs.length,
-                    config: {}
-                },)
+                let id = 0
+                while(this.graphConfigs.findIndex(config => config.id === id) > -1)
+                    id++
+
+                this.graphConfigs.push({id, config: {}})
             },
             closeAll: function (e) {
                 console.log(e.target)
@@ -166,20 +170,21 @@
             },
 
             zoomAll: function () {
-                for (const graph of this.graphConfigs)
-                    this.$refs['graph'][graph.id].refChart.zoomer()
+                for(let i = 0; i < this.graphConfigs.length; i++)
+                    this.$refs['graph'][i].refChart.zoomer()
             },
             mouseMoveAll: function () {
-                for (const graph of this.graphConfigs)
-                    this.$refs['graph'][graph.id].refChart.moover()
+                for(let i = 0; i < this.graphConfigs.length; i++)
+                    this.$refs['graph'][i].refChart.moover()
             },
             clickSVGAll: function(){
-                for (const graph of this.graphConfigs)
-                    this.$refs['graph'][graph.id].refChart.clicker()
+                for(let i = 0; i < this.graphConfigs.length; i++)
+                    this.$refs['graph'][i].refChart.clicker()
             },
             doubleClickSVGAll: function(){
-                for (const graph of this.graphConfigs)
-                    this.$refs['graph'][graph.id].refChart.doubleClicker()
+                this.$store.commit('clearTooltipLines')
+                for(let i = 0; i < this.graphConfigs.length; i++)
+                    this.$refs['graph'][i].refChart.doubleClicker()
             },
             getTagData: function (tagId) {
                 this.getServerData([tagId])
@@ -211,7 +216,7 @@
     @import "assets/css/style.css";
     @import "assets/css/style.css";
     .add-btn{
-        margin: 5px 8px;
+        margin: 5px 8px 12px 8px;
         background-color: #fff;
         height: 50px;
         color: #2d353c;
@@ -227,10 +232,32 @@
         font-weight: bolder;
         font-size: 3rem;
     }
-    .wrapper {
-        margin-top: 60px;
+    .wrapper{
+        position: absolute;
+    }
+    #row-list {
+        height: calc(100% - 60px);
+        margin-bottom: 5px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
         position: fixed;
-        top: 0;
-        bottom: 0;
+    }
+    .remove-tag-btn {
+        visibility: hidden;
+        color: #ff5b57;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+    .disable-selection-text::selection, .disable-selection-text::-moz-selection{
+        background: transparent;
+    }
+    .disable-selection-text{
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -khtml-user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
     }
 </style>

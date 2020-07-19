@@ -74,10 +74,5 @@
         max-width: 8px;
     }
 
-    .remove-tag-btn {
-        visibility: hidden;
-        color: #ff5b57;
-        cursor: pointer;
-        margin-right: 5px;
-    }
+
 </style>
