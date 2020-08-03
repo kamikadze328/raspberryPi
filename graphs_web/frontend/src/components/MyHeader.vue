@@ -2,7 +2,7 @@
     <div class="header-wrapper">
         <div class="header">
             <div id="number-db">Graph</div>
-            <SettingsHeader ref="center-element" @update-date="$emit('update-date')"/>
+            <Calendar ref="calendar" @update-date="$emit('update-date')"/>
             <div id="time">{{time}}</div>
         </div>
         <div class="error-msg-box" v-show="showErrorMessage"><div class="error-msg">{{errorMessage}}</div></div>
@@ -10,12 +10,12 @@
 </template>
 
 <script>
-    import SettingsHeader from "./SettingsHeader";
+    import Calendar from "./Calendar";
 
     export default {
         name: "Header",
         components:{
-          SettingsHeader
+          Calendar
         },
         props:{
             errorMessage: String
