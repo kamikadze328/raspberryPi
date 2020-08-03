@@ -6,7 +6,7 @@ import sys
 import time
 from datetime import datetime
 from datetime import timedelta
-
+import errno
 
 import DB
 import Logger
@@ -279,38 +279,48 @@ def clean():
     Delete old or broken files. The file is broken if the program can't read the file more than 3 times.
     If the file was read successfully he will delete after 30 minutes.
     """
-    min_last_dates = {
-        'data': datetime(9000, 12, 31, 23, 59),
-        'logs': datetime(9000, 12, 31, 23, 59),
-        'logs_syncdata': datetime(9000, 12, 31, 23, 59),
-        'statistics_syncdata': datetime(9000, 12, 31, 23, 59),
-    }
-    dates_and_numbers = Logger.read_json_file(Logger.last_upload_path, do_check_file=True)
-    broken_files_for_delete = []
-    # Define minimal dates.
-    for one_server in dates_and_numbers:
-        for data_name in data_names:
-            counter = one_server.get(data_name + '_counter')
-            server_date = one_server.get(data_name)
-
-            if counter > 3:
-                path_dir, file_type = get_path_and_type_for_name(data_name)
-                broken_file = path_dir + server_date + file_type
-                if broken_file not in broken_files_for_delete:
-                    broken_files_for_delete.append(broken_file)
-
-            min_last_dates[data_name] = min(min_last_dates.get(data_name), datetime.strptime(server_date, '%Y-%m-%d %H%M') - timedelta(minutes=10))
-
-    # Delete files.
     number_deleted_files = 0
-    for data_name in data_names:
-        paths, type_files = get_path_and_type_for_name(data_name)
-        number_deleted_files = delete_files_by_date(paths, type_files, min_last_dates.get(data_name).strftime("%Y-%m-%d %H%M"))
+    try:
+        min_last_dates = {
+            'data': datetime(9000, 12, 31, 23, 59),
+            'logs': datetime(9000, 12, 31, 23, 59),
+            'logs_syncdata': datetime(9000, 12, 31, 23, 59),
+            'statistics_syncdata': datetime(9000, 12, 31, 23, 59),
+        }
+        dates_and_numbers = Logger.read_json_file(Logger.last_upload_path, do_check_file=True)
+        if dates_and_numbers:
+            broken_files_for_delete = []
+            # Define minimal dates.
+            for one_server in dates_and_numbers:
+                for data_name in data_names:
+                    counter = one_server.get(data_name + '_counter')
+                    server_date = one_server.get(data_name)
+                    if counter > 3:
+                        path_dir, file_type = get_path_and_type_for_name(data_name)
+                        broken_file = path_dir + server_date + file_type
+                        if broken_file not in broken_files_for_delete:
+                            broken_files_for_delete.append(broken_file)
 
-    for broken_file in broken_files_for_delete:
-        if delete_by_name(str(broken_file)):
-            number_deleted_files += 1
-    Logger.write('Deleted %d files' % number_deleted_files)
+                    min_last_dates[data_name] = min(min_last_dates.get(data_name), datetime.strptime(server_date, '%Y-%m-%d %H%M') - timedelta(minutes=10))
+
+            # Delete files.
+            for data_name in data_names:
+                paths, type_files = get_path_and_type_for_name(data_name)
+                number_deleted_files += delete_files_by_date(paths, type_files, min_last_dates.get(data_name).strftime("%Y-%m-%d %H%M"))
+
+            for broken_file in broken_files_for_delete:
+                if delete_by_name(str(broken_file)):
+                    number_deleted_files += 1
+            Logger.write('Deleted %d files' % number_deleted_files)
+
+    except IOError, e:
+        if e.errno == errno.ENOSPC:
+            clean_no_space()
+        Logger.write(('Deleted %d files.' % number_deleted_files if number_deleted_files else '') + 'Can`t delete files --> '+ str(sys.exc_info()[1]), Logger.LogType.ERROR)
+
+def clean_no_space():
+    # TODO
+    pass
 
 def delete_by_name(filepath):
     try:
@@ -337,67 +347,75 @@ print "START SYNCDATA program"
 
 configs_servers = Logger.read_json_file(config_path)
 statistics_rows = []
+if configs_servers:
+    try:
+        for config_server in configs_servers:
+            server = DB.Server(**config_server)
+            # Try to connect
+            if connect_to_db(server):
+                full_number_rows = 0
+                full_number_files = 0
+                broken_files =[]
 
-for config_server in configs_servers:
-    server = DB.Server(**config_server)
-    # Try to connect
-    if connect_to_db(server):
-        full_number_rows = 0
-        full_number_files = 0
-        broken_files =[]
+                start_time = time.time()
 
-        start_time = time.time()
+                # upload dynamic data
+                dyn_data = Logger.read_json_file(data_path + dyn_data_name)
+                if dyn_data:
+                    current_number_files, current_number_rows = upload_data(prepare_dyn_data(dyn_data), [data_path + dyn_data_name], table_in_db.get('dyn_data'))
+                    full_number_files += current_number_files
+                    full_number_rows += current_number_rows
+                else:
+                    broken_files.append(dyn_data_name)
 
-        # upload dynamic data
-        dyn_data = Logger.read_json_file(data_path + dyn_data_name)
-        if dyn_data:
-            current_number_files, current_number_rows = upload_data(prepare_dyn_data(dyn_data), [data_path + dyn_data_name], table_in_db.get('dyn_data'))
-            full_number_files += current_number_files
-            full_number_rows += current_number_rows
-        else:
-            broken_files.append(dyn_data_name)
+                # Upload data in other tables.
+                for table in data_names:
+                    path, files_type = get_path_and_type_for_name(table)
 
-        # Upload data in other tables.
-        for table in data_names:
-            Logger.write(server.config.get('host') + ': ' + table)
-            path, files_type = get_path_and_type_for_name(table)
+                    last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
+                    last_data_from_files, filenames, list_unread_files = read_files_by_type(path, files_type, last_date)
 
-            last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
-            last_data_from_files, filenames, list_unread_files = read_files_by_type(path, files_type, last_date)
+                    first_broken_read_file = None
+                    if len(list_unread_files):
+                        broken_files += list_unread_files
+                        first_broken_read_file = list_unread_files[0]
 
-            first_broken_read_file = None
-            if len(list_unread_files):
-                broken_files += list_unread_files
-                first_broken_read_file = list_unread_files[0]
+                    number_success_upld_files = 0
 
-            number_success_upld_files = 0
+                    # Upload if read more than nothing
+                    if len(last_data_from_files):
+                        number_success_upld_files, current_number_rows = upload_data(last_data_from_files, filenames, table_in_db.get(table))
+                        full_number_files += number_success_upld_files
+                        full_number_rows += current_number_rows
 
-            # Upload if read more than nothing
-            if len(last_data_from_files):
-                number_success_upld_files, current_number_rows = upload_data(last_data_from_files, filenames, table_in_db.get(table))
-                full_number_files += number_success_upld_files
-                full_number_rows += current_number_rows
+                    # Define last upload or last read date. Save min from this dates.
+                    last_date_file = last_date
+                    if len(filenames):
+                        last_date_file = filenames[-1]
+                    if not first_broken_read_file and number_success_upld_files != len(filenames):
+                        last_date_file = filenames[number_success_upld_files]
+                    if first_broken_read_file:
+                        last_date_file = min(first_broken_read_file, last_date_file)
 
-            # Define last upload or last read date. Save min from this dates.
-            last_date_file = last_date
-            if len(filenames):
-                last_date_file = filenames[-1]
-            if not first_broken_read_file and number_success_upld_files != len(filenames):
-                last_date_file = filenames[number_success_upld_files]
-            if first_broken_read_file:
-                last_date_file = min(first_broken_read_file, last_date_file)
+                    last_date_file = last_date_file.split('.')[0]
+                    Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0], last_date_file)
 
-            last_date_file = last_date_file.split('.')[0]
-            Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0], last_date_file)
+                Logger.write(server.config.get('host') + ' -> %d rows in %d files in %4.1fs' %
+                             (full_number_rows, full_number_files, time.time() - start_time))
 
-        Logger.write(server.config.get('host') + ' -> %d rows in %d files in %4.1fs' %
-                     (full_number_rows, full_number_files, time.time() - start_time))
+                if len(broken_files):
+                    Logger.write("Can't read files  -->  %s" % broken_files, Logger.LogType.ALARM)
 
-        if len(broken_files):
-            Logger.write("Can't read files  -->  %s" % broken_files, Logger.LogType.ALARM)
-# Save statistics
-Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", "))
-# Delete files
-clean()
+        # Save statistics
+        Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", "))
+
+    except:
+        Logger.write(str(sys.exc_info()[1]), Logger.LogType.ERROR)
+
+    finally:
+        # Delete files
+        clean()
+else:
+    Logger.write('Server`s config is empty', Logger.LogType.WARN)
 
 print "END SYNCDATA program"
