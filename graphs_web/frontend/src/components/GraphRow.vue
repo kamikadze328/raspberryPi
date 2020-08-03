@@ -6,22 +6,20 @@
                     Graph {{config.id}}
                 </div>
                 <div :id="'toggleAddedList' + config.id"
-                     class="text-main list-added-tag"
-                     v-on:click="toggleVisibilityTags"
-                     ref="select-box-btn">&#x2BC8;
-                </div>
+                     class="text-main list-added-tag disable-selection-text"
+                     @click="toggleVisibilityTags"
+                     ref="select-box-btn" v-html="visibilityTags ? htmlSymbols.close : htmlSymbols.openRight " />
             </div>
-            <div class="rows-stat select-box" v-show="visibilityTags" ref="select-box">
-                <input class="select-clickable"
-                       placeholder="Enter tag id or name"
-                       v-on:click="toggleVisibility"
-                       v-on:input="filterSelectorItems">
+            <div class="rows-stat select-box" :id="'select-box-' + config.id" v-show="visibilityTags" ref="select-box">
+                <input placeholder="Enter tag id or name"
+                       @input="filterSelectorItems">
                 <div class="select-items" ref="select-items">
                     <div :key="device.id"
                          v-for="device in this.$store.getters.devices">
-                        <div class="select-parent select-clickable"
-                             v-on:click="toggleVisibilityChild"><span>&#x2BC6;</span> {{device.id}}
-                            {{device.description}}
+                        <div class="select-parent"
+                             @click.self="toggleVisibilityChild">
+                            <span  @click.self="toggleVisibilityChildText" class="disable-selection-text" v-html="htmlSymbols.openRight"/>
+                            {{device.id}} {{device.description}}
                         </div>
                         <div class="select-child-box">
                             <label :for="'select-tag-' + config.id + '-' + tag.id"
@@ -78,7 +76,12 @@
                 waitedForDrawTagsId: [],
                 waitedForRemove: [],
                 colorTagWithData: '#2d353c',
-                colorTagWithoutData: '#ff5b57'
+                colorTagWithoutData: '#ff5b57',
+                htmlSymbols: {
+                    openRight: '&#x2BC8;',
+                    close: '&#8212;',
+                    openDown: '&#x2BC6;',
+                },
             }
         },
         computed: {
@@ -167,18 +170,26 @@
                         this.$refs['select-box'].style.height = '' + height + 'px'
                     }*/
             },
-            toggleVisibility: function (e) {
-                const elemTarget = e.target.nextElementSibling
-                document.querySelectorAll('.select-clickable').forEach((elem => {
-                    if (elem.parentElement.id !== e.target.parentElement.id) elem.nextElementSibling.style.display = 'none'
-                }))
-                this.toggleVisibilityHTMLElem(elemTarget)
+            closeAll: function (elem){
+                if(!(elem === this.$refs['select-box'] || this.$refs['select-box'].contains(elem) || elem === this.$refs['select-box-btn']))
+                    this.visibilityTags = false
             },
             toggleVisibilityChild: function (e) {
-                this.toggleVisibilityHTMLElem(e.target.nextElementSibling)
+                const wasVisible = this.toggleVisibilityHTMLElem(e.target.nextElementSibling)
+                this.toggleVisibilityArrowDown(e.target.firstElementChild, wasVisible)
+
+            },
+            toggleVisibilityChildText: function (e) {
+                const wasVisible = this.toggleVisibilityHTMLElem(e.target.parentElement.nextElementSibling)
+                this.toggleVisibilityArrowDown(e.target, wasVisible)
+            },
+            toggleVisibilityArrowDown: function (elem, wasVisible) {
+                elem.innerHTML = wasVisible ? this.htmlSymbols.openRight : this.htmlSymbols.openDown
             },
             toggleVisibilityHTMLElem: function (elem) {
-                elem.style.display = elem.style.display === 'block' ? 'none' : 'block'
+                const wasVisible = elem.style.display === 'block'
+                elem.style.display = wasVisible ? 'none' : 'block'
+                return wasVisible
             },
             filterSelectorItems: function (e) {
                 e.target.nextElementSibling.style.display = "block"
@@ -197,8 +208,6 @@
             }
         },
 
-        mounted() {
-        },
 
         updated() {
             if (this.waitedForDrawTagsId.length)
@@ -307,4 +316,12 @@
         visibility: visible;
     }
 
+    @keyframes rotation {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(180deg);
+        }
+    }
 </style>
