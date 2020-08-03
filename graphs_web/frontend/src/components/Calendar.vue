@@ -23,7 +23,7 @@
     flatpickr.localize(Russian);
 
     export default {
-        name: "SettingsHeader",
+        name: "Calendar",
         components: {
             flatpickr: Vueflatpickr
         },
