@@ -4,7 +4,12 @@
             <flatpickr class="flatpickr"
                        v-model="dateStr"
                        :config="dateConfig"
-                       @on-change="onChange"/>
+                       @on-change="onChange"
+                       @on-open="onOpen"
+                       @on-close="onClose"/>
+            <div :class="'confirm-btn ' + (isCalendarOpened ? 'opened' : '')">
+                <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="40" height="35" viewBox="0 0 50 50" style=" fill:#ffffff;">
+                <path d="M 41.9375 8.625 C 41.273438 8.648438 40.664063 9 40.3125 9.5625 L 21.5 38.34375 L 9.3125 27.8125 C 8.789063 27.269531 8.003906 27.066406 7.28125 27.292969 C 6.5625 27.515625 6.027344 28.125 5.902344 28.867188 C 5.777344 29.613281 6.078125 30.363281 6.6875 30.8125 L 20.625 42.875 C 21.0625 43.246094 21.640625 43.410156 22.207031 43.328125 C 22.777344 43.242188 23.28125 42.917969 23.59375 42.4375 L 43.6875 11.75 C 44.117188 11.121094 44.152344 10.308594 43.78125 9.644531 C 43.410156 8.984375 42.695313 8.589844 41.9375 8.625 Z"></path></svg></div>
         </form>
     </div>
 </template>
@@ -34,6 +39,7 @@
                     defaultDate: "2020-06-19 00:00 — 2020-06-20 00:00",
                     defaultHour: 0,
                 },
+                isCalendarOpened: false,
             }
         },
         computed: {
@@ -45,10 +51,20 @@
                     this.$store.commit('updateDate', {min: dates[0], max: dates[1]})
                     this.$emit('update-date')
                 }
+            },
+            updateTime: function(){
+                this.dateConfig.maxDate = new Date
+            },
+            onOpen: function () {
+                this.isCalendarOpened = true
+            },
+            onClose: function () {
+                this.isCalendarOpened = false
             }
         },
         created() {
             this.$store.commit('updateDate', {min: new Date(this.dateStr.split(' — ')[0]), max: new Date(this.dateStr.split(' — ')[1])})
+            setInterval(this.updateTime, 60000)
         }
     }
 </script>
@@ -64,6 +80,7 @@
         padding: 8px;
         border-radius: 3px;
         background: #fff;
+        z-index: 1;
     }
 </style>
 <style scoped>
@@ -73,5 +90,27 @@
         justify-content: center;
         align-items: center;
     }
-
+    form{
+        display: flex;
+        flex-direction: row;
+    }
+    .confirm-btn{
+        z-index: 0;
+        position: relative;
+        right: 50px;
+        -webkit-transition: right .4s linear;
+        -moz-transition: right .4s linear;
+        -ms-transition: right .4s linear;
+        -o-transition: right .4s linear;
+        transition: right .4s linear;
+        cursor: pointer;
+        background-color: #569ff7;
+        border-radius: 3px;
+    }
+    .confirm-btn:hover, .confirm-btn:focus{
+      background-color: rgba(60, 134, 217);
+    }
+    .opened{
+        right: 0;
+    }
 </style>
