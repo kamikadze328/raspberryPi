@@ -57,10 +57,10 @@
 
         },
         computed: {
-                ...mapGetters([
-                    'minDate',
-                    'maxDate',
-                ]),
+            ...mapGetters([
+                'minDate',
+                'maxDate',
+            ]),
             coefficient: function () {
                 return {
                     AI: 1,
@@ -85,11 +85,11 @@
             }
         },
         data() {
-           return {
-                tooltip:{
+            return {
+                tooltip: {
                     date: new Date,
                     show: false,
-                    translate: {x: 0, y:0},
+                    translate: {x: 0, y: 0},
                 },
                 tooltipLines: [],
                 curveD3: {
@@ -132,7 +132,7 @@
         },
 
         methods: {
-            multiFormat: function(date) {
+            multiFormat: function (date) {
                 return (d3.timeSecond(date) < date ? this.format.millisecond
                     : d3.timeMinute(date) < date ? this.format.second
                         : d3.timeHour(date) < date ? this.format.minute
@@ -141,8 +141,8 @@
                                     : d3.timeYear(date) < date ? this.format.month
                                         : this.format.year)(date);
             },
-            mouseleave: function(){
-                this.tooltip.show=false
+            mouseleave: function () {
+                this.tooltip.show = false
             },
             getCurveD3: function (type) {
                 return this.curveD3[type] ? this.curveD3[type] : this.curveD3.AI
@@ -162,25 +162,25 @@
 
             },
             onZoom: function () {
-                if(this.areAnyDataThere)
+                if (this.areAnyDataThere)
                     this.$emit('zoomer')
             },
-            onMouseMove: function(){
-                if(this.areAnyDataThere)
+            onMouseMove: function () {
+                if (this.areAnyDataThere)
                     this.$emit('mouse-moover')
             },
-            onClick: function(){
-                if(this.areAnyDataThere)
+            onClick: function () {
+                if (this.areAnyDataThere)
                     this.$emit('clicker')
             },
-            onDoubleClick: function(){
-                if(this.areAnyDataThere)
+            onDoubleClick: function () {
+                if (this.areAnyDataThere)
                     this.$emit('db-clicker')
             },
-            doubleClicker: function(){
+            doubleClicker: function () {
                 this.clearTooltipLines()
             },
-            clicker: function(){
+            clicker: function () {
                 let tooltipLine = {
                     y1: this.margin.top,
                     y2: this.getWrapperHeight() - this.margin.bottom,
@@ -188,7 +188,7 @@
                     date: this.xScale.invert(d3.event.offsetX),
                     data: []
                 }
-                for(const line of this.lines)
+                for (const line of this.lines)
                     this.addNewDataTooltip(tooltipLine.data, line.value, line.color, line.type)
 
 
@@ -197,7 +197,7 @@
 
             },
             zoomer: function () {
-                if(this.areAnyDataThere) {
+                if (this.areAnyDataThere) {
                     this.tooltip.show = false
                     this.xScale.range(this.getXRange().map(d => d3.event.transform.applyX(d)))
                     this.redrawTooltipLines()
@@ -257,7 +257,25 @@
                 const mbNumber = this.svgD3.select('.x.axis').node().getBoundingClientRect().width / 100
                 return (mbNumber >= 5) ? mbNumber : 5
             },
+            isDigital: function (type) {
+                return (type === 'DO' || type === 'DI')
+            },
             setMaxMinVariables: function (minMaxData) {
+                let isAllDigital = true
+                for (const line of this.lines)
+                    if (!this.isDigital(line.type)) {
+                        isAllDigital = false
+                        break
+                    }
+                if (isAllDigital) {
+                    if ((!isFinite(this.minMaxData.maxValue) || !isFinite(this.minMaxData.minValue))) {
+                        this.minMaxData.maxValue = 1
+                        this.minMaxData.minValue = 0
+                    }
+                    this.minMaxData.maxValue = -Infinity
+                    this.minMaxData.minValue = Infinity
+                }
+
                 if (minMaxData.minValue !== undefined && minMaxData.minValue < this.minMaxData.minValue)
                     this.minMaxData.minValue = minMaxData.minValue
 
@@ -278,9 +296,9 @@
                 this.onResize()
                 this.reArrangeTooltipLines()
             },
-            reArrangeTooltipLines: function(){
+            reArrangeTooltipLines: function () {
                 for (const line of this.tooltipLines)
-                    for(const d of line.data)
+                    for (const d of line.data)
                         d.y = this.yScale(d.value ? d.value * this.getChartCoefficient(d.type) : this.minMaxData.minValue)
             },
             initChart: function () {
@@ -320,10 +338,10 @@
                 this.svgD3.on('dblclick', this.onDoubleClick)
                 this.svgD3.on("dblclick.zoom", null);
 
-                this.$refs['tooltip-vertical-line'].y2.baseVal.value = this.getWrapperHeight()  - this.margin.bottom
+                this.$refs['tooltip-vertical-line'].y2.baseVal.value = this.getWrapperHeight() - this.margin.bottom
 
 
-                for(const date of this.$store.getters.tooltipLineDates){
+                for (const date of this.$store.getters.tooltipLineDates) {
                     let tooltipLine = {
                         y1: this.margin.top,
                         y2: this.getWrapperHeight() - this.margin.bottom,
@@ -331,7 +349,7 @@
                         date: date,
                         data: []
                     }
-                    for(const line of this.lines)
+                    for (const line of this.lines)
                         this.addNewDataTooltip(tooltipLine.data, line.value, line.color, line.type)
                     this.addTooltipLine(tooltipLine)
                 }
@@ -350,20 +368,20 @@
 
                     for (const line of this.lines) {
                         const tagId = line.tagId,
-                              data = this.$store.getters.tagDataById(tagId)
+                            data = this.$store.getters.tagDataById(tagId)
                         this.lines[this.getIndexLineById(tagId)].value = this.getValueByDate(data, date)
 
                     }
                     const tooltipHTML = this.$refs['tooltip'].$el
 
-                    if(x + this.margin.forTooltip + tooltipHTML.clientWidth < this.getWrapperWidth())
+                    if (x + this.margin.forTooltip + tooltipHTML.clientWidth < this.getWrapperWidth())
                         this.tooltip.translate.x = x + this.margin.forTooltip
                     else
                         this.tooltip.translate.x = x - this.margin.forTooltip - tooltipHTML.clientWidth
 
-                    if(y + tooltipHTML.clientHeight / 2 > this.getWrapperHeight())
+                    if (y + tooltipHTML.clientHeight / 2 > this.getWrapperHeight())
                         this.tooltip.translate.y = this.getWrapperHeight() - tooltipHTML.clientHeight
-                    else if(y - tooltipHTML.clientHeight / 2 < 0)
+                    else if (y - tooltipHTML.clientHeight / 2 < 0)
                         this.tooltip.translate.y = 0
                     else
                         this.tooltip.translate.y = y - tooltipHTML.clientHeight / 2
@@ -372,29 +390,29 @@
                     this.$refs['tooltip-vertical-line'].x1.baseVal.value = x
                 }
             },
-            getValueByDate: function(data, date){
+            getValueByDate: function (data, date) {
                 const bisectDate = d3.bisector(d => d.date).left
                 let value
                 const i = bisectDate(data, date, 1),
                     d0 = i ? data[i - 1] : null,
-                    d1 = data[i] ? data[i]: null
+                    d1 = data[i] ? data[i] : null
                 if (d0 === null || d0.value === undefined) value = d1.value
-                else if (d1 ===null || d1.value === undefined) value = d0.value
+                else if (d1 === null || d1.value === undefined) value = d0.value
                 else value = (date - d0.date > d1.date - date) ? d1.value : d0.value
                 return value
             },
-            addTooltipTextToLines: function(line){
+            addTooltipTextToLines: function (line) {
                 const data = this.$store.getters.tagDataById(line.tagId)
 
-                for(let tooltipLine of this.tooltipLines){
+                for (let tooltipLine of this.tooltipLines) {
                     const date = tooltipLine.date,
-                          value = this.getValueByDate(data, date)
+                        value = this.getValueByDate(data, date)
 
                     this.addNewDataTooltip(tooltipLine.data, value, line.color, line.type)
 
                 }
             },
-            addNewDataTooltip: function(data, value, color, type){
+            addNewDataTooltip: function (data, value, color, type) {
                 data.push({
                     value,
                     y: this.yScale(value ? value * this.getChartCoefficient(type) : this.minMaxData.minValue),
@@ -402,7 +420,7 @@
                     type
                 })
             },
-            addTooltipLine: function(tooltipLine){
+            addTooltipLine: function (tooltipLine) {
                 this.tooltipLines.push(tooltipLine)
                 this.$store.commit('addTooltipLine', {date: tooltipLine.date})
             },
@@ -456,8 +474,8 @@
                 this.updateAllMinMax()
                 this.reArrangeChart()
             },
-            removeTooltipLine: function(index){
-                for(const tooltipLine of this.tooltipLines)
+            removeTooltipLine: function (index) {
+                for (const tooltipLine of this.tooltipLines)
                     tooltipLine.data.splice(index, 1)
             },
             addColor: function (color, tagWithData) {
@@ -471,7 +489,7 @@
                 this.colors.splice(indexColor, 1)
                 this.$emit('remove-color', tagId)
             },
-            clearTooltipLines: function(){
+            clearTooltipLines: function () {
                 this.tooltipLines.splice(0)
             },
             updateCharts: function () {
@@ -483,12 +501,12 @@
             updateAllMinMax: function () {
                 this.clearMinMax()
                 for (const tagId of this.selectedTagsId)
-                    if(this.$store.getters.tagById(tagId))
+                    if (this.$store.getters.tagById(tagId))
                         this.setMaxMinVariables(this.$store.getters.tagById(tagId).minMaxData)
             },
             updateLines: function () {
                 for (let i = 0; i < this.lines.length; i++)
-                    if(this.$store.getters.tagById(this.selectedTagsId[i]))
+                    if (this.$store.getters.tagById(this.selectedTagsId[i]))
                         this.reDrawLine(this.$store.getters.tagById(this.selectedTagsId[i]), this.lines[i])
             },
         },
@@ -512,7 +530,7 @@
 
     }
     * >>> path, * >>>line{
-        shape-rendering: optimizeSpeed;
+        /*shape-rendering: optimizeSpeed;*/
     }
     .axisWhite >>> path {
         stroke: white;
