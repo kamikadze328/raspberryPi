@@ -48,6 +48,8 @@
                 1px -1px 0 #fff,
                 -1px 1px 0 #fff,
                 1px 1px 0 #fff;
+        font-family: 'Iceland', cursive;
+        font-size: .8rem;
 
     }
 </style>
