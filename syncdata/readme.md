@@ -3,7 +3,7 @@
 Программа загружает в базы данных информацию из локальных файлов. Каждый успешно считанный и отправленный файл удаляется. 
 Если что-то пошло не так, то файл удаляется после трёх неудачных попыток отправки или прочтения. Удаляются ВСЕ свои файлы и немного чужих.
 
-Для запуска программы достаточно Python 2.7 и две доп. библиотеки:
+Для запуска программы достаточно Python 2.7 и три доп. библиотеки:
 - enum34 (pip install enum34 или sudo apt-get install python-enum34)
 - mysqldb (pip install mysqldb или sudo apt-get install python-mysqldb)
 - mysql.connector (pip install mysql.connector или sudo apt-get install python-mysql.connector)
