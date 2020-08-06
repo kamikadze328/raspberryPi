@@ -36,25 +36,6 @@ const store = new Vuex.Store({
                 ]
             },
         ],
-        tags: {
-            tagsTemperature: [
-                {id: 10101, description: 'Топка'},
-                {id: 10102, description: 'Сушилка левая'},
-                {id: 10103, description: 'Дым газы'},
-                {id: 10104, description: 'Сушилка правая'},
-                {id: 10105, description: 'Реактор левый'},
-                {id: 10106, description: 'Выгрузка углерода левая'},
-                {id: 10107, description: 'Реактор правый'},
-                {id: 10108, description: 'Выгрузка углерода правая'},
-            ],
-            tagsDigitalInput: [
-                {id: 12101, description: 'Бункер подачи сырья'},
-                {id: 12102, description: 'Пересыпка сушилки левая'},
-                {id: 12103, description: 'Пересыпка сушилки правая'},
-                {id: 12104, description: 'Выход углерода левый'},
-                {id: 12105, description: 'Выход углерода правый'},
-            ],
-        },
         data: {
             temperature: [],
             digitalInputs: [],
