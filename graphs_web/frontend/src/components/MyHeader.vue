@@ -5,7 +5,7 @@
             <Calendar ref="calendar" @update-date="$emit('update-date')"/>
             <div id="time">{{time}}</div>
         </div>
-        <div class="error-msg-box" v-show="showErrorMessage"><div class="error-msg">{{errorMessage}}</div></div>
+        <div class="error-msg-box" v-show="showErrorMessage"><div class="error-msg">{{errorInfo.tags.join(', ') + ': ' + errorInfo.message}}</div></div>
     </div>
 </template>
 
@@ -18,7 +18,10 @@
           Calendar
         },
         props:{
-            errorMessage: String
+            errorInfo:{
+                message: String,
+                tags: Array
+            }
         },
         data () {
             return {
@@ -28,12 +31,16 @@
             }
         },
         watch: {
-            errorMessage: function (val) {
-                if(val) {
-                    this.showErrorMessage = true
-                    clearTimeout(this.errorMessageTimeout)
-                    this.errorMessageTimeout = setTimeout(this.clearMessage, 3000)
-                }
+
+            errorInfo: {
+                handler: function (val) {
+                    if (val.message) {
+                        this.showErrorMessage = true
+                        clearTimeout(this.errorMessageTimeout)
+                        this.errorMessageTimeout = setTimeout(this.clearMessage, 3000)
+                    } else this.showErrorMessage = false
+                },
+                deep: true
             }
         },
         methods: {

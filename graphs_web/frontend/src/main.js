@@ -95,23 +95,27 @@ const store = new Vuex.Store({
         addNewTag(state, {newTag}) {
             let minValue = Number.MAX_VALUE,
                 maxValue = Number.MIN_VALUE
-
+            let isThereData = false
             const id = Number(newTag.id),
-                  type = String(newTag.type).toUpperCase()
-            for(let i = 0; i < newTag.data.length; i++){
+                type = String(newTag.type).toUpperCase()
+            for (let i = 0; i < newTag.data.length; i++) {
                 const d = newTag.data[i],
-                      value = d.value ? Number(d.value) : undefined
-
+                    value = d.value ? Number(d.value) : undefined
+                if (value !== undefined) isThereData = true
                 if (d && value > maxValue) maxValue = value
                 if (d && value < minValue) minValue = value
-                newTag.data[i] = {date:new Date(d.date), value}
+                newTag.data[i] = {date: new Date(d.date), value}
             }
 
 
             const data = newTag.data
-
-            Vue.set(state.tagsData, newTag.id, {id, type, data, minMaxData: {minValue, maxValue}})
-            console.log(state.tagsData)
+            if (isThereData) {
+                Vue.set(state.tagsData, newTag.id, {id, type, data, minMaxData: {minValue, maxValue}})
+                console.log(state.tagsData)
+            }
+        },
+        clearTagsData(state){
+            state.tagsData.splice(0)
         },
         setDevicesAndTags(state, {data}){
             state.devices = data

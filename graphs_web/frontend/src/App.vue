@@ -2,7 +2,7 @@
     <div @click="closeAll" id="app">
         <MyHeader @clear-error-msg="clearErrorMsg"
                   @update-date="updateCharts"
-                  v-bind:errorMessage="errorMessage"
+                  :error-info="errorInfo"
                   ref="header"
         />
         <div class="wrapper">
@@ -49,7 +49,10 @@ export default {
                     id: 1,
                     config: {}
                 }],
-            errorMessage: '',
+            errorInfo: {
+                message: '',
+                tags: []
+            }
         }
     },
     methods: {
@@ -57,7 +60,14 @@ export default {
             this.graphConfigs.splice(this.graphConfigs.findIndex(config => config.id === configId), 1)
         },
         clearErrorMsg: function () {
-            this.errorMessage = null
+            this.errorInfo.message = null
+            this.errorInfo.tags.splice(0)
+        },
+        setErrorMessage: function (message){
+            this.errorInfo.message = message
+        },
+        setErrorTags: function (tags){
+            for(const tagId of tags) this.errorInfo.tags.push(tagId)
         },
         addConfig: function () {
             let id = 0
@@ -96,10 +106,11 @@ export default {
                     console.log(error)
                     if (error.errno && error.errno === 2) {
                         const tags = error['request-body'].tags
-                        this.errorMessage = tags.toString() + ': ' + error.message
+                        this.setErrorMessage(error.message)
+                        this.setErrorTags(tags)
                         for (const tagId of tags) this.setCheckedTag(tagId, false)
-                    } else this.errorMessage = error.message
-
+                    }
+                    this.setErrorMessage(error.message)
                 })
         },
         setCheckedTag: function (tagId, isWithData) {
@@ -108,8 +119,11 @@ export default {
         },
         updateCharts: function () {
             console.log('update')
+            for (const graph of this.$refs['graph'])
+                graph.beforeUpdate()
             const tags = this.getAllSelectedTags()
             console.log(tags)
+            this.$store.commit('clearTagsData')
             if (tags && tags.length) {
                 this.getAllServerData(tags).then(() => {
                     this.updateAllGraphs()
@@ -117,8 +131,8 @@ export default {
             } else this.updateAllGraphs()
         },
         updateAllGraphs: function () {
-            for (const config of this.graphConfigs)
-                this.$refs['graph'][config.id].updateCharts()
+            for (const graph of this.$refs['graph'])
+                graph.updateCharts()
         },
         getAllSelectedTags: function () {
             let uniqueTagsId = new Set()
@@ -130,7 +144,7 @@ export default {
         },
         getAllServerData: function (tags) {
             console.log(tags)
-            this.errorMessage = ''
+            this.clearErrorMsg()
             return this.getServerData(tags)
                 .then(data => {
                     if (data)
@@ -156,10 +170,8 @@ export default {
             })
                 .catch(error => {
                     console.log(error.response)
-                    if (error.response)
-                        this.errorMessage = error.response.status + ': ' + error.response.statusText
-                    else
-                        this.errorMessage = error.message
+                    const message = error.response ? (error.response.status + ': ' + error.response.statusText) : error.message
+                    this.setErrorMessage(message)
                 })
         },
 
@@ -195,7 +207,13 @@ export default {
             if (tag) {
                 if (tag.data && tag.data.length) {
                     this.$store.commit('addNewTag', {newTag: tag})
-                    this.setCheckedTag(tag.id, true)
+                    if(this.$store.getters.isTagsLoaded(tag.id))
+                        this.setCheckedTag(tag.id, true)
+                    else {
+                        this.setErrorMessage('no available data')
+                        this.setErrorTags([tag.id])
+                        this.setCheckedTag(tag.id, false)
+                    }
                 } else this.setCheckedTag(tag.id, false)
             }
         }
