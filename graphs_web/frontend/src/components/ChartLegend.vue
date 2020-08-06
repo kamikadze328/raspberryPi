@@ -13,7 +13,7 @@
             </div>
             <div :data-tag-id="line.tag.id"
                  :ref="'remove-btn-'+line.tag.id"
-                 class="remove-tag-btn"
+                 class="disable-selection-text remove-tag-btn"
                  v-on:click="removeTag">
                 &#x2716;
             </div>
