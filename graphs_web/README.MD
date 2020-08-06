@@ -4,6 +4,6 @@ Project for analyze interactive charts with load data from bd.
  - Vuex
  - d3.js - synchronized zoomable charts, tooltips
  
-![Example 1](/graph_img1.png) 
-![Example 2](/graph_img2.png) 
-![Example 3](/graph_img2.png)
+![Example 1](graph_img1.png) 
+![Example 2](graph_img2.png) 
+![Example 3](graph_img2.png)
