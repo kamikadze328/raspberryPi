@@ -81,7 +81,10 @@
                 }
             },
             areAnyDataThere: function () {
-                return !!this.lines.length
+                for(const line of this.lines)
+                    if (this.$store.getters.isTagsLoaded(line.tagId))
+                        return true
+                return false
             },
             margin: function (){
                 const right = 0
@@ -384,12 +387,10 @@
                 this.svgD3.call(this.zoom)
 
                 d3.select('#chart-wrapper-' + this.configId).on('mousemove', this.onMouseMove)
-                //this.svgD3.on('mousemove', this.onMouseMove)
                 this.svgD3.on('click', this.onClick)
                 this.svgD3.on('dblclick', this.onDoubleClick)
                 this.svgD3.on("dblclick.zoom", null);
                 this.$refs['tooltip-vertical-line'].y2.baseVal.value = this.getWrapperHeight() - this.margin.bottom
-
 
                 for (const date of this.$store.getters.tooltipLineDates) {
                     let tooltipLine = {
