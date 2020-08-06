@@ -371,8 +371,9 @@
                 }
             },
             moover: function () {
-                const x = d3.event.offsetX,
-                    y = d3.event.offsetY
+                const isEventSource = d3.event.clientY > this.$el.getBoundingClientRect().top && d3.event.clientY < this.$el.getBoundingClientRect().top + this.$el.getBoundingClientRect().height
+                const x = isEventSource ? d3.event.clientX - this.$el.getBoundingClientRect().left : d3.event.offsetX,
+                    y = isEventSource ? d3.event.clientY - this.$el.getBoundingClientRect().top : d3.event.offsetY
                 this.tooltip.show = this.areAnyDataThere
                     && x > this.margin.left
                     && x < this.getWrapperWidth() - this.margin.right
