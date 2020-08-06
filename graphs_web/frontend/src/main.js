@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import App from './App.vue'
+import Vuex from 'vuex'
 
 Vue.config.productionTip = false
-import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
@@ -109,8 +109,15 @@ const store = new Vuex.Store({
                 dates.push(new Date(date))
             return dates
         },
-        devices: state => {
-            return state.devices
+        devices: state => searchStr =>{
+            return state.devices.flatMap(device => {
+                let newDevice = {
+                    id: device.id,
+                    description: device.description,
+                    tags: device.tags.filter(tag => (String(tag.id) + ' ' + tag.description).toLowerCase().includes(searchStr.toLowerCase()))
+                }
+                return newDevice.tags.length ? [newDevice] : []
+            })
         },
         loadedTags: state => {
             let tags = []

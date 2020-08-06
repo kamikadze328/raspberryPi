@@ -11,32 +11,32 @@
                      ref="select-box-btn" v-html="visibilityTags ? htmlSymbols.close : htmlSymbols.openRight " />
             </div>
             <div class="rows-stat select-box" :id="'select-box-' + config.id" v-show="visibilityTags" ref="select-box">
-                <input placeholder="Enter tag id or name"
-                       @input="filterSelectorItems">
+                <input placeholder="Enter tag id or name" v-model="userInput">
                 <div class="select-items">
-                    <div class="select-items-inner">
-                    <div :key="device.id"
-                         v-for="device in this.$store.getters.devices">
-                        <div class="select-parent"
-                             @click.self="toggleVisibilityChild">
-                            <span  @click.self="toggleVisibilityChildText" class="disable-selection-text" v-html="htmlSymbols.openRight"/>
-                            {{device.id}} {{device.description}}
-                        </div>
-                        <div class="select-child-box">
-                            <label :for="'select-tag-' + config.id + '-' + tag.id"
-                                   :key="'select-row-' + config.id + '-' + tag.id"
-                                   v-for="tag in device.tags">
-                                <input :id="'select-tag-' + config.id + '-' + tag.id"
-                                       :ref="'select-tag-' + tag.id"
-                                       :value="tag.id"
-                                       type="checkbox"
-                                       v-model="selectedTagsId"
-                                       v-on:change="changedSelected"/>
-                                {{tag.id}} {{tag.description}}
-                            </label>
+                    <div class="select-items-inner" v-if="devices(userInput).length">
+                        <div :key="device.id"
+                            v-for="device in devices(userInput)">
+                            <div class="select-parent"
+                                @click.self="toggleVisibilityChild">
+                                <span  @click.self="toggleVisibilityChildText" class="disable-selection-text" v-html="htmlSymbols.openRight"/>
+                                {{device.id}} {{device.description}}
+                            </div>
+                            <div class="select-child-box">
+                                <label :for="'select-tag-' + config.id + '-' + tag.id"
+                                       :key="'select-row-' + config.id + '-' + tag.id"
+                                        v-for="tag in device.tags">
+                                    <input :id="'select-tag-' + config.id + '-' + tag.id"
+                                           :ref="'select-tag-' + tag.id"
+                                           :value="tag.id"
+                                           type="checkbox"
+                                           v-model="selectedTagsId"
+                                           @change="changedSelected"/>
+                                    {{tag.id}} {{tag.description}}
+                                </label>
+                            </div>
                         </div>
                     </div>
-                        </div>
+                    <div v-else class="select-parent">Ничего не найдено &#128532; </div>
                 </div>
             </div>
             <ChartLegend :legend="legend" :selectedTags="selectedTagsId" @remove-tag="removeTagFromLegend"/>
@@ -84,10 +84,11 @@
                     close: '&#8212;',
                     openDown: '&#x2BC6;',
                 },
+                userInput: ''
             }
         },
         computed: {
-            ...mapGetters(['tagsData']),
+            ...mapGetters(['tagsData', 'devices']),
             refChart: function () {
                 return this.$refs['chart']
             },
@@ -195,18 +196,6 @@
                 const wasVisible = elem.style.display === 'block'
                 elem.style.display = wasVisible ? 'none' : 'block'
                 return wasVisible
-            },
-            filterSelectorItems: function (e) {
-                e.target.nextElementSibling.style.display = "block"
-
-                const userText = e.target.value.toLowerCase()
-                const items = e.target.nextElementSibling.children
-                if (userText && userText.length > 0)
-                    for (let i = 0; i < items.length; i++)
-                        items[i].style.display = (items[i].outerText.toLocaleLowerCase().indexOf(userText) > -1) ? 'flex' : 'none'
-                else
-                    for (let i = 0; i < items.length; i++)
-                        items[i].style.display = 'flex'
             },
             updateCharts: function () {
                 this.refChart.updateCharts()
