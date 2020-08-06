@@ -82,6 +82,17 @@
             },
             areAnyDataThere: function () {
                 return !!this.lines.length
+            },
+            margin: function (){
+                const right = 0
+                return {
+                    top: 10,
+                    right: right,
+                    bottom: 10,
+                    left: 45,
+                    forTooltip: 40,
+                    forClipPath: right + 20,
+                }
             }
         },
         data() {
@@ -97,13 +108,6 @@
                     DI: d3.curveStepAfter,
                     DO: d3.curveStepAfter,
                 },
-                margin: {
-                    top: 10,
-                    right: 0,
-                    bottom: 10,
-                    left: 45,
-                    forTooltip: 40
-                },
                 xScale: null,
                 yScale: null,
                 xAxis: null,
@@ -111,6 +115,7 @@
                 lines: [],
                 colors: [],
                 svgD3: null,
+                yTicks: [],
                 tooltipD3: null,
                 minMaxData: {
                     minValue: +Infinity,
@@ -222,9 +227,15 @@
                 this.svgD3.select(".y.axis")
                     .attr("transform", this.getTransformY())
                     .call(this.yAxis.ticks(5))
+
+                this.svgD3.selectAll(".y.axis>.tick>.tick-line").remove()
+                this.svgD3.selectAll('.y.axis>.tick').append('line')
+                    .attr('class', 'tick-line')
+                    .attr('x2', this.getWrapperWidth() - this.margin.forClipPath)
+
                 this.svgD3.select('#clip-' + this.configId + '>rect')
                     .attr("x", this.margin.left)
-                    .attr("width", this.getWrapperWidth() - this.margin.right - 10)
+                    .attr("width", this.getWrapperWidth() - this.margin.forClipPath)
                     .attr("height", this.getWrapperHeight())
             },
             clearMinMax: function () {
@@ -293,6 +304,7 @@
                     .scale(this.xScale)
                 this.yAxis = d3.axisLeft()
                     .scale(this.yScale)
+
                 this.onResize()
                 this.reArrangeTooltipLines()
             },
@@ -321,9 +333,13 @@
                     .attr("transform", this.getTransformY())
                     .call(this.yAxis.ticks(5))
 
+                this.svgD3.selectAll(".y.axis>.tick").append('line')
+                    .attr('class', 'tick-line')
+                    .attr('x2', this.getWrapperWidth() - this.margin.forClipPath)
+
                 this.svgD3.select('#clip-' + this.configId + '>rect')
                     .attr("x", this.margin.left)
-                    .attr("width", this.getWrapperWidth() - this.margin.right - 10)
+                    .attr("width", this.getWrapperWidth() - this.margin.forClipPath)
                     .attr("height", this.getWrapperHeight())
 
                 this.zoom = d3.zoom()
@@ -394,7 +410,7 @@
                 const bisectDate = d3.bisector(d => d.date).left
                 let value
                 const i = bisectDate(data, date, 1),
-                    d0 = i ? data[i - 1] : null,
+                    d0 = i ? (data[i - 1] ? data[i - 1] : null): null,
                     d1 = data[i] ? data[i] : null
                 if (d0 === null || d0.value === undefined) value = d1.value
                 else if (d1 === null || d1.value === undefined) value = d0.value
@@ -505,7 +521,7 @@
                         this.setMaxMinVariables(this.$store.getters.tagById(tagId).minMaxData)
             },
             updateLines: function () {
-                for (let i = 0; i < this.lines.length; i++)
+                for (let i = 0; i < this.selectedTagsId.length; i++)
                     if (this.$store.getters.tagById(this.selectedTagsId[i]))
                         this.reDrawLine(this.$store.getters.tagById(this.selectedTagsId[i]), this.lines[i])
             },
@@ -545,6 +561,10 @@
         fill: white;
         font-size: 0.8rem;
     }
+    .axisWhite >>> .tick-line {
+        opacity: .05;
+    }
+
     .tooltip-vertical-line >>> line{
         stroke-width: .5;
         fill: none;
