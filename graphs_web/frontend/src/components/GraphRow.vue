@@ -93,14 +93,17 @@
         watch: {
             tagsData: {
                 handler: function (val) {
+                    let tagsForDelete = []
                     for (let i = 0; i < this.waitedTagsId.length; i++) {
+                        console.log(val[this.waitedTagsId[i]])
                         if (val[this.waitedTagsId[i]]) {
                             const tagId = this.waitedTagsId[i]
-                            this.waitedTagsId.splice(i, 1)
+                            tagsForDelete.push(tagId)
                             this.refChart.addLine(val[tagId])
-                            break
                         }
                     }
+                    for( const tagId of tagsForDelete)
+                        this.waitedTagsId.splice(this.waitedTagsId.indexOf(tagId), 1)
                 },
                 deep: true
             },
@@ -205,9 +208,12 @@
             },
             updateCharts: function () {
                 this.refChart.updateCharts()
+            },
+            beforeUpdate: function () {
+                this.waitedTagsId.concat(this.selectedTagsId)
+
             }
         },
-
 
         updated() {
             if (this.waitedForDrawTagsId.length)
@@ -260,7 +266,8 @@
     .select-items {
         z-index: 1000;
         display: block;
-        border-top: 1px #dadada solid;
+        border-top: 1px solid #dadada;
+        border-bottom: 1px solid #dadada;
         background-color: white;
         position: absolute;
         overflow-y: auto;
