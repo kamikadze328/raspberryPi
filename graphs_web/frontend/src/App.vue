@@ -235,6 +235,8 @@ export default {
     color: #2d353c;
     text-align: center;
     display: flex;
+    border-radius: 3px;
+    box-shadow: 0 0 8px rgba(0,0,0,.05)
 }
 
 .add-btn:hover, .add-btn:focus {

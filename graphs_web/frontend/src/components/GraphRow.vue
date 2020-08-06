@@ -13,7 +13,8 @@
             <div class="rows-stat select-box" :id="'select-box-' + config.id" v-show="visibilityTags" ref="select-box">
                 <input placeholder="Enter tag id or name"
                        @input="filterSelectorItems">
-                <div class="select-items" ref="select-items">
+                <div class="select-items">
+                    <div class="select-items-inner">
                     <div :key="device.id"
                          v-for="device in this.$store.getters.devices">
                         <div class="select-parent"
@@ -35,6 +36,7 @@
                             </label>
                         </div>
                     </div>
+                        </div>
                 </div>
             </div>
             <ChartLegend :legend="legend" :selectedTags="selectedTagsId" @remove-tag="removeTagFromLegend"/>
@@ -249,7 +251,7 @@
         background-color: #fff;
         background-clip: padding-box;
         border: 0;
-        border-radius: 4px;
+        border-radius: 4px 4px 0 0;
         font-size: 0.8rem !important;
     }
 
@@ -267,11 +269,17 @@
         z-index: 1000;
         display: block;
         border-top: 1px solid #dadada;
-        border-bottom: 1px solid #dadada;
         background-color: white;
         position: absolute;
-        overflow-y: auto;
+        box-shadow: 0 8px 8px rgba(0,0,0,.15);
+        border-radius: 0 0 4px 4px ;
+        overflow: hidden;
+    }
+
+    .select-items-inner{
         max-height: 600px;
+        overflow-y: auto;
+
     }
 
     .select-items label, .select-parent {
@@ -300,6 +308,13 @@
 
     .select-parent {
         cursor: pointer;
+    }
+    .select-items-inner>:last-child .select-parent,
+    .select-items-inner>:last-child .select-child-box>:last-child{
+        border-bottom: 0;
+    }
+    .select-items-inner>:last-child .select-child-box>:first-child{
+        border-top: 1px #dadada solid;
     }
 
     .select-child-box {
