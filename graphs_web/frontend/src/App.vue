@@ -179,9 +179,9 @@ export default {
             for (let i = 0; i < this.graphConfigs.length; i++)
                 this.$refs['graph'][i].refChart.zoomer()
         },
-        mouseMoveAll: function () {
+        mouseMoveAll: function (coordinates) {
             for (let i = 0; i < this.graphConfigs.length; i++)
-                this.$refs['graph'][i].refChart.moover()
+                this.$refs['graph'][i].refChart.moover(coordinates)
         },
         clickSVGAll: function () {
             for (let i = 0; i < this.graphConfigs.length; i++)

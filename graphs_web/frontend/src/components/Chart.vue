@@ -172,7 +172,10 @@
             },
             onMouseMove: function () {
                 if (this.areAnyDataThere)
-                    this.$emit('mouse-moover')
+                    this.$emit('mouse-moover', {
+                        x: d3.event.clientX - this.$el.getBoundingClientRect().left,
+                        y: d3.event.clientY - this.$el.getBoundingClientRect().top
+                    })
             },
             onClick: function () {
                 if (this.areAnyDataThere)
@@ -196,10 +199,7 @@
                 for (const line of this.lines)
                     this.addNewDataTooltip(tooltipLine.data, line.value, line.color, line.type)
 
-
                 this.addTooltipLine(tooltipLine)
-
-
             },
             zoomer: function () {
                 if (this.areAnyDataThere) {
@@ -237,6 +237,40 @@
                     .attr("x", this.margin.left)
                     .attr("width", this.getWrapperWidth() - this.margin.forClipPath)
                     .attr("height", this.getWrapperHeight())
+            },
+            moover: function ({x, y}) {
+                this.tooltip.show = this.areAnyDataThere
+                    && x > this.margin.left
+                    && x < this.getWrapperWidth() - this.margin.right
+                    && y > this.margin.top
+                    && y < this.getWrapperHeight() - this.margin.bottom
+                if (this.tooltip.show) {
+                    const date = this.xScale.invert(x)
+                    this.tooltip.date = date
+
+                    for (const line of this.lines) {
+                        const tagId = line.tagId,
+                            data = this.$store.getters.tagDataById(tagId)
+                        this.lines[this.getIndexLineById(tagId)].value = this.getValueByDate(data, date)
+
+                    }
+                    const tooltipHTML = this.$refs['tooltip'].$el
+
+                    if (x + this.margin.forTooltip + tooltipHTML.clientWidth < this.getWrapperWidth())
+                        this.tooltip.translate.x = x + this.margin.forTooltip
+                    else
+                        this.tooltip.translate.x = x - this.margin.forTooltip - tooltipHTML.clientWidth
+
+                    if (y + tooltipHTML.clientHeight / 2 > this.getWrapperHeight())
+                        this.tooltip.translate.y = this.getWrapperHeight() - tooltipHTML.clientHeight
+                    else if (y - tooltipHTML.clientHeight / 2 < 0)
+                        this.tooltip.translate.y = 0
+                    else
+                        this.tooltip.translate.y = y - tooltipHTML.clientHeight / 2
+
+                    this.$refs['tooltip-vertical-line'].x2.baseVal.value = x
+                    this.$refs['tooltip-vertical-line'].x1.baseVal.value = x
+                }
             },
             clearMinMax: function () {
                 this.minMaxData = {
@@ -349,11 +383,11 @@
                     .on("zoom", this.onZoom)
                 this.svgD3.call(this.zoom)
 
-                this.svgD3.on('mousemove', this.onMouseMove)
+                d3.select('#chart-wrapper-' + this.configId).on('mousemove', this.onMouseMove)
+                //this.svgD3.on('mousemove', this.onMouseMove)
                 this.svgD3.on('click', this.onClick)
                 this.svgD3.on('dblclick', this.onDoubleClick)
                 this.svgD3.on("dblclick.zoom", null);
-
                 this.$refs['tooltip-vertical-line'].y2.baseVal.value = this.getWrapperHeight() - this.margin.bottom
 
 
@@ -368,43 +402,6 @@
                     for (const line of this.lines)
                         this.addNewDataTooltip(tooltipLine.data, line.value, line.color, line.type)
                     this.addTooltipLine(tooltipLine)
-                }
-            },
-            moover: function () {
-                const isEventSource = d3.event.clientY > this.$el.getBoundingClientRect().top && d3.event.clientY < this.$el.getBoundingClientRect().top + this.$el.getBoundingClientRect().height
-                const x = isEventSource ? d3.event.clientX - this.$el.getBoundingClientRect().left : d3.event.offsetX,
-                    y = isEventSource ? d3.event.clientY - this.$el.getBoundingClientRect().top : d3.event.offsetY
-                this.tooltip.show = this.areAnyDataThere
-                    && x > this.margin.left
-                    && x < this.getWrapperWidth() - this.margin.right
-                    && y > this.margin.top
-                    && y < this.getWrapperHeight() - this.margin.bottom
-                if (this.tooltip.show) {
-                    const date = this.xScale.invert(x)
-                    this.tooltip.date = date
-
-                    for (const line of this.lines) {
-                        const tagId = line.tagId,
-                            data = this.$store.getters.tagDataById(tagId)
-                        this.lines[this.getIndexLineById(tagId)].value = this.getValueByDate(data, date)
-
-                    }
-                    const tooltipHTML = this.$refs['tooltip'].$el
-
-                    if (x + this.margin.forTooltip + tooltipHTML.clientWidth < this.getWrapperWidth())
-                        this.tooltip.translate.x = x + this.margin.forTooltip
-                    else
-                        this.tooltip.translate.x = x - this.margin.forTooltip - tooltipHTML.clientWidth
-
-                    if (y + tooltipHTML.clientHeight / 2 > this.getWrapperHeight())
-                        this.tooltip.translate.y = this.getWrapperHeight() - tooltipHTML.clientHeight
-                    else if (y - tooltipHTML.clientHeight / 2 < 0)
-                        this.tooltip.translate.y = 0
-                    else
-                        this.tooltip.translate.y = y - tooltipHTML.clientHeight / 2
-
-                    this.$refs['tooltip-vertical-line'].x2.baseVal.value = x
-                    this.$refs['tooltip-vertical-line'].x1.baseVal.value = x
                 }
             },
             getValueByDate: function (data, date) {

@@ -28,7 +28,7 @@
                 return d => 'transform: translate(0, ' + d.y + 'px);'
                     + ' color:' + d.color + ';'
             }
-        },
+        }
     }
 </script>
 

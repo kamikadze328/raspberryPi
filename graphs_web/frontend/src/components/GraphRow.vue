@@ -45,7 +45,7 @@
                @add-color="addColor"
                @remove-color="removeColor"
                @zoomer="$emit('zoomer')"
-               @mouse-moover="$emit('mouse-moover')"
+               @mouse-moover="coordinates => $emit('mouse-moover', coordinates)"
                @clicker="$emit('clicker')"
                @db-clicker="$emit('db-clicker')"
                ref="chart"/>
