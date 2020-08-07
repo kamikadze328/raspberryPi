@@ -255,7 +255,7 @@ export default {
 }
 
 #row-list {
-    height: calc(100% - 60px);
+    height: calc(100% - 65px);
     margin-bottom: 5px;
     overflow-y: auto;
     display: flex;

@@ -13,7 +13,7 @@
             <div class="rows-stat select-box" :id="'select-box-' + config.id" v-show="visibilityTags" ref="select-box">
                 <input placeholder="Enter tag id or name" v-model="userInput">
                 <div class="select-items">
-                    <div class="select-items-inner" v-if="devices(userInput).length">
+                    <div class="select-items-inner" :style="style.selectItems" v-if="devices(userInput).length">
                         <div :key="device.id"
                             v-for="device in devices(userInput)">
                             <div class="select-parent"
@@ -84,13 +84,19 @@
                     close: '&#8212;',
                     openDown: '&#x2BC6;',
                 },
-                userInput: ''
+                userInput: '',
+                maxHeightSelectItems: 600
             }
         },
         computed: {
             ...mapGetters(['tagsData', 'devices']),
             refChart: function () {
                 return this.$refs['chart']
+            },
+            style: function(){
+                return {
+                    selectItems: `max-height: ${this.maxHeightSelectItems}px;`,
+                }
             },
         },
         watch: {
@@ -152,29 +158,16 @@
                         break
                     }
             },
-            toggleVisibilityTags: function () {
+            toggleVisibilityTags: function (e) {
+                this.maxHeightSelectItems = 600
                 this.visibilityTags = !this.visibilityTags
-                /*if(this.visibilityTags) {
-                    let height
-                    try {
-                        console.log(document.getElementById('row-list').clientHeight)
-                        console.log(document.getElementById('row-list').scrollHeight)
-                        console.log(this.$refs['select-box-btn'].getBoundingClientRect())
-                        console.log(window.screenX)
-                        console.log(window.innerHeight)
-                        console.log(window.outerHeight)
-                        console.log(window.pageYOffset)
-
-                        const pageMax = document.getElementById('row-list').scrollHeight,
-                            boxY = this.$refs['select-box-btn'].getBoundingClientRect().y,
-                            availableHeight = pageMax - boxY
-                        console.log(availableHeight)
-                        height = availableHeight > 600 ? 600 : availableHeight
-                    } catch {
-                        height = 600
-                    } finally {
-                        this.$refs['select-box'].style.height = '' + height + 'px'
-                    }*/
+                if(this.visibilityTags){
+                    const wrapperBoundingClientRect =  document.getElementById('row-list').getBoundingClientRect()
+                    const maxAvailable =wrapperBoundingClientRect.y + wrapperBoundingClientRect.height - 30
+                    const maxCurrent = e.clientY +  this.maxHeightSelectItems
+                    if(maxCurrent > maxAvailable)
+                        this.maxHeightSelectItems -= maxCurrent - maxAvailable
+                }
             },
             closeAll: function (elem){
                 if(!(elem === this.$refs['select-box'] || this.$refs['select-box'].contains(elem) || elem === this.$refs['select-box-btn']))
@@ -266,7 +259,6 @@
     }
 
     .select-items-inner{
-        max-height: 600px;
         overflow-y: auto;
 
     }
