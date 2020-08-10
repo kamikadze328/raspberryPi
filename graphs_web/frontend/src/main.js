@@ -2,12 +2,11 @@ import Vue from 'vue'
 import App from './App.vue'
 import Vuex from 'vuex'
 
-Vue.config.productionTip = false
-
+Vue.config.productionTip = true
+Vue.config.performance =  true
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
-    debug: true,
     state: {
         devices: [
             {
@@ -58,13 +57,25 @@ const store = new Vuex.Store({
             '#ffd900',
         ],
         tooltipInfo: {
-            dates: []
-        }
+            dates: [],
+            coordinates: {x: 0, y: 0}
+        },
+        zoom: {
+          x: 0,
+          k: 1
+        },
     },
     mutations: {
+        setD3Zoom(state, {x, k}){
+            state.zoom.x = x
+            state.zoom.k = k
+        },
+        setTooltipCoordinates(state, {x, y}){
+          state.tooltipInfo.coordinates.x = x
+          state.tooltipInfo.coordinates.y = y
+        },
         addTooltipLine(state, {date}){
-            if(state.tooltipInfo.dates.indexOf(date.getTime()) === -1)
-                state.tooltipInfo.dates.push(date.getTime())
+            state.tooltipInfo.dates.push(new Date(date))
         },
         clearTooltipLines(state){
           state.tooltipInfo.dates.splice(0)
@@ -103,11 +114,14 @@ const store = new Vuex.Store({
         },
     },
     getters: {
+        d3Zoom: state => {
+            return state.zoom
+        },
+        tooltipCoordinates: state => {
+          return state.tooltipInfo.coordinates
+        },
         tooltipLineDates: state => {
-            const dates = []
-            for (const date of state.tooltipInfo.dates)
-                dates.push(new Date(date))
-            return dates
+            return state.tooltipInfo.dates
         },
         devices: state => searchStr =>{
             return state.devices.flatMap(device => {

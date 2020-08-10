@@ -10,12 +10,8 @@
             <div id="row-list">
                 <GraphRow :config="row"
                           :key="row.id"
-                          @clicker="clickSVGAll"
-                          @db-clicker="doubleClickSVGAll"
-                          @mouse-moover="mouseMoveAll"
                           @newtag="getTagData"
                           @remove-row="removeRow"
-                          @zoomer="zoomAll"
                           ref="graph"
                           v-for="row in graphConfigs"/>
                 <div class="add-btn disable-selection-text" v-on:click="addConfig">
@@ -173,24 +169,6 @@ export default {
                     const message = error.response ? (error.response.status + ': ' + error.response.statusText) : error.message
                     this.setErrorMessage(message)
                 })
-        },
-
-        zoomAll: function () {
-            for (let i = 0; i < this.graphConfigs.length; i++)
-                this.$refs['graph'][i].refChart.zoomer()
-        },
-        mouseMoveAll: function (coordinates) {
-            for (let i = 0; i < this.graphConfigs.length; i++)
-                this.$refs['graph'][i].refChart.moover(coordinates)
-        },
-        clickSVGAll: function () {
-            for (let i = 0; i < this.graphConfigs.length; i++)
-                this.$refs['graph'][i].refChart.clicker()
-        },
-        doubleClickSVGAll: function () {
-            this.$store.commit('clearTooltipLines')
-            for (let i = 0; i < this.graphConfigs.length; i++)
-                this.$refs['graph'][i].refChart.doubleClicker()
         },
         getTagData: function (tagId) {
             this.getServerData([tagId])

@@ -46,10 +46,6 @@
                :selectedTagsId="selectedTagsId"
                @add-color="addColor"
                @remove-color="removeColor"
-               @zoomer="$emit('zoomer')"
-               @mouse-moover="coordinates => $emit('mouse-moover', coordinates)"
-               @clicker="$emit('clicker')"
-               @db-clicker="$emit('db-clicker')"
                ref="chart"/>
         <div class="remove-tag-btn remove-graph-row-btn"
              v-show="visibilityRemoveBtn"
