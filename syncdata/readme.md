@@ -60,9 +60,10 @@ WantedBy=multi-user.target
   
 Комментарии:
 Type=idle - The effect of this service type is subject to a 5s timeout, after which the service program is invoked anyway.
-RuntimeMaxSec=21600 - 6 hours
+RuntimeMaxSec=21600 - 6 hours 
+ 
 sudo systemctl daemon-reload  
-sudo systemctl enable sync-data
+sudo systemctl enable sync-data  
 sudo reboot  
   
 Команда для просмотра статуса демона.  
