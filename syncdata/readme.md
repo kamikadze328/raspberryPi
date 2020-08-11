@@ -49,7 +49,7 @@ Wants=network.target
 [Service]  
 Type=idle  
 Restart=always   
-RestartSec=60 
+RestartSec=60  
 RuntimeMaxSec=21600  
 ExecStart=/usr/bin/python /home/pi/sk/syncdata/sync_data.py  
 WorkingDirectory=/home/pi/sk/syncdata  
