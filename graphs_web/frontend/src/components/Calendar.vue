@@ -18,7 +18,8 @@
     import Vueflatpickr from "vue-flatpickr-component";
     import "flatpickr/dist/flatpickr.min.css";
     import flatpickr from "flatpickr";
-    import { Russian } from "flatpickr/dist/l10n/ru.js"
+    import { Russian } from "flatpickr/dist/l10n/ru.js";
+    import { mapGetters } from 'vuex';
 
     flatpickr.localize(Russian);
 
@@ -29,7 +30,6 @@
         },
         data() {
             return {
-                dateStr: "2020-06-19 00:00 — 2020-06-20 00:00",
                 dateConfig: {
                     altInput: true,
                     altFormat: "F j, Y H:i",
@@ -43,9 +43,21 @@
             }
         },
         computed: {
+            ...mapGetters(['minDate', 'maxDate']),
+            dateStr: function (){
 
+                return `${this.beautyDateStr(this.minDate)} — ${this.beautyDateStr(this.maxDate)}`
+            }
         },
         methods: {
+            beautyDateStr: function (date){
+                const YYYY = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
+                const MM = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
+                const DD = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
+                const HH = new Intl.DateTimeFormat('ru', { hour: '2-digit' }).format(date)
+                const mm = new Intl.DateTimeFormat('ru', { minute: '2-digit' }).format(date)
+                return `${YYYY}-${MM}-${DD} ${HH}:${mm}`
+            },
             onChange: function (dates) {
                 if (dates.length > 1) {
                     this.$store.commit('updateDate', {min: dates[0], max: dates[1]})
@@ -108,7 +120,7 @@
         border-radius: 3px;
     }
     .confirm-btn:hover, .confirm-btn:focus{
-      background-color: rgba(60, 134, 217);
+      background-color: #3C86D9;
     }
     .opened{
         right: 0;
