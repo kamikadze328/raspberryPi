@@ -1,7 +1,7 @@
 <template>
     <div class="header-wrapper">
         <div class="header">
-            <div id="number-db">Graph</div>
+            <Configs/>
             <Calendar ref="calendar" @update-date="$emit('update-date')"/>
             <div id="time">{{time}}</div>
         </div>
@@ -11,10 +11,12 @@
 
 <script>
     import Calendar from "./Calendar";
+    import Configs from "./Configs";
 
     export default {
         name: "Header",
         components:{
+            Configs,
           Calendar
         },
         props:{
