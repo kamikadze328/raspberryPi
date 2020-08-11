@@ -13,7 +13,7 @@
                           @newtag="getTagData"
                           @remove-row="removeRow"
                           ref="graph"
-                          v-for="row in graphConfigs"/>
+                          v-for="row in configs"/>
                 <div class="add-btn disable-selection-text" v-on:click="addConfig">
                     <div class="text-add-btn">&#x2b;</div>
                 </div>
@@ -36,15 +36,17 @@ export default {
     },
     data() {
         return {
-            graphConfigs: [
+
+            configs: [
                 {
                     id: 0,
-                    config: {}
+                    tags: {}
                 },
                 {
                     id: 1,
-                    config: {}
-                }],
+                    tags: {}
+                }
+            ],
             errorInfo: {
                 message: '',
                 tags: []
@@ -53,7 +55,7 @@ export default {
     },
     methods: {
         removeRow: function (configId) {
-            this.graphConfigs.splice(this.graphConfigs.findIndex(config => config.id === configId), 1)
+            this.configs.splice(this.configs.findIndex(config => config.id === configId), 1)
         },
         clearErrorMsg: function () {
             this.errorInfo.message = null
@@ -67,10 +69,10 @@ export default {
         },
         addConfig: function () {
             let id = 0
-            while (this.graphConfigs.findIndex(config => config.id === id) > -1)
+            while (this.configs.findIndex(config => config.id === id) > -1)
                 id++
 
-            this.graphConfigs.push({id, config: {}})
+            this.configs.push({id, tags: {}})
         },
         closeAll: function (e) {
             for (const graph of this.$refs['graph'])
