@@ -14,7 +14,7 @@
                     <div :style="'background-color:' + tag.color"></div>
                 </td>
                 <td class="tooltip-key">{{tag.tagId}}</td>
-                <td class="tooltip-value">{{tag.value}}</td>
+                <td class="tooltip-value">{{tag.value !== null ? tag.value : 'null'}}</td>
             </tr>
             </tbody>
         </table>

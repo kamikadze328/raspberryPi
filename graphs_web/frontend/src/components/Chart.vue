@@ -18,7 +18,7 @@
                 <line :id="'tooltip-vertical-line-' + configId" :x1="margin.left" :x2="margin.left"
                       :y1="margin.top"
                       ref="tooltip-vertical-line"
-                      v-show="tooltip.show"
+                      v-show="isTooltipVisible"
                       y2="0"/>
                 <line :key="line"
                       :x1="line.x"
@@ -33,7 +33,7 @@
                         :key="tooltipLines.indexOf(line)" :max-x="getWrapperWidth() - margin.right" :min-x="margin.left"
                         :padding-bottom="margin.bottom"
                         :padding-top="margin.top" v-for="line in tooltipLines"/>
-        <Tooltip :lines="lines" :show-tooltip="tooltip.show" :tooltip-date="tooltip.date" :translate="tooltip.translate"
+        <Tooltip :lines="lines" :show-tooltip="isTooltipVisible" :tooltip-date="tooltipCurrentDate" :translate="tooltip.translate"
                  ref="tooltip"/>
     </div>
 </template>
@@ -64,7 +64,9 @@ export default {
             'maxDate',
             'tooltipLineDates',
             'tooltipCoordinates',
-            'd3Zoom'
+            'd3Zoom',
+            'doTooltipShow',
+            'tooltipCurrentDate'
         ]),
         coefficient: function () {
             return {
@@ -90,6 +92,9 @@ export default {
                 if (this.$store.getters.isTagsLoaded(line.tagId))
                     return true
             return false
+        },
+        isTooltipVisible: function (){
+            return this.areAnyDataThere && this.doTooltipShow
         },
         margin: function () {
             const right = 0
@@ -126,8 +131,6 @@ export default {
     data() {
         return {
             tooltip: {
-                date: new Date,
-                show: false,
                 translate: {x: 0, y: 0},
             },
             tooltipLines: [],
@@ -143,14 +146,11 @@ export default {
             lines: [],
             colors: [],
             svgD3: null,
-            yTicks: [],
-            tooltipD3: null,
             minMaxData: {
                 minValue: +Infinity,
                 maxValue: -Infinity,
             },
             zoom: null,
-            currentColorsNumber: 0,
             ruLocale: d3.timeFormatLocale({
                 "dateTime": "%A, %e %B %Y г. %X",
                 "date": "%d.%m.%Y",
@@ -175,7 +175,7 @@ export default {
                                     : this.format.year)(date);
         },
         mouseleave: function () {
-            this.tooltip.show = false
+            this.hideTooltip()
         },
         getCurveD3: function (type) {
             return this.curveD3[type] ? this.curveD3[type] : this.curveD3.AI
@@ -194,24 +194,40 @@ export default {
             return withH ? '#' + idHTML : idHTML
 
         },
+        showTooltip: function (){
+            this.$store.commit('showTooltip')
+        },
+        hideTooltip: function (){
+            this.$store.commit('hideTooltip')
+        },
         onZoom: function () {
-            if (this.areAnyDataThere)
+            if (this.areAnyDataThere) {
                 this.$store.commit('setD3Zoom', {x: d3.event.transform.x, k: d3.event.transform.k})
+                this.showTooltip()
+            }
         },
         onMouseMove: function () {
-            if (this.areAnyDataThere)
-                this.$store.commit('setTooltipCoordinates', {
+            if (this.areAnyDataThere) {
+                const payload = {
                     x: d3.event.clientX - this.$el.getBoundingClientRect().left,
                     y: d3.event.clientY - this.$el.getBoundingClientRect().top
-                })
+                }
+                this.$store.commit('setTooltipCoordinates', payload)
+                this.$store.commit('setTooltipCurrentDate', this.xScale.invert(payload.x))
+                this.showTooltip()
+            }
         },
         onClick: function () {
-            if (this.areAnyDataThere)
+            if (this.areAnyDataThere) {
                 this.$store.commit('addTooltipLine', {date: this.xScale.invert(d3.event.offsetX)})
+                this.showTooltip()
+            }
         },
         onDoubleClick: function () {
-            if (this.areAnyDataThere)
+            if (this.areAnyDataThere) {
                 this.$store.commit('clearTooltipLines')
+                this.showTooltip()
+            }
         },
         clicker: function (date) {
             let tooltipLine = {
@@ -227,7 +243,7 @@ export default {
             this.tooltipLines.push(tooltipLine)
         },
         zoomer: function (x, k) {
-            this.tooltip.show = false
+            this.hideTooltip()
             this.xScale.range(this.getXRange().map(d => d * k + x))
             this.redrawTooltipLines()
             this.redrawLines()
@@ -276,19 +292,18 @@ export default {
                 .attr("height", this.getWrapperHeight())
         },
         moover: function (x, y) {
-            this.tooltip.show = this.areAnyDataThere
-                && x > this.margin.left
-                && x < this.getWrapperWidth() - this.margin.right
-                && y > this.margin.top
-                && y < this.getWrapperHeight() - this.margin.bottom
-            if (this.tooltip.show) {
-                const date = this.xScale.invert(x)
-                this.tooltip.date = date
+            const isVisible =
+                    x > this.margin.left
+                &&  x < this.getWrapperWidth() - this.margin.right
+                &&  y > this.margin.top
+                &&  y < this.getWrapperHeight() - this.margin.bottom
+            this.$store.commit('setTooltipVisibility', isVisible)
+            if (this.isTooltipVisible) {
 
                 for (const line of this.lines) {
                     const tagId = line.tagId,
                         data = this.$store.getters.tagDataById(tagId)
-                    this.lines[this.getIndexLineById(tagId)].value = this.getValueByDate(data, date)
+                    this.lines[this.getIndexLineById(tagId)].value = this.getValueByDate(data, this.tooltipCurrentDate)
 
                 }
                 const tooltipHTML = this.$refs['tooltip'].$el
@@ -421,8 +436,6 @@ export default {
             this.svgD3.call(this.zoom)
 
             d3.select('#chart-wrapper-' + this.configId).on('mousemove', this.onMouseMove)
-            console.log( this.svgD3)
-            console.log(d3.select('#chart-wrapper-' + this.configId))
             this.svgD3.on('click', this.onClick)
             this.svgD3.on('dblclick', this.onDoubleClick)
             this.svgD3.on("dblclick.zoom", null);
@@ -444,14 +457,15 @@ export default {
 
         },
         getValueByDate: function (data, date) {
-            const bisectDate = d3.bisector(d => d.date).left
             let value
-            const i = bisectDate(data, date, 1),
-                d0 = i ? (data[i - 1] ? data[i - 1] : null) : null,
-                d1 = data[i] ? data[i] : null
-            if (d0 === null || d0.value === undefined) value = d1.value
-            else if (d1 === null || d1.value === undefined) value = d0.value
-            else value = (date - d0.date > d1.date - date) ? d1.value : d0.value
+            const correctValue = (d) => d !== undefined ? d : null
+            for(let i = 0; i < data.length; i++)
+                if(date < data[i].date) {
+                    value = i ? correctValue(data[i - 1].value) : null
+                    break
+                }
+            if(value === undefined)
+                value = data.length > 1 ? correctValue(data[data.length - 1].value) : null
             return value
         },
         addTooltipTextToLines: function (line) {

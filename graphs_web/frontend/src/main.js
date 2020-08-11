@@ -43,42 +43,59 @@ const store = new Vuex.Store({
             //{id, type, data}
         ],
         settings: {
-            date: {min: new Date, max: new Date},
+            date: {min: new Date(new Date - 86400000), max: new Date},
         },
-        colorScheme: [
-            '#348fe2',
-            '#f59c1a',
-            '#32a932',
-            '#ff5b57',
-            '#00acac',
-            '#8753de',
-            '#fb5597',
-            '#6c757d',
-            '#ffd900',
-        ],
-        tooltipInfo: {
-            dates: [],
-            coordinates: {x: 0, y: 0}
+        chart: {
+            colorScheme: [
+                '#348fe2',
+                '#f59c1a',
+                '#32a932',
+                '#ff5b57',
+                '#00acac',
+                '#8753de',
+                '#fb5597',
+                '#6c757d',
+                '#ffd900',
+            ],
+            tooltipInfo: {
+                dates: [],
+                coordinates: {x: 0, y: 0},
+                showTooltip: false,
+                currentDate: null
+            },
+            zoom: {
+                x: 0,
+                k: 1
+            },
         },
-        zoom: {
-          x: 0,
-          k: 1
-        },
+        DATA_MAX_LENGTH_GAP: 120000//mc
     },
     mutations: {
+        setTooltipCurrentDate(state, date){
+            state.chart.tooltipInfo.currentDate = new Date(date)
+        },
+        setTooltipVisibility(state, isVisible){
+            state.chart.tooltipInfo.showTooltip = isVisible
+        },
+        showTooltip(state){
+          state.chart.tooltipInfo.showTooltip = true
+        },
+        hideTooltip(state){
+            state.chart.tooltipInfo.showTooltip = false
+        },
         setD3Zoom(state, {x, k}){
-            state.zoom.x = x
-            state.zoom.k = k
+            state.chart.zoom.x = x
+            state.chart.zoom.k = k
         },
         setTooltipCoordinates(state, {x, y}){
-          state.tooltipInfo.coordinates.x = x
-          state.tooltipInfo.coordinates.y = y
+          state.chart.tooltipInfo.coordinates.x = x
+          state.chart.tooltipInfo.coordinates.y = y
         },
         addTooltipLine(state, {date}){
-            state.tooltipInfo.dates.push(new Date(date))
+            state.chart.tooltipInfo.dates.push(new Date(date))
         },
         clearTooltipLines(state){
-          state.tooltipInfo.dates.splice(0)
+          state.chart.tooltipInfo.dates.splice(0)
         },
         updateDate(state, {min, max}) {
             state.settings.date.max = max
@@ -88,21 +105,26 @@ const store = new Vuex.Store({
             let minValue = Number.MAX_VALUE,
                 maxValue = Number.MIN_VALUE
             let isThereData = false
+            let dataLength = newTag.data.length
             const id = Number(newTag.id),
                 type = String(newTag.type).toUpperCase()
-            for (let i = 0; i < newTag.data.length; i++) {
+            for (let i = 0; i < dataLength; i++) {
                 const d = newTag.data[i],
-                    value = d.value ? Number(d.value) : undefined
+                    value = d.value ? Number(d.value) : undefined,
+                    date = new Date(d.date)
                 if (value !== undefined) isThereData = true
                 if (d && value > maxValue) maxValue = value
                 if (d && value < minValue) minValue = value
-                newTag.data[i] = {date: new Date(d.date), value}
+                newTag.data[i] = {date, value}
+
+                if(i && date - newTag.data[i - 1].date > state.DATA_MAX_LENGTH_GAP){
+                    newTag.data.splice(i, 0, {data: new Date(date.getTime() + 1), value: undefined})
+                    dataLength++
+                    i++
+                }
             }
-
-
-            const data = newTag.data
             if (isThereData) {
-                Vue.set(state.tagsData, newTag.id, {id, type, data, minMaxData: {minValue, maxValue}})
+                Vue.set(state.tagsData, newTag.id, {id, type, data: newTag.data, minMaxData: {minValue, maxValue}})
                 console.log(state.tagsData)
             }
         },
@@ -114,14 +136,20 @@ const store = new Vuex.Store({
         },
     },
     getters: {
+        tooltipCurrentDate: state => {
+            return state.chart.tooltipInfo.currentDate
+        },
+        doTooltipShow: state => {
+            return state.chart.tooltipInfo.showTooltip
+        },
         d3Zoom: state => {
-            return state.zoom
+            return state.chart.zoom
         },
         tooltipCoordinates: state => {
-          return state.tooltipInfo.coordinates
+          return state.chart.tooltipInfo.coordinates
         },
         tooltipLineDates: state => {
-            return state.tooltipInfo.dates
+            return state.chart.tooltipInfo.dates
         },
         devices: state => searchStr =>{
             return state.devices.flatMap(device => {
@@ -160,7 +188,6 @@ const store = new Vuex.Store({
         duration: state => {
             return state.settings.duration
         },
-
         getTagsDescription: state => id => {
             for (let device of state.devices)
                 if (Math.floor(device.id / 1000) === Math.floor(id / 1000))
@@ -172,9 +199,9 @@ const store = new Vuex.Store({
             const currentNumber = currentColors.length
             let index = 0
             let color
-            if (currentNumber < state.colorScheme.length)
+            if (currentNumber < state.chart.colorScheme.length)
                 do {
-                    color = state.colorScheme[index]
+                    color = state.chart.colorScheme[index]
                     index++
                 } while (currentColors.indexOf(color) >= 0)
             else
