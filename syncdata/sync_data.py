@@ -47,7 +47,8 @@ table_in_db = {
 }
 data_names = ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']
 
-
+MAX_DATE = datetime(9000, 12, 31, 23, 59)
+MIN_DATE = datetime(2000, 1, 1, 0, 0)
 
 def filter_files_by_date(dir_path, type_files, min_date):
     """
@@ -282,10 +283,10 @@ def clean():
     number_deleted_files = 0
     try:
         min_last_dates = {
-            'data': datetime(9000, 12, 31, 23, 59),
-            'logs': datetime(9000, 12, 31, 23, 59),
-            'logs_syncdata': datetime(9000, 12, 31, 23, 59),
-            'statistics_syncdata': datetime(9000, 12, 31, 23, 59),
+            'data': MAX_DATE,
+            'logs': MAX_DATE,
+            'logs_syncdata': MAX_DATE,
+            'statistics_syncdata': MAX_DATE,
         }
         dates_and_numbers = Logger.read_json_file(Logger.last_upload_path, do_check_file=True)
         if dates_and_numbers:
@@ -315,12 +316,19 @@ def clean():
 
     except IOError, e:
         if e.errno == errno.ENOSPC:
-            clean_no_space()
+            number_deleted_files += clean_no_space()
         Logger.write(('Deleted %d files.' % number_deleted_files if number_deleted_files else '') + 'Can`t delete files --> '+ str(sys.exc_info()[1]), Logger.LogType.ERROR)
 
 def clean_no_space():
-    # TODO
-    pass
+    number_deleted_files = 0
+    for data_name in data_names:
+        paths, type_files = get_path_and_type_for_name(data_name)
+        files = filter_files_by_date(paths, type_files, MIN_DATE)
+        for i in xrange(len(files) // 10):
+            if delete_by_name(files[i]):
+                number_deleted_files += 1
+    return number_deleted_files
+
 
 def delete_by_name(filepath):
     try:
