@@ -3,8 +3,8 @@
         <div :data-tag-id="line.tag.id" :key="line.tag.id"
              class="row-stat flex"
              v-for="line in legend"
-             v-on:mouseleave="mouseLeave"
-             v-on:mouseover="mouseOver"
+             @mouseleave="mouseLeave"
+             @mouseover="mouseOver"
              v-show="selectedTags.indexOf(line.tag.id)>=0">
             <div :style="'background-color: ' + line.color" class="circle"/>
             <div :style="'color: ' + line.color"
@@ -12,9 +12,9 @@
                 {{line.tag.id}}:{{line.tag.description}}
             </div>
             <div :data-tag-id="line.tag.id"
-                 :ref="'remove-btn-'+line.tag.id"
-                 class="disable-selection-text remove-tag-btn"
-                 v-on:click="removeTag">
+                 :ref="'remove-btn-'+line.tag.id "
+                 class="disable-selection-text clickable remove-tag-btn"
+                 @click="removeTag">
                 &#x2716;
             </div>
         </div>

@@ -3,7 +3,7 @@
         <div class="main-info card">
             <div class="name-and-settings">
                 <div class="db-name text-main">
-                    Graph {{config.id}}
+                    {{config.name}}
                 </div>
                 <div :id="'toggleAddedList' + config.id"
                      class="text-main list-added-tag disable-selection-text"
@@ -17,8 +17,8 @@
                         <div :key="device.id"
                             v-for="device in devices(userInput)">
                             <div class="select-parent"
-                                @click.self="toggleVisibilityChild">
-                                <span  @click.self="toggleVisibilityChildText" class="disable-selection-text" v-html="htmlSymbols.openRight"/>
+                                @click.self.stop="toggleVisibilityChild">
+                                <span  @click.self.stop="toggleVisibilityChildText" class="disable-selection-text" v-html="htmlSymbols.openRight"/>
                                 {{device.id}} {{device.description}}
                             </div>
                             <div class="select-child-box">
@@ -47,9 +47,9 @@
                @add-color="addColor"
                @remove-color="removeColor"
                ref="chart"/>
-        <div class="remove-tag-btn remove-graph-row-btn"
+        <div class="remove-tag-btn clickable remove-graph-row-btn"
              v-show="visibilityRemoveBtn"
-             @click="$emit('remove-row', config.id)">&#x2716;</div>
+             @click.stop="$emit('remove-row', config.id)">&#x2716;</div>
     </div>
 </template>
 
@@ -62,14 +62,17 @@
         name: "GraphRow",
         components: {Chart, ChartLegend},
         props: {
-            config: Object,
+            config: {
+                id: Number,
+                name: String,
+                tags:  Array
+            },
         },
         data() {
             return {
                 visibilityRemoveBtn: false,
                 legend: [],
                 visibilityTags: false,
-                selectedTagsId: [],
                 waitedTagsId: [],
                 waitedForDrawTagsId: [],
                 waitedForRemove: [],
@@ -85,7 +88,7 @@
             }
         },
         computed: {
-            ...mapGetters(['tagsData', 'devices']),
+            ...mapGetters(['tagsData', 'devices', 'currentConfigTagsById']),
             refChart: function () {
                 return this.$refs['chart']
             },
@@ -94,6 +97,20 @@
                     selectItems: `max-height: ${this.maxHeightSelectItems}px;`,
                 }
             },
+            selectedTagsId: {
+                get: function () {
+                    return this.currentConfigTagsById(this.config.id)
+                },
+                set: function (val){
+                    console.log(val)
+                    console.log(this.selectedTagsId)
+                    if(this.selectedTagsId.length < val.length)
+                        this.$store.commit('pushTagByChartId', {id: this.config.id, tagId: val[val.length - 1]})
+                    else
+                        this.$store.commit('removeTagByChartId', {id: this.config.id, tagId: this.selectedTagsId[this.selectedTagsId.length - 1]})
+                }
+            },
+
         },
         watch: {
             tagsData: {
@@ -116,8 +133,7 @@
         methods: {
             changedSelected: function (e) {
                 const tagId = Number(e.target.value)
-                console.log(this.selectedTagsId)
-                if (this.selectedTagsId.indexOf(tagId) >= 0)
+                if (this.$store.getters.containsTagByChartId(this.config.id, tagId))
                     this.addTag(tagId)
                 else
                     this.removeTag(tagId)
@@ -142,7 +158,7 @@
             },
             removeTagFromLegend: function (tagId) {
                 this.removeTag(tagId)
-                this.selectedTagsId.splice(this.selectedTagsId.indexOf(tagId), 1)
+                this.$store.commit('removeTagByChartId', {id: this.config.id, tagId})
             },
             addColor: function (color, tag) {
                 this.legend.push({color, tag})
@@ -187,12 +203,17 @@
                 return wasVisible
             },
             updateCharts: function () {
+                console.log(this.refChart.selectedTagsId.length)
                 this.refChart.updateCharts()
             },
             beforeUpdate: function () {
-                this.waitedTagsId.concat(this.selectedTagsId)
+                const length = this.refChart.lines.length
+                for (let i = 0; i < length; i++)
+                    this.refChart.removeLine(this.refChart.lines[0].tagId)
+                this.waitedTagsId.splice(0)
+                this.waitedTagsId = [...this.selectedTagsId]
 
-            }
+            },
         },
 
         updated() {
@@ -201,6 +222,11 @@
             if (this.waitedForRemove.length)
                 this.refChart.removeLine(this.waitedForRemove.shift())
         },
+        created() {
+            for(const tagId of this.config.tags) {
+                this.changedSelected({target: {value: tagId}})
+            }
+        }
 
     }
 </script>

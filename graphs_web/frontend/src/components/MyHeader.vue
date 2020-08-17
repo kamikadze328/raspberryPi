@@ -1,11 +1,15 @@
 <template>
     <div class="header-wrapper">
         <div class="header">
-            <Configs/>
+            <Configs ref="configs"/>
             <Calendar ref="calendar" @update-date="$emit('update-date')"/>
             <div id="time">{{time}}</div>
         </div>
-        <div class="error-msg-box" v-show="showErrorMessage"><div class="error-msg">{{errorInfo.tags.join(', ') + ': ' + errorInfo.message}}</div></div>
+        <div class="error-msg-box" v-show="showErrorMessage">
+            <div class="error-msg">
+                {{(errorInfo.tags.length ? (errorInfo.tags.join(', ') + ': ') : '') + errorInfo.message}}
+            </div>
+        </div>
     </div>
 </template>
 
@@ -15,15 +19,15 @@
 
     export default {
         name: "Header",
-        components:{
+        components: {
             Configs,
-          Calendar
+            Calendar
         },
         props:{
             errorInfo:{
                 message: String,
                 tags: Array
-            }
+            },
         },
         data () {
             return {
@@ -62,6 +66,9 @@
             clearMessage: function () {
                 this.showErrorMessage = false
                 this.$emit('clear-error-msg')
+            },
+            closeAll: function (elem){
+                this.$refs['configs'].closeAll(elem)
             }
         },
         mounted() {

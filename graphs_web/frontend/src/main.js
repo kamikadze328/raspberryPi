@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 
 Vue.config.productionTip = true
 Vue.config.performance =  true
+Vue.config.productionSourceMap = process.env.NODE_ENV !== 'production'
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
@@ -13,25 +14,25 @@ const store = new Vuex.Store({
                 id: 10000,
                 description: 'Контроллер 8 аналоговых входов',
                 tags: [
-                    {id: 10101, description: 'Топка'},
-                    {id: 10102, description: 'Сушилка левая'},
-                    {id: 10103, description: 'Дым газы'},
-                    {id: 10104, description: 'Сушилка правая'},
-                    {id: 10105, description: 'Реактор левый'},
-                    {id: 10106, description: 'Выгрузка углерода левая'},
-                    {id: 10107, description: 'Реактор правый'},
-                    {id: 10108, description: 'Выгрузка углерода правая'},
+                    {id: 10101, description: 'Вх. №1 -> Датчик температуры Топка'},
+                    {id: 10102, description: 'Вх. №2 -> Датчик температуры Сушилка левая'},
+                    {id: 10103, description: 'Вх. №3 -> Датчик температуры Дым газы'},
+                    {id: 10104, description: 'Вх. №4 -> Датчик температуры Сушилка правая'},
+                    {id: 10105, description: 'Вх. №5 -> Датчик температуры Реактор левый'},
+                    {id: 10106, description: 'Вх. №6 -> Датчик температуры Выгрузка углерода левая'},
+                    {id: 10107, description: 'Вх. №7 -> Датчик температуры Реактор правый'},
+                    {id: 10108, description: 'Вх. №8 -> Датчик температуры Выгрузка углерода правая'},
                 ]
             },
             {
                 id: 12000,
                 description: 'Контроллер дискретных выходов (24 реле)',
                 tags: [
-                    {id: 12101, description: 'Бункер подачи сырья'},
-                    {id: 12102, description: 'Пересыпка сушилки левая'},
-                    {id: 12103, description: 'Пересыпка сушилки правая'},
-                    {id: 12104, description: 'Выход углерода левый'},
-                    {id: 12105, description: 'Выход углерода правый'},
+                    {id: 12101, description: 'Вых. №1 -> Шнек подачи сырья'},
+                    {id: 12102, description: 'Вых. №2 -> Бункер сырья (живой пол)'},
+                    {id: 12103, description: 'Вых. №3 -> Главный шнек выгрузки углерода'},
+                    {id: 12104, description: 'Вых. №4 -> Последний шнек выгрузки углерода'},
+                    {id: 12105, description: 'Вых. №5 -> Аварийный шнек выгрузки углерода'},
                 ]
             },
         ],
@@ -42,6 +43,73 @@ const store = new Vuex.Store({
         tagsData: [
             //{id, type, data}
         ],
+        EMPTY_CONFIG: {
+            name: 'Текущая конфигурация',
+            id: -1,
+            charts: [
+                {
+                    id: 0,
+                    name: 'График 1',
+                    tags: []
+                },
+                {
+                    id: 1,
+                    name: 'График 2',
+                    tags: []
+                }
+            ],
+        },
+        currentConfig: {
+            name: 'Конфигурация',
+            id: -1,
+            charts: [
+                {
+                    id: 0,
+                    name: 'Графичушечка 1',
+                    tags: [10106, 10103]
+                },
+                {
+                    id: 1,
+                    name: 'График 2',
+                    tags: [10102, 12101, 12105]
+                }
+            ],
+        },
+        configs:[/*
+            {
+                name: 'config kek',
+                id: 0,
+                charts: [
+                    {
+                        id: 0,
+                        name: 'График 1',
+                        tags: [10101, 10103]
+                    },
+                    {
+                        id: 1,
+                        name: 'График 2',
+                        tags: [12104]
+                    }
+                ],
+            },
+            {
+                name: 'config lol',
+                id: 2,
+                charts: [
+                    {
+                        id: 0,
+                        name: 'График 1',
+                        tags: [10102, 10103]
+                    },
+                    {
+                        id: 1,
+                        name: 'График 2',
+                        tags: [12103]
+                    }
+                ],
+            },*/
+        ],
+        currentConfigId: 0,
         settings: {
             date: {min: new Date(new Date - 86400000), max: new Date},
         },
@@ -108,20 +176,26 @@ const store = new Vuex.Store({
             let dataLength = newTag.data.length
             const id = Number(newTag.id),
                 type = String(newTag.type).toUpperCase()
+            let isPrevNull = false
             for (let i = 0; i < dataLength; i++) {
                 const d = newTag.data[i],
                     value = d.value ? Number(d.value) : undefined,
                     date = new Date(d.date)
-                if (value !== undefined) isThereData = true
+
                 if (d && value > maxValue) maxValue = value
                 if (d && value < minValue) minValue = value
                 newTag.data[i] = {date, value}
 
-                if(i && date - newTag.data[i - 1].date > state.DATA_MAX_LENGTH_GAP){
+                if(i && !isPrevNull && date - newTag.data[i - 1].date > state.DATA_MAX_LENGTH_GAP){
                     newTag.data.splice(i, 0, {data: new Date(date.getTime() + 1), value: undefined})
                     dataLength++
                     i++
                 }
+
+                if (value !== undefined) {
+                    isThereData = true
+                    isPrevNull = false
+                } else isPrevNull = true
             }
             if (isThereData) {
                 Vue.set(state.tagsData, newTag.id, {id, type, data: newTag.data, minMaxData: {minValue, maxValue}})
@@ -134,8 +208,85 @@ const store = new Vuex.Store({
         setDevicesAndTags(state, {data}){
             state.devices = data
         },
+        setCurrentConfig(state, config){
+            state.currentConfig = JSON.parse(JSON.stringify(config))
+        },
+        clearCurrentConfig(state){
+            state.currentConfig = JSON.parse(JSON.stringify(state.EMPTY_CONFIG))
+        },
+        removeConfig(state, id){
+            state.configs.splice(state.configs.findIndex(config => config.id===id), 1)
+            if(state.currentConfig.id === id)
+                state.currentConfig.id = state.EMPTY_CONFIG.id
+        },
+        pushTagByChartId(state, {id, tagId}){
+            console.log('push ' + tagId)
+            state.currentConfig.charts.find(chart => chart.id === id).tags.push(tagId)
+        },
+        removeTagByChartId(state, {id, tagId}){
+            const tags = state.currentConfig.charts.find(chart => chart.id === id).tags
+            tags.splice(tags.indexOf(tagId), 1)
+        },
+        saveCurrentConfig(state) {
+            const newConf = JSON.parse(JSON.stringify(state.currentConfig))
+            let confIndex = state.configs.findIndex(c => c.id === state.currentConfig.id)
+            if (confIndex > -1) {
+                let conf = state.configs[confIndex]
+                conf.name = newConf.name
+                conf.charts.forEach((c, i) => {
+                    c.name = newConf.charts[i].name
+                    c.tags.splice(0)
+                    c.tags = [...newConf.charts[i].tags]
+                })
+            }
+            else {
+                state.configs.push(newConf)
+                let i = 0
+                while (state.configs.find(c => c.id === i))
+                    i++
+                state.currentConfig.id = i
+                newConf.id = i
+            }
+        },
+        setConfigs(state, configs){
+            state.configs = configs
+        }
+
     },
     getters: {
+        setOfCurrentSelectedTags: state => {
+            let uniqueTagsId = new Set()
+            state.currentConfig.charts.forEach(chart => chart.tags.forEach(tag => uniqueTagsId.add(tag)))
+            return uniqueTagsId
+        },
+        compareConfigWithEmpty: (state, getters) => {
+          return getters.compareConfigWithCurrent(state.EMPTY_CONFIG)
+        },
+        compareConfigByIdWithCurrent: (state, getters) => id => {
+            return getters.compareConfigWithCurrent(state.configs.find(c => c.id === id))
+        },
+        compareConfigWithCurrent: state => conf => {
+            const curr = state.currentConfig
+            return conf.id === curr.id && conf.name === curr.name
+                && (conf.charts.length === curr.charts.length
+                    && conf.charts.concat().sort().every((chart, i) => {
+                        const currChart = curr.charts.concat().sort()[i]
+                        return chart.name === currChart.name
+                            && chart.tags.sort().every((tagId, j) => tagId === currChart.tags.sort()[j])
+                    }))
+        },
+        containsTagByChartId: (state, getters) => (id, tagId) =>{
+            return getters.currentConfigTagsById(id).indexOf(tagId) >= 0
+        },
+        currentConfigTagsById: state => id =>{
+            return state.currentConfig.charts.find(chart => chart.id === id).tags
+        },
+        currentConfig: state => {
+            return state.currentConfig
+        },
+        configurations: state =>{
+            return state.configs
+        },
         tooltipCurrentDate: state => {
             return state.chart.tooltipInfo.currentDate
         },
