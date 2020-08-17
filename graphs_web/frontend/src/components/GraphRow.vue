@@ -203,7 +203,6 @@
                 return wasVisible
             },
             updateCharts: function () {
-                console.log(this.refChart.selectedTagsId.length)
                 this.refChart.updateCharts()
             },
             beforeUpdate: function () {
