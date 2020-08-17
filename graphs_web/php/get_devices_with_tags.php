@@ -53,7 +53,7 @@ function get_devices_with_tags($server)
         );
         return $answer;
     }
-    return NAN;
+    return false;
 }
 
 $answer = null;

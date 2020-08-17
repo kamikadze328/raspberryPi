@@ -66,12 +66,12 @@ const store = new Vuex.Store({
                 {
                     id: 0,
                     name: 'Графичушечка 1',
-                    tags: [10106, 10103]
+                    tags: []
                 },
                 {
                     id: 1,
                     name: 'График 2',
-                    tags: [10102, 12101, 12105]
+                    tags: []
                 }
             ],
         },

@@ -41,29 +41,31 @@ function get_graph_from_server($server, $tags, $min_date, $maxDate)
         $answer = array();
         global $tags_arr;
         $prev_tag = intval($tags_arr[0]);
-        $prev_type = $rows[0]['type'];
-        $data = array();
-        foreach ($rows as $row) {
-            if ($prev_tag != $row['id']) {
-                $answer[] = array('id' => $prev_tag, 'type' =>$row['ID'], 'data' => $data);
-                $data = array();
-                $prev_tag = intval($row['id']);
-                $prev_type = $row['type'];
+        if(count($rows) > 0) {
+            $prev_type = $rows[0]['type'];
+            $data = array();
+            foreach ($rows as $row) {
+                if ($prev_tag != $row['id']) {
+                    $answer[] = array('id' => $prev_tag, 'type' => $row['ID'], 'data' => $data);
+                    $data = array();
+                    $prev_tag = intval($row['id']);
+                    $prev_type = $row['type'];
+                }
+                $data[] = array(
+                    'value' => $row['value'],
+                    'date' => strtotime($row['date']) * 1000,
+                );
+
             }
-            $data[] = array(
-                'value' => $row['value'],
-                'date' => strtotime($row['date']) * 1000,
-            );
+            if (count($rows)) $answer[] = array('id' => $prev_tag, 'type' => $prev_type, 'data' => $data);
 
-        }
-        if (count($rows)) $answer[] = array('id' => $prev_tag, 'type' => $prev_type, 'data' => $data);
-
-        $result->close();
-        $mysqli->close();
-        return $answer;
+            $result->close();
+            $mysqli->close();
+            return $answer;
+        } else return false;
     }
 
-    return NAN;
+    return false;
 }
 
 $post = json_decode(file_get_contents('php://input'), true);
