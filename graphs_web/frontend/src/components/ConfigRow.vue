@@ -74,12 +74,14 @@ export default {
         config: {
             handler: function(val) {
                 this.updateInputValues(val)
+                this.updateWasCurrentChanged()
             },
             deep: true
         }
     },
     data() {
         return {
+            wasCurrentChanged: false,
             isConfigOpened: false,
             isChangingMode: false,
             newName: this.config.name,
@@ -90,19 +92,29 @@ export default {
         isSavedCurrentConfig: function () {
             return !this.isCurrentConfig && this.config.id === this.$store.getters.currentConfig.id
         },
-        wasCurrentChanged: function () {
+        /*wasCurrentChanged: function () {
+            console.log(this.isCurrentConfig && this.$store.state.EMPTY_CONFIG.id === this.config.id)
             const result = this.isCurrentConfig && this.$store.state.EMPTY_CONFIG.id === this.config.id ?
                 !this.$store.getters.compareConfigWithEmpty :
                 !this.$store.getters.compareConfigByIdWithCurrent(this.config.id)
-
 
             this.$emit('was-current-config-changed', result)
 
             return result
 
-        }
+        }*/
     },
     methods: {
+        updateWasCurrentChanged: function (){
+
+            const result = this.isCurrentConfig && this.$store.state.EMPTY_CONFIG.id === this.config.id ?
+                !this.$store.getters.compareConfigWithEmpty :
+                !this.$store.getters.compareConfigByIdWithCurrent(this.config.id)
+            if(result !== this.wasCurrentChanged) {
+                this.$emit('was-current-config-changed', result)
+                this.wasCurrentChanged = result
+            }
+        },
         removeButton: function () {
             if (this.isChangingMode) {
                 this.isChangingMode = !this.isChangingMode

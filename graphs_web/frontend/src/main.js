@@ -266,12 +266,12 @@ const store = new Vuex.Store({
             return getters.compareConfigWithCurrent(state.configs.find(c => c.id === id))
         },
         compareConfigWithCurrent: state => conf => {
-            const curr = state.currentConfig
-            return conf.id === curr.id && conf.name === curr.name
-                && (conf.charts.length === curr.charts.length
-                    && conf.charts.concat().sort().every((chart, i) => {
-                        const currChart = curr.charts.concat().sort()[i]
-                        return chart.name === currChart.name
+            const curr = JSON.parse(JSON.stringify(state.currentConfig))
+            conf = JSON.parse(JSON.stringify(conf))
+            return conf.id === curr.id && conf.name === curr.name && conf.charts.length === curr.charts.length
+                    && (conf.charts.sort().every((chart, i) => {
+                        const currChart = curr.charts.sort()[i]
+                        return chart.name === currChart.name && chart.tags.length === currChart.tags.length
                             && chart.tags.sort().every((tagId, j) => tagId === currChart.tags.sort()[j])
                     }))
         },
