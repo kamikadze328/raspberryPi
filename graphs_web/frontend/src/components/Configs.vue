@@ -1,37 +1,38 @@
 <template>
     <div class="container" ref="container">
         <div :class="'configs-wrapper ' + (isWrapperOpened ? 'open-wrapper' : '')"
-             ref="wrapper">
-            <div @click.self="toggleVisibilityAll" class="closed-header-config clickable" v-show="!isWrapperOpened">
-                <div>{{ currentConfig.name }}</div>
-                <img v-show="wasCurrentConfigChanged"
-                     class="save-img"
-                     src="@/assets/save-48px.png"
-                     @click="saveCurrent"
-                     alt="Сохранить изменения" width="27px" height="30px"
-                     title="Сохранить изменения"/>
-                <img v-show="!wasCurrentConfigChanged && this.style.opacityImg > 0"
-                     class="save-img"
-                     src="@/assets/successful-save-48px.png"
-                     alt="Успешно"  width="27px" height="30px"
-                     title="Успешно"
-                     ref="successfulSaveImg"
-                     :style="'opacity: ' + style.opacityImg"
+              ref="wrapper">
+            <div :style="'overflow-y: auto; max-height: ' + style.wrapperMaxHeight">
+                <div @click.self="toggleVisibilityAll" class="closed-header-config clickable" v-show="!isWrapperOpened">
+                    <div @click="toggleVisibilityAll">{{ currentConfig.name }}</div>
+                    <img @click="saveCurrent"
+                         alt="Сохранить изменения"
+                         class="save-img"
+                         height="30px"
+                         src="@/assets/save-48px.png" title="Сохранить изменения" v-show="wasCurrentConfigChanged"
+                         width="27px"/>
+                    <img :style="'opacity: ' + style.opacityImg"
+                         alt="Успешно"
+                         class="save-img"
+                         height="30px" ref="successfulSaveImg" src="@/assets/successful-save-48px.png"
+                         title="Успешно"
+                         v-show="!wasCurrentConfigChanged && this.style.opacityImg > 0"
+                         width="27px"
                     />
-                <div @click="toggleVisibilityAll" class="disable-selection-text open-button">&#x2BC8;</div>
+                    <div @click="toggleVisibilityAll" class="disable-selection-text open-button">&#x2BC8;</div>
+                </div>
+                <ConfigRow :config="currentConfig"
+                           :is-current-config="true" :is-wrapper-opened="isWrapperOpened"
+                           @was-current-config-changed="watchWasCurrentConfigChanged"
+                           ref="currConf"
+                           v-show="isWrapperOpened"/>
+                <ConfigRow :config="config"
+                           :is-current-config="false"
+                           :is-wrapper-opened="isWrapperOpened"
+                           :key="config.id"
+                           v-for="config in configurations"
+                           v-show="isWrapperOpened"/>
             </div>
-            <ConfigRow :config="currentConfig"
-                       :is-current-config="true" v-show="isWrapperOpened"
-                       :is-wrapper-opened="isWrapperOpened"
-                        @was-current-config-changed="watchWasCurrentConfigChanged"
-                       ref="currConf"/>
-            <ConfigRow :config="config"
-                       :is-current-config="false"
-                       :is-wrapper-opened="isWrapperOpened"
-                       :key="config.id"
-                       v-for="config in configurations"
-                       v-show="isWrapperOpened"/>
-
             <div @click.stop="isWrapperOpened = false"
                  class="close-button clickable"
                  v-show="isWrapperOpened">
@@ -56,13 +57,14 @@ export default {
             isMounted: false,
             wasCurrentConfigChanged: false,
             style: {
-                opacityImg: 0
+                opacityImg: 0,
+                wrapperMaxHeight: 'auto'
             }
         }
     },
-    watch:{
-        wasCurrentConfigChanged: function (val){
-            if(!val && !this.isWrapperOpened) {
+    watch: {
+        wasCurrentConfigChanged: function (val) {
+            if (!val && !this.isWrapperOpened) {
                 this.style.opacityImg = 1
                 setTimeout(() => this.increaseOpacity(), 1)
             } else this.style.opacityImg = 0
@@ -80,14 +82,14 @@ export default {
             this.$emit('update-current-config')
             this.isWrapperOpened = !this.isWrapperOpened
         },
-        saveCurrent: function (){
+        saveCurrent: function () {
             this.$refs['currConf'].loadButton()
         },
-        watchWasCurrentConfigChanged: function (val){
+        watchWasCurrentConfigChanged: function (val) {
             this.wasCurrentConfigChanged = val
         },
-        increaseOpacity: function (){
-            if(this.style.opacityImg > 0) {
+        increaseOpacity: function () {
+            if (this.style.opacityImg > 0) {
                 this.style.opacityImg -= 0.002
                 setTimeout(this.increaseOpacity, 1)
             } else this.style.opacityImg = 0
@@ -96,6 +98,10 @@ export default {
 
     mounted() {
         this.isMounted = true
+        const wrapperBoundingClientRect = document.getElementById('row-list').getBoundingClientRect()
+        const maxAvailable = wrapperBoundingClientRect.y + wrapperBoundingClientRect.height - 30
+        this.style.wrapperMaxHeight = maxAvailable + 'px'
+
     },
 
 }
@@ -150,12 +156,12 @@ export default {
 }
 
 
-.open-button{
+.open-button {
     margin-left: 5px;
     line-height: 35px;
 }
 
-.save-img{
+.save-img {
     margin: auto auto auto 5px;
 }
 

@@ -220,6 +220,7 @@ export default {
 }
 
 .tags-list {
+    white-space: normal;
     margin-left: 30px;
     overflow: hidden;
     text-overflow: ellipsis;

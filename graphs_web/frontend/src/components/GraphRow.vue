@@ -175,7 +175,7 @@
                 this.visibilityTags = !this.visibilityTags
                 if(this.visibilityTags){
                     const wrapperBoundingClientRect =  document.getElementById('row-list').getBoundingClientRect()
-                    const maxAvailable =wrapperBoundingClientRect.y + wrapperBoundingClientRect.height - 30
+                    const maxAvailable = wrapperBoundingClientRect.y + wrapperBoundingClientRect.height - 30
                     const maxCurrent = e.clientY +  this.maxHeightSelectItems
                     if(maxCurrent > maxAvailable)
                         this.maxHeightSelectItems -= maxCurrent - maxAvailable
