@@ -56,7 +56,7 @@ export default {
             isMounted: false,
             wasCurrentConfigChanged: false,
             style: {
-                opacityImg: 1
+                opacityImg: 0
             }
         }
     },
