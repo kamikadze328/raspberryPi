@@ -108,7 +108,6 @@ export default {
             const configNameWidth = (this.newName.length + 8) * 9
             const configNameWidthMax = this.maxWidth - 50
             this.style.configNameWidth = (configNameWidth > configNameWidthMax ? configNameWidthMax : configNameWidth ) + 'px'
-            console.log((configNameWidth > configNameWidthMax ? configNameWidthMax : configNameWidth ))
         },
         updateWasCurrentChanged: function (){
             const result = this.isCurrentConfig && this.$store.state.EMPTY_CONFIG.id === this.config.id ?

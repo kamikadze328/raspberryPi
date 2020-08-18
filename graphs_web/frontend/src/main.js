@@ -4,7 +4,6 @@ import Vuex from 'vuex'
 
 Vue.config.productionTip = true
 Vue.config.performance =  true
-Vue.config.productionSourceMap = process.env.NODE_ENV !== 'production'
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
