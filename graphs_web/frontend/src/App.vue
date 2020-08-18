@@ -82,6 +82,8 @@ export default {
         updateConfigs: function (){
             const loc = window.location.pathname
             const dir = loc.substring(0, loc.lastIndexOf('/'))
+
+
             axios({
                 timeout: 50000,
                 method: 'post',
