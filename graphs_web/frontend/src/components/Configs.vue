@@ -163,7 +163,7 @@ export default {
 }
 
 .save-img {
-    margin: auto auto auto 5px;
+    margin: auto 0 auto 5px;
 }
 
 
