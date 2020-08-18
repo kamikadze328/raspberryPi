@@ -3,7 +3,8 @@ let margin = ({top: 10, right: 0, bottom: 10, left: 35})
 let format_time, deltaForChart, date_one_duration_ago
 let charts_data = []
 let html_chart = []
-
+let maxDate
+let minDate
 
 function initCharts() {
     duration = dataToServer.duration
@@ -35,6 +36,7 @@ function updateCharts() {
         .then(response => {if(response.ok) return response.json(); else throw response})
         .then(data => {
             if (data && !data.error) {
+                updateChartsMeta()
                 updateAllChartsData(data)
                 redrawAllCharts()
             }
@@ -80,7 +82,7 @@ function redrawAllCharts() {
 }
 
 function reDrawChart(chart){
-    chart.xScale.domain(d3.extent(chart.data, d => d.date))
+    chart.xScale.domain([minDate, maxDate])
     const maxValue = d3.max(chart.data, d => d.value)
     chart.yScale.domain([0, maxValue ? maxValue : 3]).nice()
     chart.line = d3.line()
@@ -123,10 +125,10 @@ function initChart(server) {
     const width = chartHTML.clientWidth - margin.right - margin.left,
         height = chartHTML.clientHeight - margin.top - margin.bottom,
         data = prepareData(server.data)
-
+    console.log(d3.extent(data, d => d.date))
     const xScale = d3.scaleTime()
         .range([margin.left, width - margin.right])
-        .domain(d3.extent(data, d => d.date))
+        .domain([minDate, maxDate])
     const maxValue = d3.max(data, d => d.value)
 
     const yScale = d3.scaleLinear()
@@ -230,6 +232,7 @@ function updateChartsMeta(){
         //5 minute
         deltaForChart = 300000
     }
+    updateMinMaxDates()
 }
 
 function getMinMaxDate() {
@@ -237,5 +240,12 @@ function getMinMaxDate() {
     charts_data.forEach(chart => {
         maxDates.push(chart.data[chart.data.length - 1].date)})
     return Math.min.apply(null, maxDates)
+}
+
+function updateMinMaxDates(){
+    maxDate = new Date
+    minDate = new Date(date_one_duration_ago(maxDate))
+    console.log(maxDate)
+    console.log(minDate)
 }
 
