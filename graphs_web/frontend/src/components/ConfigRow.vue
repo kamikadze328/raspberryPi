@@ -83,15 +83,13 @@ export default {
             deep: true
         },
         newName: function (){
-            const configNameWidth = (this.newName.length + 8) * 9
-            const configNameWidthMax = this.maxWidth - 50
-            this.style.configNameWidth = (configNameWidth > configNameWidthMax ? configNameWidthMax : configNameWidth ) + 'px'
+            this.updateConfigNameWidth()
         }
     },
     data() {
         return {
             style: {
-                configNameWidth: this.maxWidth + 'px'
+                configNameWidth: (this.maxWidth - 50) + 'px',
             },
             wasCurrentChanged: false,
             isConfigOpened: false,
@@ -106,8 +104,13 @@ export default {
         },
     },
     methods: {
+        updateConfigNameWidth: function (){
+            const configNameWidth = (this.newName.length + 8) * 9
+            const configNameWidthMax = this.maxWidth - 50
+            this.style.configNameWidth = (configNameWidth > configNameWidthMax ? configNameWidthMax : configNameWidth ) + 'px'
+            console.log((configNameWidth > configNameWidthMax ? configNameWidthMax : configNameWidth ))
+        },
         updateWasCurrentChanged: function (){
-
             const result = this.isCurrentConfig && this.$store.state.EMPTY_CONFIG.id === this.config.id ?
                 !this.$store.getters.compareConfigWithEmpty :
                 !this.$store.getters.compareConfigByIdWithCurrent(this.config.id)
@@ -150,6 +153,7 @@ export default {
     },
     created() {
         if (this.isCurrentConfig) this.isConfigOpened = true
+        this.updateConfigNameWidth()
     },
     mounted() {
     }
