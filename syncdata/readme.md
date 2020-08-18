@@ -41,12 +41,12 @@ json файл (default name = "sync_time.conf.json") вида -
 sudo nano /lib/systemd/system/sync-data.service
 Пишем в файл следующее:
   
-#####[Unit]  
+##### [Unit]  
 Description=Sync data with db.  
 After=multi-user.target  
 Wants=network.target  
   
-#####[Service]  
+##### [Service]  
 Type=idle  
 Restart=always   
 RestartSec=60  
@@ -54,11 +54,11 @@ RuntimeMaxSec=21600
 ExecStart=/usr/bin/python /home/pi/sk/syncdata/sync_data.py  
 WorkingDirectory=/home/pi/sk/syncdata  
   
-#####[Install]  
+##### [Install]  
 WantedBy=multi-user.target   
   
   
-#####Комментарии:  
+##### Комментарии:  
 Type=idle - The effect of this service type is subject to a 5s timeout, after which the service program is invoked anyway.
 RuntimeMaxSec=21600 - 6 hours 
 
