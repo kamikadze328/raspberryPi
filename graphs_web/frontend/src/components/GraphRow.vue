@@ -84,7 +84,7 @@
                     openDown: '&#x2BC6;',
                 },
                 userInput: '',
-                maxHeightSelectItems: 600
+                maxHeightSelectItems: 800
             }
         },
         computed: {
@@ -171,14 +171,13 @@
                     }
             },
             toggleVisibilityTags: function (e) {
-                this.maxHeightSelectItems = 600
                 this.visibilityTags = !this.visibilityTags
                 if(this.visibilityTags){
                     const wrapperBoundingClientRect =  document.getElementById('row-list').getBoundingClientRect()
-                    const maxAvailable = wrapperBoundingClientRect.y + wrapperBoundingClientRect.height - 30
-                    const maxCurrent = e.clientY +  this.maxHeightSelectItems
-                    if(maxCurrent > maxAvailable)
-                        this.maxHeightSelectItems -= maxCurrent - maxAvailable
+                    const maxAvailable = wrapperBoundingClientRect.y + wrapperBoundingClientRect.height - 50
+                    const maxCurrent = e.clientY
+                    this.maxHeightSelectItems = maxAvailable - maxCurrent
+
                 }
             },
             closeAll: function (elem){
@@ -265,7 +264,7 @@
         left: 102.3%;
         z-index: 1000;
         top: 3%;
-        width: 500px;
+        width: 650px;
     }
 
     .select-items {
