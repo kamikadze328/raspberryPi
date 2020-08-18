@@ -6,7 +6,7 @@ from datetime import datetime as d
 from enum import Enum
 
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
-tmp_path = '/var/RAMdisk/syncdata/'
+tmp_path = '/var/www/html/RAMdisk/syncdata/'
 current_path = tmp_path
 last_upload_path = current_path + 'last_upload_date.json'
 statistics_path = current_path + 'statistics.json'
