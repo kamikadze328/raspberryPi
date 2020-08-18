@@ -2,8 +2,7 @@
     <div class="container" ref="container">
         <div :class="'configs-wrapper ' + (isWrapperOpened ? 'open-wrapper' : '')"
               ref="wrapper">
-            <div :style="'overflow-y: auto; max-height: ' + style.wrapperMaxHeight + ';' +
-                         'width: ' + style.wrapperMaxWidth + 'px;'">
+            <div :style="'overflow-y: auto; max-height: ' + style.wrapperMaxHeight">
                 <div @click.self="toggleVisibilityAll" class="closed-header-config clickable" v-show="!isWrapperOpened">
                     <div @click="toggleVisibilityAll">{{ currentConfig.name }}</div>
                     <img @click="saveCurrent"
@@ -23,12 +22,13 @@
                     <div @click="toggleVisibilityAll" class="disable-selection-text open-button">&#x2BC8;</div>
                 </div>
                 <ConfigRow :config="currentConfig"
-                           :is-current-config="true" :is-wrapper-opened="isWrapperOpened" :max-width="style.wrapperMaxWidth"
+                           :is-current-config="true" :is-wrapper-opened="isWrapperOpened"
                            @was-current-config-changed="watchWasCurrentConfigChanged"
                            ref="currConf"
                            v-show="isWrapperOpened"/>
                 <ConfigRow :config="config"
-                           :is-current-config="false" :is-wrapper-opened="isWrapperOpened" :max-width="style.wrapperMaxWidth"
+                           :is-current-config="false"
+                           :is-wrapper-opened="isWrapperOpened"
                            :key="config.id"
                            v-for="config in configurations"
                            v-show="isWrapperOpened"/>
@@ -57,7 +57,6 @@ export default {
             isMounted: false,
             wasCurrentConfigChanged: false,
             style: {
-                wrapperMaxWidth: 750,
                 opacityImg: 0,
                 wrapperMaxHeight: 'auto'
             }
@@ -140,7 +139,7 @@ export default {
     box-shadow: 0 0 8px rgba(0, 0, 0, .15);
     border-color: #348fe2;
     background-color: white;
-
+    width: 750px;
 }
 
 .close-button {
