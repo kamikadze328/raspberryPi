@@ -1,12 +1,15 @@
 <template>
-    <div :ref="'config-row-' + config.id" class="config-row">
+    <div ref="config-row" class="config-row">
         <div :class="'config-header config-header-text ' + (!isChangingMode ? 'clickable' : '')"
              @click="toggleVisibilityConfig">
             <div v-if="!isChangingMode">
                 {{ config.name + (isCurrentConfig ? ' (Текущая)' : (isSavedCurrentConfig ? ' (Сохранённая)': '')) }}
             </div>
             <label v-else>
-                <input class="my-input config-header-text" v-model="newName"/>
+                <input class="my-input config-header-text"
+                       v-model="newName"
+                       :style="'width: ' + style.configNameWidth"
+                       ref="configName"/>
             </label>
             <div class="disable-selection-text">
                 {{ isConfigOpened ? '&#x2BC6;' : '&#x2BC8;' }}
@@ -33,7 +36,7 @@
             </div>
             <div class="config-footer">
                 <div class="button clickable remove-btn"
-                    @click.stop="removeButton">
+                     @click.stop="removeButton">
                     {{ isChangingMode ? 'Отмена' : (isCurrentConfig ? 'Очистить' : 'Удалить') }}
                 </div>
                 <div class="button clickable change-btn"
@@ -47,7 +50,7 @@
                     {{ (isCurrentConfig) ? 'Сохранить' : 'Загрузить'}}
                 </div>
             </div>
-           <!-- <hr/>-->
+            <!-- <hr/>-->
         </div>
     </div>
 </template>
@@ -63,6 +66,7 @@ export default {
         },
         isCurrentConfig: Boolean,
         isWrapperOpened: Boolean,
+        maxWidth: Number
     },
     watch: {
         isWrapperOpened: function (val){
@@ -77,10 +81,18 @@ export default {
                 this.updateWasCurrentChanged()
             },
             deep: true
+        },
+        newName: function (){
+            const configNameWidth = (this.newName.length + 8) * 9
+            const configNameWidthMax = this.maxWidth - 50
+            this.style.configNameWidth = (configNameWidth > configNameWidthMax ? configNameWidthMax : configNameWidth ) + 'px'
         }
     },
     data() {
         return {
+            style: {
+                configNameWidth: this.maxWidth + 'px'
+            },
             wasCurrentChanged: false,
             isConfigOpened: false,
             isChangingMode: false,
@@ -92,17 +104,6 @@ export default {
         isSavedCurrentConfig: function () {
             return !this.isCurrentConfig && this.config.id === this.$store.getters.currentConfig.id
         },
-        /*wasCurrentChanged: function () {
-            console.log(this.isCurrentConfig && this.$store.state.EMPTY_CONFIG.id === this.config.id)
-            const result = this.isCurrentConfig && this.$store.state.EMPTY_CONFIG.id === this.config.id ?
-                !this.$store.getters.compareConfigWithEmpty :
-                !this.$store.getters.compareConfigByIdWithCurrent(this.config.id)
-
-            this.$emit('was-current-config-changed', result)
-
-            return result
-
-        }*/
     },
     methods: {
         updateWasCurrentChanged: function (){
