@@ -5,6 +5,37 @@ let charts_data = []
 let html_chart = []
 let maxDate
 let minDate
+const ruLocale = d3.timeFormatLocale({
+    "dateTime": "%A, %e %B %Y г. %X",
+    "date": "%d.%m.%Y",
+    "time": "%H:%M:%S",
+    "periods": ["AM", "PM"],
+    "days": ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
+    "shortDays": ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
+    "months": ["Января", "Февраля", "Марта", "Апреля", "Мая", "Июня", "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря"],
+    "shortMonths": ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+})
+const format = {
+    millisecond: ruLocale.format(".%L"),
+    second: ruLocale.format(":%S"),
+    minute: ruLocale.format("%H:%M"),
+    hour: ruLocale.format("%H:%M"),
+    day: ruLocale.format("%d %b (%a)"),
+    week: ruLocale.format("%d %b (%a)"),
+    month: ruLocale.format("%B"),
+    year: ruLocale.format("%Y"),
+}
+
+
+function multiFormat(date) {
+    return (d3.timeSecond(date) < date ? format.millisecond
+        : d3.timeMinute(date) < date ? format.second
+            : d3.timeHour(date) < date ? format.minute
+                : d3.timeDay(date) < date ? format.hour
+                    : d3.timeMonth(date) < date ? (d3.timeWeek(date) < date ? format.day : format.week)
+                        : d3.timeYear(date) < date ? format.month
+                            : format.year)(date);
+}
 
 function initCharts() {
     duration = dataToServer.duration
@@ -106,7 +137,7 @@ function resizeChart(chart) {
 
     chart.svg.select(".x.axis")
         .attr("transform", `translate(0, ${height - margin.bottom})`)
-        .call(chart.xAxis.ticks(width / 80 <= 10 ? width / 80 : 10))
+        .call(chart.xAxis.ticks(width / 80 <= 10 ? width / 80 : 10).tickFormat(multiFormat))
     chart.svg.select(".y.axis")
         .attr("transform", `translate(${margin.left},0)`)
         .call(chart.yAxis)
@@ -137,7 +168,7 @@ function initChart(server) {
 
     const xAxis = d3.axisBottom()
         .scale(xScale)
-        .ticks(width / 80 <= 10 ? width / 80 : 10);
+        .ticks(width / 80 <= 10 ? width / 80 : 10).tickFormat(multiFormat);
     const yAxis = d3.axisLeft()
         .scale(yScale)
         .ticks(3);
