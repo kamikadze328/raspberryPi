@@ -11,6 +11,17 @@ current_path = tmp_path
 last_upload_path = current_path + 'last_upload_date.json'
 statistics_path = current_path + 'statistics.json'
 
+pattern_last_data = [{
+    'data': '2000-01-01 0000',
+    'data_counter': 0,
+    'logs': '2000-01-01 0000',
+    'logs_counter': 0,
+    'logs_syncdata': '2000-01-01 0000',
+    'logs_syncdata_counter': 0,
+    'statistics_syncdata':'2000-01-01 0000',
+    'statistics_syncdata_counter':0,
+    'host': ''
+}]
 
 class LogType(Enum):
     """
@@ -149,6 +160,33 @@ def read_csv_file(file_path):
     return data_from_dat
 
 
+def init_last_upload_date(servers):
+    if not os.path.exists(last_upload_path):
+        with open(last_upload_path, 'w') as f:
+            for server in servers:
+                last_dates = list(pattern_last_data)
+                last_dates[0]['host'] = server.get('host')
+                json.dump(last_dates, f, indent=4)
+
+    else:
+        with open(last_upload_path, 'r') as f:
+            servers_last_dates = json.load(f)
+
+        for server in servers:
+            host = server.get('host')
+            is_saved = False
+            for server_last_date in servers_last_dates:
+                if host == server_last_date.get('host'):
+                    is_saved = True
+                    break
+            if not is_saved:
+                last_dates = pattern_last_data[0]
+                last_dates['host'] = host
+                servers_last_dates.append(last_dates)
+
+        with open(last_upload_path, 'w') as f:
+            json.dump(servers_last_dates, f, indent=4)
+
 def save_last_upload_dates(host_name, tablename, last_upload_date):
     """
     Save last upload dates. It is necessary for uploading not all files and deleting already uploaded files.
@@ -159,23 +197,15 @@ def save_last_upload_dates(host_name, tablename, last_upload_date):
     :param last_upload_date: Date in format 'Y-m-d HM'
     :type last_upload_date: str
     """
-    pattern_json_data = [{
-        'data': '2000-01-01 0000',
-        'data_counter': 0,
-        'logs': '2000-01-01 0000',
-        'logs_counter': 0,
-        'logs_syncdata': '2000-01-01 0000',
-        'logs_syncdata_counter': 0,
-        'statistics_syncdata':'2000-01-01 0000',
-        'statistics_syncdata_counter':0,
-        'host': host_name,
-        tablename: last_upload_date,
 
-    }]
+    last_dates_current = list(pattern_last_data)
+    last_dates_current[0]['host'] = host_name
+    last_dates_current[0][tablename] = last_upload_date
+
     try:
         if not os.path.exists(last_upload_path):
             with open(last_upload_path, 'w') as f:
-                json.dump(pattern_json_data, f, indent=4)
+                json.dump(last_dates_current, f, indent=4)
 
         else:
             with open(last_upload_path, 'r') as f:
@@ -193,14 +223,14 @@ def save_last_upload_dates(host_name, tablename, last_upload_date):
                                 host[tablename + '_counter'] = 0
                         host[tablename] = last_upload_date
             else:
-                new_upload_data.append(pattern_json_data[0])
+                new_upload_data.append(last_dates_current[0])
 
             with open(last_upload_path, 'w') as f:
                 json.dump(new_upload_data, f, indent=4)
     except:
         os.remove(last_upload_path)
         with open(last_upload_path, 'w') as f:
-            json.dump(pattern_json_data, f, indent=4)
+            json.dump(last_dates_current, f, indent=4)
 
 def save_stat(statistics, headers):
     """

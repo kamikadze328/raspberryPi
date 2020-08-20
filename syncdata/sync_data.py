@@ -18,7 +18,7 @@ sys.setdefaultencoding('utf8')
 #Paths to my files
 current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
 config_path = '/var/www/html/config/sync_data.conf.json'
-tmp_path = '/var/www/html/RAMdisk/syncdata/'
+tmp_path = '/var/www/html/RAMdisk/'
 current_path = tmp_path + 'syncdata/'
 
 my_logs_path = current_path + 'logs/'
@@ -347,7 +347,6 @@ def get_path_and_type_for_name(data_name):
     elif data_name == 'statistics_syncdata':
         return stat_path, '.stat'
 
-
 # =========================================================================================================================================================================================
 #  СТАРТ программы
 # =========================================================================================================================================================================================
@@ -356,6 +355,7 @@ print "START SYNCDATA program"
 configs_servers = Logger.read_json_file(config_path)
 statistics_rows = []
 if configs_servers:
+    Logger.init_last_upload_date(configs_servers)
     try:
         for config_server in configs_servers:
             server = DB.Server(**config_server)
