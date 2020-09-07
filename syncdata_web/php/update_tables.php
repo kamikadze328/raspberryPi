@@ -2,13 +2,8 @@
 mysqli_report(MYSQLI_REPORT_STRICT);
 
 $servers_file = "../../config/sync_data.conf.json";
-//$tags_file = "../../DATA_UNP300/.Conf_Teg.json";
-$tags_file = "/var/RAMdisk/DATA_UNP300/.Conf_Teg.json";
-//$devices_file = "../../DATA_UNP300/.Conf_Dev.json";
-$devices_file = "/var/RAMdisk/DATA_UNP300/.Conf_Dev.json";
-
-//$tags_file = "/var/www/html/DATA_UNP300/.Conf_Teg.json";
-//$devices_file = "/var/www/html/DATA_UNP300/.Conf_Dev.json";
+$tags_file = "../../RAMdisk/DATA_UNP300/.Conf_Teg.json";
+$devices_file = "../../RAMdisk/DATA_UNP300/.Conf_Dev.json";
 
 function read_json($filepath)
 {
