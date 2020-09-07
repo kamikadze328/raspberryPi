@@ -39,28 +39,28 @@ if (!empty($_servers_main_info)) {
                     <div class="db-time-conn row-stat">
                         <div class="flex">
                             <div class="circle <?php echo $status_avg_con ?>" id="circle-avg-con-<?php echo $server_id ?>"></div>
-                            <div>Avg time connection</div>
+                            <div>Срд время соединения</div>
                         </div>
                         <div id="val-avg-con-<?php echo $server_id ?>" class="text-<?php echo $status_avg_con ?>"><?php echo $avg_con ?></div>
                     </div>
                     <div class="db-time-upld row-stat">
                         <div class="flex">
                             <div class="circle <?php echo $status_avg_upld ?>" id="circle-avg-upld-<?php echo $server_id ?>"></div>
-                            <div>Avg time upload</div>
+                            <div>Срд время загрузки</div>
                         </div>
                         <div id="val-avg-upld-<?php echo $server_id ?>" class="text-<?php echo $status_avg_upld ?>"><?php echo $avg_upld ?></div>
                     </div>
                     <div class="db-last-conn row-stat">
                         <div class="flex">
                             <div class="circle <?php echo $status_date ?>" id="circle-date-<?php echo $server_id ?>"></div>
-                            <div>Last connection</div>
+                            <div>Последнее соединение</div>
                         </div>
                         <div id="val-date-<?php echo $server_id ?>" class="delta-time text-<?php echo $status_date ?>"><?php echo $server["last_connection"] ?></div>
                     </div>
                     <div class="db-number-err row-stat">
                         <div class="flex">
                             <div class="circle <?php echo $status_number_err ?>" id="circle-num-err-<?php echo $server_id ?>"></div>
-                            <div>Number error</div>
+                            <div>Количество ошибок</div>
                         </div>
                         <div id="val-num-err-<?php echo $server_id ?>" class="text-<?php echo $status_number_err ?>"><?php echo $number_err ?></div>
                     </div>

@@ -2,7 +2,6 @@ let dataToServer = {duration:localStorage.getItem("duration") ? localStorage.get
 let duration = dataToServer.duration
 let refreshInfoID = 0
 
-
 document.addEventListener('DOMContentLoaded', () => {
     window.setInterval(updateTime, 1000);
     getHTMLMainInfoFromServer()
@@ -11,9 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function clearUpdaterAndGetTimeout(id) {
     clearInterval(id)
-    if (duration === 'hour') return 1000 * 60
+    return 1000 * 60
+    /*if (duration === 'hour') return 1000 * 60
     else if (duration === 'week') return 1000 * 60 * 60
-    else return (1000) * 60 * 5
+    else return (1000) * 60 * 5*/
 }
 
 function setNewInfoUpdater() {
@@ -83,7 +83,7 @@ function getServerId(serverHost){
 
 function setNumberDB(htmlPath) {
     const numberDB = htmlPath ? htmlPath.length : 0;
-    document.getElementById("number-db").textContent = 'List of ' + numberDB + ' DBs'
+    document.getElementById("number-db").textContent = 'Найдено баз данных: ' + numberDB
 }
 
 function dateToDeltaHTML(htmlCollectionDates) {
@@ -194,9 +194,9 @@ function closeSettingsPanel(listClassesIcon) {
 }
 
 function chooseDuration(e) {
-    duration = e.target.textContent.toLowerCase()
+    duration = e.target.dataset.value
     localStorage.setItem("duration", duration)
-    dataToServer.duration = e.target.textContent.toLowerCase()
+    dataToServer.duration = duration
 
     let durationItems = document.querySelectorAll(".duration-item")
     durationItems.forEach(elem =>
@@ -210,7 +210,7 @@ function chooseDuration(e) {
 }
 
 function setChoiceDuration(htmlElem) {
-    if (htmlElem.textContent.toLowerCase() === duration)
+    if (htmlElem.dataset.value === duration)
         htmlElem.classList.add("duration-choice")
     else htmlElem.classList.remove("duration-choice")
 }

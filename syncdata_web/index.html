@@ -19,7 +19,7 @@
 
 <body>
     <div class="header">
-        <div id="number-db">Loading DBs...</div>
+        <div id="number-db">Загружаю...</div>
         <div id="error-msg" style="display: none"></div>
 
         <div id="time"></div>
@@ -43,22 +43,22 @@
         </div>
         <div id="settings-panel" class="settings-animation">
             <div class="settings-block border-bottom">
-                <h3 class="border-bottom">Duration</h3>
-                <div class="duration-item">Hour</div>
-                <div class="duration-item">Day</div>
-                <div class="duration-item">Week</div>
+                <h3 class="border-bottom">Данные за</h3>
+                <div class="duration-item" data-value="hour">Час</div>
+                <div class="duration-item" data-value="day">Сутки</div>
+                <div class="duration-item" data-value="week">Неделю</div>
 
             </div>
             <div class="settings-block">
-                <div id="refresh-button" class="btn">Refresh charts</div>
+                <div id="refresh-button" class="btn">Обновить данные</div>
             </div>
             <div class="settings-block">
-                <div id="update-db-button" class="btn">Update devices and tags</div>
+                <div id="update-db-button" class="btn">Обновить теги и устройства</div>
                 <div id="update-db-info" ></div>
             </div>
             <div class="settings-divider-footer"></div>
             <div id="settings-footer" class="settings-block">
-                <div id="to-main-btn" class="btn" onclick="redirectToMain()">To Main</div>
+                <div id="to-main-btn" class="btn" onclick="redirectToMain()">На главную</div>
             </div>
         </div>
     </div>
