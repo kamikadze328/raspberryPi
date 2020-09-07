@@ -2,8 +2,8 @@
     <div class="container" ref="container">
         <div :class="'configs-wrapper ' + (isWrapperOpened ? 'open-wrapper' : '')"
              ref="wrapper">
-            <div :style="'overflow-y: auto; max-height: ' + style.wrapperMaxHeight + ';' +
-                         'width: ' + style.wrapperMaxWidth + 'px;'">
+            <div :style="'overflow-y: auto; max-height: ' + style.wrapperMaxHeight + ';'
+                  + (isWrapperOpened ? ('width: ' + style.wrapperMaxWidth + 'px;') : '') ">
                 <div @click.self="toggleVisibilityAll" class="closed-header-config clickable" v-show="!isWrapperOpened">
                     <div @click="toggleVisibilityAll">{{ currentConfig.name }}</div>
                     <img @click="saveCurrent"
