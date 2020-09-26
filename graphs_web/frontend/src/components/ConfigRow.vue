@@ -1,6 +1,7 @@
 <template>
     <div ref="config-row" class="config-row">
-        <div :class="'config-header config-header-text ' + (!isChangingMode ? 'clickable' : '')"
+        <div :class="{clickable: !isChangingMode}"
+             class="config-header config-header-text"
              @click="toggleVisibilityConfig">
             <div v-if="!isChangingMode">
                 {{ config.name + (isCurrentConfig ? ' (Текущая)' : (isSavedCurrentConfig ? ' (Сохранённая)': '')) }}
@@ -8,7 +9,7 @@
             <label v-else>
                 <input class="my-input config-header-text"
                        v-model="newName"
-                       :style="'width: ' + style.configNameWidth"
+                       :style="{width: style.configNameWidth}"
                        ref="configName"/>
             </label>
             <div class="disable-selection-text">

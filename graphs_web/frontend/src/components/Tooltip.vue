@@ -1,7 +1,7 @@
 <template>
     <div class="tooltip"
-         :style="`opacity: ${showTooltip ? 1 : 0};
-                  transform: translate(${translate.x}px, ${translate.y}px);`">
+         :style="{opacity: (showTooltip ? 1 : 0),
+                  transform: `translate(${translate.x}px, ${translate.y}px)`}">
         <table>
             <thead>
             <tr>
@@ -11,7 +11,7 @@
             <tbody>
             <tr v-for="tag in lines" :key="tag.id">
                 <td class="legend-color-guide">
-                    <div :style="'background-color:' + tag.color"></div>
+                    <div :style="{'background-color': tag.color}"></div>
                 </td>
                 <td class="tooltip-key">{{tag.tagId}}</td>
                 <td class="tooltip-value">{{tag.value !== null ? tag.value : 'null'}}</td>

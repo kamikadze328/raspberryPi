@@ -66,7 +66,7 @@ export default {
             'tooltipCoordinates',
             'd3Zoom',
             'doTooltipShow',
-            'tooltipCurrentDate'
+            'tooltipCurrentDate',
         ]),
         coefficient: function () {
             return {
@@ -621,6 +621,4 @@ svg {
     stroke-width: .5;
     fill: none;
 }
-
-
 </style>

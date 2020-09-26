@@ -1,9 +1,11 @@
 <template>
     <div class="container" ref="container">
-        <div :class="'configs-wrapper ' + (isWrapperOpened ? 'open-wrapper' : '')"
+        <div :class="{'open-wrapper': isWrapperOpened}"
+             class="configs-wrapper"
              ref="wrapper">
-            <div :style="'overflow-y: auto; max-height: ' + style.wrapperMaxHeight + ';'
-                  + (isWrapperOpened ? ('width: ' + style.wrapperMaxWidth + 'px;') : '') ">
+            <div :style="{'max-height': style.wrapperMaxHeight,
+                  width:(isWrapperOpened ? (style.wrapperMaxWidth + 'px') : '')}"
+                style="overflow-y: auto;">
                 <div @click.self="toggleVisibilityAll" class="closed-header-config clickable" v-show="!isWrapperOpened">
                     <div @click="toggleVisibilityAll">{{ currentConfig.name }}</div>
                     <img @click="saveCurrent"

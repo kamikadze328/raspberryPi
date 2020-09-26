@@ -6,8 +6,8 @@
              @mouseleave="mouseLeave"
              @mouseover="mouseOver"
              v-show="selectedTags.indexOf(line.tag.id)>=0">
-            <div :style="'background-color: ' + line.color" class="circle"/>
-            <div :style="'color: ' + line.color"
+            <div :style="{'background-color': line.color}" class="circle"/>
+            <div :style="{color: line.color}"
                  class="line-description">
                 {{line.tag.id}}:{{line.tag.description}}
             </div>

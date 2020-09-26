@@ -219,7 +219,6 @@ const store = new Vuex.Store({
                 state.currentConfig.id = state.EMPTY_CONFIG.id
         },
         pushTagByChartId(state, {id, tagId}){
-            console.log('push ' + tagId)
             state.currentConfig.charts.find(chart => chart.id === id).tags.push(tagId)
         },
         removeTagByChartId(state, {id, tagId}){
