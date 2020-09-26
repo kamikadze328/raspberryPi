@@ -1,11 +1,6 @@
 <?php
-//$servers_file = "../../config/sync_data.conf.json";
-$servers_file = "../sync_data.conf.json";
-function read_json($filepath)
-{
-    if (file_exists($filepath)) return json_decode(file_get_contents($filepath), true);
-    else return array();
-}
+include_once $_SERVER['DOCUMENT_ROOT'].'/api/config/core.php';
+$CUR_DIR = $_SERVER['DOCUMENT_ROOT'].'/graphs/php/';
 
 function get_devices_with_tags($server)
 {
@@ -58,7 +53,7 @@ function get_devices_with_tags($server)
 
 $answer = null;
 $error_message = "internal server error";
-$servers = read_json($servers_file);
+$servers = read_config();
 $post = $_POST;
 $isOK = false;
 if (is_array($servers) || is_object($servers)) {
