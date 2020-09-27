@@ -7,8 +7,8 @@
         </div>
         <div :id="'toggleAddedList' + config.id"
              ref="select-box-btn"
-             class="text-main list-added-tag disable-selection-text"
-             @click="toggleVisibilityTags" v-html="visibilityTags ? htmlSymbols.close : htmlSymbols.openRight "/>
+             class="text-main list-added-tag disable-selection-text svg-img" :class="visibilityTags ? classes.close : classes.mainTriangle"
+             @click="toggleVisibilityTags"/>
       </div>
       <div v-show="visibilityTags" :id="'select-box-' + config.id" ref="select-box" class="rows-stat select-box">
         <input v-model="userInput" placeholder="Enter tag id or name">
@@ -18,7 +18,7 @@
                  :key="device.id">
               <div class="select-parent"
                    @click.self.stop="toggleVisibilityChild">
-                <span class="disable-selection-text" v-html="htmlSymbols.openRight"
+                <span class="disable-selection-text svg-img-child open-close-animation svg-img triangle-svg" :class="classes.openRight"
                       @click.self.stop="toggleVisibilityChildText"/>
                 {{ device.id }} {{ device.description }}
               </div>
@@ -80,10 +80,13 @@ export default {
       waitedForRemove: [],
       colorTagWithData: '#2d353c',
       colorTagWithoutData: '#ff5b57',
-      htmlSymbols: {
-        openRight: '&#x2BC8;',
-        close: '&#8212;',
-        openDown: '&#x2BC6;',
+
+      classes:{
+        openRight: 'open-right',
+        openDownAnim: 'open-down-animation',
+        closeDownAnim: 'close-down-animation',
+        close: 'close',
+        mainTriangle: 'grey-triangle-svg open-right'
       },
       userInput: '',
       maxHeightSelectItems: 800
@@ -202,7 +205,11 @@ export default {
       this.toggleVisibilityArrowDown(e.target, wasVisible)
     },
     toggleVisibilityArrowDown: function (elem, wasVisible) {
-      elem.innerHTML = wasVisible ? this.htmlSymbols.openRight : this.htmlSymbols.openDown
+      const classForDelete = wasVisible ? this.classes.openDownAnim : this.classes.closeDownAnim
+      const classForAdd = !wasVisible ? this.classes.openDownAnim : this.classes.closeDownAnim
+      elem.classList.remove(classForDelete)
+      elem.classList.add(classForAdd)
+
     },
     toggleVisibilityHTMLElem: function (elem) {
       const wasVisible = elem.style.display === 'block'
@@ -245,6 +252,7 @@ export default {
 .name-and-settings {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 
 .list-added-tag {
@@ -350,6 +358,25 @@ h4 {
   font-size: 1rem;
   visibility: visible;
 }
+.close{
+  background-color: #b6c2c9;
+  width:25px;
+  height: 4px;
+  border-radius: 5px;
+}
+
+
+
+
+.grey-triangle-svg{
+  width: 20px;
+  height: 100%;
+  background-image: url("data:image/svg+xml,\
+  <svg xmlns='http://www.w3.org/2000/svg' width='100%' height='20px' viewBox='0 0 40 40' fill='%23b6c2c9'>\
+  <path d='M 5 5 L 35 5 L 20 35 z'/>\
+  </svg>");
+}
+
 
 @keyframes rotation {
   0% {

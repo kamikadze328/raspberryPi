@@ -22,7 +22,7 @@
                          v-show="!wasCurrentConfigChanged && this.style.opacityImg > 0"
                          width="27px"
                     />
-                    <div @click="toggleVisibilityAll" class="disable-selection-text open-button">&#x2BC8;</div>
+                    <div @click="toggleVisibilityAll" class="disable-selection-text open-button triangle-svg svg-img-child svg-img open-right"></div>
                 </div>
                 <ConfigRow :config="currentConfig"
                            :is-current-config="true" :is-wrapper-opened="isWrapperOpened" :max-width="style.wrapperMaxWidth"
@@ -114,6 +114,7 @@ export default {
 .closed-header-config {
     display: flex;
     flex-direction: row;
+    align-items: center;
 }
 
 .container {

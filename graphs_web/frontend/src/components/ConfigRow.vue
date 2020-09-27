@@ -12,8 +12,7 @@
                        :style="{width: style.configNameWidth}"
                        ref="configName"/>
             </label>
-            <div class="disable-selection-text">
-                {{ isConfigOpened ? '&#x2BC6;' : '&#x2BC8;' }}
+            <div class="disable-selection-text triangle-svg svg-img-child svg-img open-right open-close-animation" :class="isConfigOpened ? 'open-down-animation' : 'close-down-animation'">
             </div>
         </div>
         <hr/>
@@ -166,6 +165,7 @@ export default {
     padding: 5px 2px;
     justify-content: space-between;
     display: flex;
+  align-items: center;
 }
 .config-header-text{
     text-transform: uppercase;
