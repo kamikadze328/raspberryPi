@@ -323,4 +323,91 @@ export default {
     -webkit-user-select: none;
     -webkit-touch-callout: none;
 }
+.open-right{
+  -moz-transform: rotate(-90deg);
+  -webkit-transform: rotate(-90deg);
+  transform: rotate(-90deg);
+}
+.open-close-animation{
+  -webkit-animation: .3s linear forwards;
+  -moz-animation: .3s linear forwards;
+  animation: .3s linear forwards;
+}
+.close-down-animation{
+  -webkit-animation-name: spinClose;
+  -moz-animation-name: spinClose;
+  animation-name: spinClose;
+}
+.open-down-animation{
+  -webkit-animation-name: spinOpen;
+  -moz-animation-name: spinOpen;
+  animation-name: spinOpen;
+}
+@-moz-keyframes spinClose {
+  from {
+    -moz-transform: rotate(0deg);
+  }
+  to {
+    -moz-transform: rotate(-90deg);
+  }
+}
+@-webkit-keyframes spinClose {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(-90deg);
+  }
+}
+@keyframes spinClose {
+  from {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+  }
+}
+@-moz-keyframes spinOpen {
+  from {
+    -moz-transform: rotate(-90deg);
+  }
+  to {
+    -moz-transform: rotate(0deg);
+  }
+}
+@-webkit-keyframes spinOpen {
+  from {
+    -webkit-transform: rotate(-90deg);
+  }
+  to {
+    -webkit-transform: rotate(0deg);
+  }
+}
+@keyframes spinOpen {
+  from {
+    -webkit-transform: rotate(-90deg);
+    transform: rotate(-90deg);
+  }
+  to {
+    -webkit-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+}
+.svg-img-child{
+  width: 20px;
+  height: 20px;
+}
+.triangle-svg{
+  background-image: url('data:image/svg+xml,\
+  <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="20px" viewBox="0 0 400 400">\
+  <path d="M 100 100 L 300 100 L 200 300 z"/>\
+  </svg>');
+
+}
+.svg-img{
+  background-repeat: no-repeat;
+  background-position: center center;
+}
 </style>
