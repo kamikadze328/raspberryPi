@@ -1,7 +1,7 @@
 <template>
   <div class="admin-container">
     <div ref="leftPanel" class="admin-left-panel">
-      <div class="left-panel-top" >
+      <div class="left-panel-top">
         <router-link :to="{name:'admin-panel-stats'}">
           Стаистика
         </router-link>
@@ -32,6 +32,7 @@ export default {
 .component-fade-enter-active, .component-fade-leave-active {
   transition: opacity .2s ease;
 }
+
 .admin-container {
   display: flex;
   position: fixed;
@@ -82,20 +83,24 @@ export default {
   width: 100%;
   box-sizing: border-box;
   padding: 15px 20px;
+  overflow: auto;
 }
-.admin-content >>> table{
+
+.admin-content >>> table {
   box-sizing: border-box;
   border: solid #e0e0dc;
   border-width: 1px 0 0 1px;
 }
-.admin-content >>> table thead{
- text-transform: uppercase;
+
+.admin-content >>> table thead {
+  text-transform: uppercase;
   font-weight: 500;
 }
-.admin-content >>> table td, .admin-content >>> table th{
+
+.admin-content >>> table td, .admin-content >>> table th {
   border-width: 0 1px 1px 0;
   border: solid #e0e0dc;
-  padding: 3px 5px;
+  padding: 6px 5px;
 }
 
 .left-panel-top, .left-panel-bottom {
