@@ -20,19 +20,19 @@
         <div :class="{'invalid':!firstInputValid}" class="warning">
           <input :id="'name-' + authCode" v-model="firstInput" :placeholder="inputText.first" maxlength="25"
                  minlength="3"
-                 type="text">
+                 type="text" class="pretty-input">
           <span :data-validate="errors.name"></span>
         </div>
         <div :class="{'invalid':!passwordValid}" class="warning">
           <input :id="'password-' + authCode" v-model="password" :placeholder="inputText.second" maxlength="25"
                  minlength="3"
-                 type="password">
+                 type="password" class="pretty-input">
           <span :data-validate="errors.password"></span>
         </div>
         <div :class="{'invalid':!confirmValid}" class="warning">
           <input :id="'confirm-' + authCode" v-model="passwordConfirm" :placeholder="inputText.third" maxlength="25"
                  minlength="3"
-                 type="password">
+                 type="password" class="pretty-input">
           <span :data-validate="errors.passwordConfirm"></span>
         </div>
       </div>
@@ -388,19 +388,6 @@ label {
 
 input[type=radio]:checked + label {
   opacity: 1;
-}
-
-input[type=text],
-input[type=password] {
-  background: #fff;
-  border: 1px solid #fff;
-  border-radius: 8px;
-  font-size: 16px;
-  height: 46px;
-  width: 99.6%;
-  opacity: 1;
-  text-indent: 20px;
-  transition: all .2s ease-in-out;
 }
 
 button {
