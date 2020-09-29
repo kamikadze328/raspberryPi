@@ -38,7 +38,7 @@ class DBManager
             $dsn = 'mysql:host=' . $this->host
                 . ';dbname=' . $this->db_name
                 . ';charset=utf8';
-            $this->conn = new PDO($dsn, $this->username, $this->password);
+            $this->conn = new PDO($dsn, $this->username, $this->password, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
             return true;
 
         } catch (PDOException $exception) {
@@ -341,15 +341,16 @@ class DBManager
                                 UL.name as URL_name,
                                 u.login as username 
                     FROM {$this->USER_SESSIONS_TABLE} sess 
-                    INNER JOIN {$this->USER_STATS_TABLE} us on sess.id = us.session_id 
-                    INNER JOIN {$this->URLs_TABLE} UL on us.url_id = UL.id 
-                    INNER JOIN {$this->USERS_TABLE} u on sess.user_id = u.id;
-                    WHERE start_time between :date_min and :date_max
+                    LEFT JOIN {$this->USER_STATS_TABLE} us on sess.id = us.session_id 
+                    LEFT JOIN {$this->URLs_TABLE} UL on us.url_id = UL.id
+                    LEFT JOIN {$this->USERS_TABLE} u on sess.user_id = u.id
+                    WHERE us.start_time between :date_min and :date_max
                     ORDER BY sess.id";
-
             $stmt = $this->conn->prepare($query);
 
-            if ($stmt->execute(['date_min' => $date_min, 'date_max' => $date_max])) {
+            $stmt->bindParam(':date_min', $date_min, PDO::PARAM_INT);
+            $stmt->bindParam(':date_max', $date_max, PDO::PARAM_INT);
+            if ($stmt->execute()) {
                 $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $stmt->closeCursor();
                 $returned_array = array();
@@ -378,9 +379,15 @@ class DBManager
                             'start_time' => intval($result['start_time']),
                             'duration_sec' => (intval($result['end_time']) - intval($result['start_time'])),
                             'url_name' => $result['URL_name'],
-                            'url_path' => SecurityManager::COOKIE_DOMAIN . $result['URL_path'],
+                            'url_path' => $result['URL_path'],
                         );
                     }
+                    $returned_array[] = array(
+                        'device' => intval($prev_session['device']),
+                        'username' => $prev_session['username'],
+                        'stats' => $stats
+                    );
+
                     return $returned_array;
                 } else return false;
             } else return false;
