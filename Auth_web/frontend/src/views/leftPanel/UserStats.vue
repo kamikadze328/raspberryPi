@@ -1,24 +1,6 @@
 <template>
   <div class="stat-container">
-    <div class="under-table-box">
-      <label>
-        <input v-model="inputText" class="pretty-input search-input"
-               placeholder="Поиск по имени" type="text">
-      </label>
-
-      <div class="date-button-box">
-        <button :class="{'button-focus': isYesterdayDates}" class="pretty-input my-button clickable"
-                @click="setYesterdayDates">Вчера
-        </button>
-        <button :class="{'button-focus': isTodayDates}" class="pretty-input my-button clickable"
-                @click="setTodayDates">Сегодня
-        </button>
-        <button :class="{'button-focus': isWeekAgoDates}" class="pretty-input my-button clickable"
-                @click="setWeekAgoDates">Неделя
-        </button>
-      </div>
-      <flatpickr v-model="dateStr" :config="dateConfig" class="flatpickr"/>
-    </div>
+    <AdmitPanelOverTable ref="overTable" v-model="inputText" @update-date="updateDate"/>
     <div class="table-box">
       <table>
         <thead>
@@ -26,12 +8,12 @@
           <td></td>
           <td v-for="header in headers" :key="header.id">
             <div>{{ header.name }}</div>
-            <span :class="'krkr'" class="svg-box"></span>
+            <span :class="''" class="svg-box"></span>
           </td>
         </tr>
         </thead>
         <tbody>
-        <template v-for="session in filteredStatData">
+        <template v-for="session in filteredData">
           <tr v-show="!isLoading" :key="statsData.indexOf(session)">
             <td class="clickable" @click="toggleVisibilityStatRow">
               <div :class="openCloseRowClasses.closed" class="svg-img svg-box"></div>
@@ -55,8 +37,8 @@
               <div>{{ stat.url_name }}</div>
               <a :href="stat.url_path">{{ getCurrentDomain() + stat.url_path }}</a>
             </td>
-            <td>{{ secToDate(stat.start_time) }}</td>
-            <td>{{ secToHms(stat.duration_sec) }}</td>
+            <td>{{ $mydata.secToDate(stat.start_time) }}</td>
+            <td>{{ $mydata.secToHms(stat.duration_sec) }}</td>
           </tr>
         </template>
         <tr v-show="isLoading">
@@ -72,32 +54,23 @@
 </template>
 
 <script>
-import Vueflatpickr from "vue-flatpickr-component";
-import "flatpickr/dist/flatpickr.min.css";
-import flatpickr from "flatpickr";
-import {Russian} from "flatpickr/dist/l10n/ru.js";
-
-flatpickr.localize(Russian);
+import AdmitPanelOverTable from "@/components/AdmitPanelOverTable";
 
 export default {
 
   name: "UserStats",
+  props: {
+    inputText: {
+      required: false,
+      type: String,
+      default: ''
+    },
+  },
   components: {
-    flatpickr: Vueflatpickr
+    AdmitPanelOverTable
   },
   data() {
-    const dateTomorrow = new Date(new Date().setDate(new Date().getDate() + 1))
     return {
-      date: {
-        min: new Date().setHours(0, 0, 0, 0),
-        max: dateTomorrow.setHours(0, 0, 0, 0)
-      },
-      dateConfig: {
-        altInput: true,
-        altFormat: "F j, Y",
-        maxDate: dateTomorrow,
-        mode: 'range'
-      },
       headers: [
         {id: 0, name: 'Пользователь'},
         {id: 1, name: 'Устройство'},
@@ -105,9 +78,8 @@ export default {
         {id: 3, name: 'Дата и время'},
         {id: 4, name: 'Длительность сеанса'},
       ],
-      isLoading: true,
+      isLoading: false,
       statsData: [],
-      inputText: '',
       openCloseRowClasses: {
         opened: 'minus-icon',
         closed: 'plus-icon'
@@ -121,88 +93,29 @@ export default {
       }
     }
   },
-  mounted() {
-    if (this.$mydata.stats.data.length === 0)
-      this.get_stats()
-    else this.updateLocalStatsData(this.$mydata.stats.data)
-  },
+
   computed: {
-    dateStr: {
-      get: function () {
-        return `${this.beautyDateStr(this.date.min)} — ${this.beautyDateStr(this.date.max)}`
-      },
-      set: function (dates) {
-        dates = dates.split(' — ')
-        if (dates.length > 1) {
-          const convert = (date) => new Date(date).getTime() + new Date(date).getTimezoneOffset() * 60000
-          const min = convert(dates[0])
-          const max = convert(dates[1])
-          this.setMinMaxDates(min, max)
-        }
-      }
-    },
-    filteredStatData: function () {
+    filteredData: function () {
+      const regex = this.inputText.startsWith('/') && this.inputText.endsWith('/') ?
+          RegExp(this.inputText.substring(1, this.inputText.length - 1).toLowerCase()) :
+          null
       return this.statsData.filter(session => {
-        return session.username.toLowerCase().indexOf(this.inputText) > -1
+        if (regex) return regex.test(session.username.toLowerCase())
+        else return session.username.toLowerCase().indexOf(this.inputText) > -1
       })
     },
     isNothingFound: function () {
-      return this.filteredStatData.length === 0
-    },
-    isYesterdayDates() {
-      console.log(new Date(this.date.min).getTime())
-      console.log(new Date(this.yesterdayDate()).getTime())
-      console.log(new Date(this.date.min).getTime() === new Date(this.yesterdayDate()).getTime())
-      console.log(new Date(this.date.max).getTime() === new Date(this.todayDate()).getTime())
-      return new Date(this.date.min).getTime() === new Date(this.yesterdayDate()).getTime()
-          && new Date(this.date.max).getTime() === new Date(this.todayDate()).getTime()
-    },
-    isTodayDates() {
-      return new Date(this.date.min).getTime() === new Date(this.todayDate()).getTime()
-          && new Date(this.date.max).getTime() === new Date(this.tomorrowDate()).getTime()
-    },
-    isWeekAgoDates() {
-      return new Date(this.date.min).getTime() === new Date(this.weekAgoDate()).getTime()
-          && new Date(this.date.max).getTime() === new Date(this.tomorrowDate()).getTime()
+      return this.filteredData.length === 0
     },
   },
   methods: {
-    setMinMaxDates(min, max) {
-      this.date.min = new Date(min)
-      this.date.max = new Date(max)
-      this.get_stats()
-    },
-    tomorrowDate() {
-      return new Date(new Date(new Date().setDate(new Date().getDate() + 1)).setHours(0, 0, 0, 0))
-    },
-    todayDate() {
-      return new Date(new Date().setHours(0, 0, 0, 0))
-    },
-    yesterdayDate() {
-      return new Date(new Date(new Date - 86400000).setHours(0, 0, 0, 0))
-    },
-    weekAgoDate() {
-      return new Date(new Date(new Date - 518400000).setHours(0, 0, 0, 0))
-    },
-
-    setYesterdayDates() {
-      this.setMinMaxDates(this.yesterdayDate(), this.todayDate())
-    },
-    setTodayDates() {
-      this.setMinMaxDates(this.todayDate(), this.tomorrowDate())
-    },
-    setWeekAgoDates() {
-      this.setMinMaxDates(this.weekAgoDate(), this.tomorrowDate())
+    updateDate(min, max){
+      this.get_stats(min, max)
     },
     getCurrentDomain() {
       return document.location.host
     },
-    beautyDateStr: function (date) {
-      const YYYY = new Intl.DateTimeFormat('ru', {year: 'numeric'}).format(date)
-      const MM = new Intl.DateTimeFormat('ru', {month: '2-digit'}).format(date)
-      const DD = new Intl.DateTimeFormat('ru', {day: '2-digit'}).format(date)
-      return `${YYYY}-${MM}-${DD}`
-    },
+
     toggleVisibilityStatRow(e) {
       const isChild = e.target.classList.contains('svg-box')
       const child = isChild ? e.target : e.target.firstChild
@@ -243,112 +156,65 @@ export default {
         deviceIconClass = this.deviceClasses.android
       return deviceIconClass
     },
-    secToHms(sec_num) {
-      let hours = Math.floor(sec_num / 3600);
-      let minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-      let seconds = sec_num - (hours * 3600) - (minutes * 60);
 
-      if (hours > 0)
-        if (hours < 10)
-          hours = "0" + hours;
-      hours = (hours > 0) ? (hours + ':') : ""
-
-      if (minutes < 10)
-        minutes = "0" + minutes;
-      minutes += ':'
-
-      if (seconds < 10)
-        seconds = "0" + seconds;
-
-      return hours + minutes + seconds;
-    },
-    dateToLocaleStr(date) {
-      const options = {
-        year: '2-digit',
-        month: '2-digit',
-        day: '2-digit',
-        timezone: 'UTC',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      }
-      return new Date(date).toLocaleString("ru", options)
-    },
     getStartTime(session) {
-      return this.secToDate(Math.min.apply(null, session.stats.map(stat => stat.start_time)))
-    },
-    secToDate(sec) {
-      return this.dateToLocaleStr(sec * 1000)
+      return this.$mydata.secToDate(Math.min.apply(null, session.stats.map(stat => stat.start_time)))
     },
     getDurationTime(session) {
       let sum = 0
       session.stats.forEach(stat => sum += stat.duration_sec)
-      return this.secToHms(sum)
+      return this.$mydata.secToHms(sum)
     },
     getCountStatsInSession(session) {
       const uniqueURLSet = new Set()
       session.stats.forEach(stat => uniqueURLSet.add(stat.url_name))
       return uniqueURLSet.size
     },
-    get_stats() {
-      console.log(this.isLoading)
-      this.isLoading = true
-      this.$axios({
-        timeout: 30000,
-        method: 'post',
-        url: this.$mydata.URL.getStats,
-        data: {
-          date_min: this.date.min,
-          date_max: this.date.max
-        }
-      }).then(response => {
-        if (response.data.error) throw response.data.error
-        else {
-          console.log(response)
-          this.$mydata.stats.data = JSON.parse(response.data.data)
-          this.updateLocalStatsData(this.$mydata.stats.data)
-          return JSON.parse(response.data.data)
-        }
-      }).catch(error => {
-        console.log(error.response)
-        console.log(error)
-      }).finally(() => {
-        this.isLoading = false
-      })
+    get_stats(min, max) {
+      if(!this.isLoading) {
+        this.isLoading = true
+        this.$axios({
+          timeout: 30000,
+          method: 'post',
+          url: this.$mydata.URL.admin,
+          data: {
+            purpose: 'stats',
+            date_min: new Date(min).getTime(),
+            date_max: new Date(max).getTime()
+          }
+        }).then(response => {
+          if (response.data.error) throw response.data.error
+          else {
+            console.log(response)
+            this.$mydata.data.stats = response.data.data
+            this.updateLocalStatsData(this.$mydata.data.stats)
+            return response.data.data
+          }
+        }).catch(error => {
+          console.log(error.response)
+          console.log(error)
+        }).finally(() => {
+          this.isLoading = false
+        })
+      }
     },
     updateLocalStatsData(data) {
       console.log(data)
       this.statsData = data
       this.isLoading = false
+    },
+    closeAll(elem){
+      elem
     }
-  }
+  },
+  mounted() {
+    if (this.$mydata.data.stats.length === 0)
+      this.$refs['overTable'].updateDates()
+    else this.updateLocalStatsData(this.$mydata.data.stats)
+  },
 }
 </script>
-<style>
-.flatpickr {
-  min-width: 310px;
-  width: 350px;
-  text-align: center;
-  font-size: 1rem;
-  line-height: 30px;
-  padding: 0;
-  border-radius: 8px;
-  z-index: 1;
-  border: #e0e0dc solid 1px;
-  height: 46px;
-}
 
-.flatpickr {
-  transition: all .3s cubic-bezier(.6, 0, .4, 1);
-}
-
-.flatpickr:hover, .flatpickr:focus {
-  background: #348fe2;
-  color: white;
-  cursor: pointer !important;
-
-}
-</style>
 <style scoped>
 
 a, a:visited {
@@ -411,6 +277,10 @@ a:focus, a:hover {
   margin: 0 4px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 512 512' fill='%23b8b8b8'%3E%3Cg%3E%3Cpath d='M492,236H276V20c0-11.046-8.954-20-20-20c-11.046,0-20,8.954-20,20v216H20c-11.046,0-20,8.954-20,20s8.954,20,20,20h216 v216c0,11.046,8.954,20,20,20s20-8.954,20-20V276h216c11.046,0,20-8.954,20-20C512,244.954,503.046,236,492,236z'/%3E%3C/g%3E%3C/svg%3E");
 }
+.minus-icon{
+  margin: 0 4px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 512 512' fill='%23b8b8b8'%3E%3Cg%3E%3Cg%3E%3Cpath d='M492,236H20c-11.046,0-20,8.954-20,20c0,11.046,8.954,20,20,20h472c11.046,0,20-8.954,20-20S503.046,236,492,236z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
 
 .search-input {
   width: 250px;
@@ -426,42 +296,7 @@ a:focus, a:hover {
   padding-left: 45px !important;
 }
 
-.date-button-box {
-  display: flex;
-  justify-content: center;
-  margin: 0 10px;
-}
 
-.date-button-box > button {
-  border-radius: 0;
-  border: #e0e0dc solid 1px;
-  width: 100px;
-  text-indent: 0;
-}
 
-.date-button-box > button:first-child {
-  border-radius: 8px 0 0 8px;
-}
 
-.date-button-box > button:last-child {
-  border-radius: 0 8px 8px 0;
-}
-
-.under-table-box {
-  display: flex;
-  align-items: center;
-  justify-content: start;
-  margin-bottom: 10px;
-}
-
-@media (max-width: 1100px) {
-  .under-table-box {
-    flex-direction: column;
-    align-items: start;
-  }
-
-  .date-button-box {
-    margin: 10px 0;
-  }
-}
 </style>

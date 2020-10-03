@@ -62,14 +62,15 @@ const router = new Router({
                     path: 'stats',
                     component: UserStats,
                     name: 'admin-panel-stats',
-                    meta: {title: 'Список пользователей'},
+                    meta: {title: 'Статистика'},
+                    props: true
 
                 },
                 {
                     path: 'users',
                     component: ListUsers,
                     name: 'admin-panel-list-users',
-                    meta: {title: 'Статистика'},
+                    meta: {title: 'Пользователи'},
                 }
                 ]
         },

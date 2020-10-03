@@ -14,7 +14,10 @@
       </div>
     </div>
     <div class="admin-content">
-      <router-view/>
+      <router-view ref="routerView"
+                   @create-user="$emit('create-user')"
+                   @delete-user="(user) => $emit('delete-user', user)"
+                   @reset-user-password="(user) => $emit('reset-user-password', user)"/>
     </div>
   </div>
 </template>
@@ -24,6 +27,11 @@ export default {
   name: "AdminPanel",
   mounted() {
     this.$refs['leftPanel'].classList.add('opened')
+  },
+  methods: {
+    closeAll(elem){
+      this.$refs['routerView'].closeAll(elem)
+    }
   }
 }
 </script>

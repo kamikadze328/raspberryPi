@@ -29,12 +29,16 @@ function get_answer_for_client($error_code, $message, $db_message, $data)
                 "dbMessage" => $db_message))
         : array(
             "message" => $message,
-            "data" => json_encode($data),
+            "data" => $data,
             "code" => 200);
 
-    return json_encode($answer);
+    return json_encode($answer, JSON_UNESCAPED_UNICODE);
 }
 
 function get_http_data(){
     return json_decode(file_get_contents("php://input"), true);
+}
+
+function get_seconds_from_str_ms($ms){
+    return intdiv(intval($ms), 1000);
 }

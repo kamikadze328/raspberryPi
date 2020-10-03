@@ -13,31 +13,46 @@ class SecurityManager
     private $SESSION_COOKIE_NAME = 'SUID';
     const SESSION_LIFETIME = 600;
 
-    function isset_token(){
+    function isset_token()
+    {
         return isset($_COOKIE[$this->COOKIE_TOKEN_NAME]);
     }
-    function isset_user_meta(){
+
+    function isset_user_meta()
+    {
         return isset($_COOKIE[$this->COOKIE_USER_META_NAME]);
     }
-    function get_domain(){
+
+    function get_domain()
+    {
         return $this::COOKIE_DOMAIN;
     }
-    function get_token(){
+
+    function get_token()
+    {
         return $_COOKIE[$this->COOKIE_TOKEN_NAME];
     }
-    function get_user_meta(){
+
+    function get_user_meta()
+    {
         return $_COOKIE[$this->COOKIE_USER_META_NAME];
     }
+
     private function decode_token($token)
     {
         return json_decode(base64_decode($token), true);
     }
-    private function get_token_payload($token){
+
+    private function get_token_payload($token)
+    {
         return $this->decode_token($token)['payload'];
     }
-    function get_user_id_by_token($token){
+
+    function get_user_id_by_token($token)
+    {
         return $this->get_token_payload($token)['user_id'];
     }
+
     function generate_token($user)
     {
         $token = $this->generate_random_str($this->TOKEN_LENGTH);
@@ -49,16 +64,20 @@ class SecurityManager
         );
         return base64_encode(json_encode($full_token));
     }
-    private function generate_random_str($length){
+
+    private function generate_random_str($length)
+    {
         return bin2hex(openssl_random_pseudo_bytes($length / 2));
 
     }
+
     function get_token_expires_time()
     {
         return time() + $this->TOKEN_LIFETIME;
     }
 
-    function get_session_expires_time(){
+    function get_session_expires_time()
+    {
         return time() + $this::SESSION_LIFETIME;
     }
 
@@ -74,20 +93,25 @@ class SecurityManager
         $this->set_headers();
     }
 
-    function save_session($session_id){
+    function save_session($session_id)
+    {
         $cookie_options = $this->get_session_cookie_options();
         setcookie($this->SESSION_COOKIE_NAME, $session_id, $cookie_options);
         $this->set_headers();
     }
 
-    function is_session_exists(){
+    function is_session_exists()
+    {
         return isset($_COOKIE[$this->SESSION_COOKIE_NAME]);
     }
-    function get_session_id(){
+
+    function get_session_id()
+    {
         return intval($_COOKIE[$this->SESSION_COOKIE_NAME]);
     }
 
-    function is_auth_user(){
+    function is_auth_user()
+    {
         return !is_null($this->get_token());
     }
 
@@ -128,14 +152,9 @@ class SecurityManager
 
     private function get_session_cookie_options()
     {
-        return array(
-            'expires' => $this->get_session_expires_time(),
-            'path' => '/',
-            'domain' => $this::COOKIE_DOMAIN,
-            'secure' => $this->COOKIE_SECURE_FLAG,
-            'httponly' => $this->COOKIE_HTTPONLY,
-            'samesite' => $this->COOKIE_SAMESITE
-        );
+        $options = $this->get_cookie_options();
+        $options['expires'] = $this->get_session_expires_time();
+        return $options;
     }
 
     private function get_old_cookie_options()
@@ -150,15 +169,18 @@ class SecurityManager
         );
     }
 
-    function get_secure_password($password){
+    function get_secure_password($password)
+    {
         return password_hash($password, PASSWORD_BCRYPT);
     }
 
-    function set_secure_password($user){
+    function set_secure_password($user)
+    {
         $user->passowrd_secure = $this->get_secure_password($user->password);
     }
 
-    function generate_password(){
+    function generate_password()
+    {
         return $this->generate_random_str($this->RANDOM_PASSWORD_LENGTH);
     }
 }

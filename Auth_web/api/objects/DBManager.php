@@ -50,13 +50,16 @@ class DBManager
     {
         try {
             $query = "INSERT INTO {$this->USERS_TABLE} 
-                        (login, password)
-                    VALUES(:login, :password)";
+                        (login, description, password)
+                    VALUES(:login, :description, :password)";
 
             $stmt = $this->conn->prepare($query);
+            if ($stmt->execute([
+                'login' => $user->login,
+                'description' => $user->description,
+                'password' => $user->passowrd_secure
+            ])) {
 
-
-            if ($stmt->execute(['login' => $user->login, 'password' => $user->password_secure])) {
                 $user->id = $this->conn->lastInsertId();
                 return true;
             }
@@ -83,7 +86,7 @@ class DBManager
 
                 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-                $user->id = $row['id'];
+                $user->id = intval($row['id']);
                 $user->password_from_db = $row['password'];
                 return true;
             }
@@ -179,16 +182,16 @@ class DBManager
         }
     }
 
-    function update_user_passwd($user_id, $new_passwd_hash)
+    function update_user_passwd($user)
     {
         try {
             $query = "UPDATE {$this->USERS_TABLE} 
                         SET password=:password 
                         WHERE id=:user_id";
             $stmt = $this->conn->prepare($query);
-            $stmt->execute(['password' => $new_passwd_hash, 'user_id' => $user_id]);
+            $result = $stmt->execute(['password' => $user->password_secure, 'user_id' => $user->id]);
             $stmt->closeCursor();
-            return true;
+            return $result;
         } catch (PDOException $e) {
             $this->error_msg = $e->getMessage();
             return false;
@@ -201,9 +204,9 @@ class DBManager
             $query = "DELETE FROM {$this->USERS_TABLE} 
                         WHERE id=:user_id";
             $stmt = $this->conn->prepare($query);
-            $stmt->execute(['user_id' => $user_id]);
+            $result = $stmt->execute(['user_id' => $user_id]);
             $stmt->closeCursor();
-            return true;
+            return $result;
         } catch (PDOException $e) {
             $this->error_msg = $e->getMessage();
             return false;
@@ -244,7 +247,7 @@ class DBManager
                     if ($stat_id === false) return false;
                     return (is_null($stat_id)) ?
                         $this->init_user_stat($path_id, $time, $session_id) :
-                        $this->update_user_stat($stat_id, $time);
+                        $this->update_user_stat($stat_id, $time) ? $session_id : false;
                 }
             } else return false;
         } catch (PDOException $e) {
@@ -396,4 +399,29 @@ class DBManager
             return false;
         }
     }
+
+    function get_users_with_stats($date_min, $date_max){
+        try{
+            $query = "SELECT u.id as id, 
+                            u.login as login, 
+                            ifnull(max(start_time), 0) as last_session, 
+                            count(us.id) as count_sessions, 
+                            ifnull(avg(end_time - start_time), 0) as average_time_session
+                        FROM {$this->USER_STATS_TABLE}
+                            JOIN user_sessions us ON us.id = user_statistics.session_id
+                                AND start_time between :date_min and :date_max
+                                AND user_id > -1
+                            RIGHT JOIN users u on u.id = us.user_id
+                        WHERE u.id > -1 GROUP BY u.id";
+            $stmt = $this->conn->prepare($query);
+            if ($stmt->execute(['date_min' => $date_min, 'date_max' => $date_max])) {
+                $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                return $result_set;
+            } else return false;
+        }catch (PDOException $e) {
+            $this->error_msg = $e->getMessage();
+            return false;
+        }
+}
 }

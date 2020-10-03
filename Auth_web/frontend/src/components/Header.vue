@@ -5,8 +5,8 @@
       <a class="header-logo" href="https://se.ifmo.ru/courses/web">
         <img crossorigin="anonymous" src="../assets/itmo_logo.png" alt="itmo logo">
       </a>
-      <div class="buttons-container"
-           :class="{'clickable disable-selection-text': isAuthorized}"
+      <div class="buttons-container" ref="clickable"
+           :class="{'clickable disable-selection-text': isAuthorized()}"
            @click="toggleProfileButtons">
         {{ userName }}
         <ProfileButtonsHeader @successful-logout="$emit('successful-logout')"
@@ -27,28 +27,40 @@ export default {
   props: {
     userName: String
   },
+  watch: {
+    username: function () {
+      this.isAuthorized()
+    }
+  },
   data() {
     return {
       isProfileButtonsOpened: false,
       buttonsContainerVisibility: 'hidden',
-    }
-  },
-  computed: {
-    isAuthorized (){
-      console.log(this.$mydata.isAuth())
-      console.log('computed')
-      return this.$mydata.isAuth()
+      isAuth: false
     }
   },
   methods: {
-    toggleProfileButtons (){
-      if(this.isProfileButtonsOpened === true)
-        setTimeout(() => {this.buttonsContainerVisibility = 'hidden'}, 110)
-      this.isProfileButtonsOpened = this.isAuthorized ? !this.isProfileButtonsOpened : false
-      if(this.isProfileButtonsOpened === true)
+    isAuthorized(){
+      const isAuth = this.$mydata.isAuth()
+      this.updateIsAuth(isAuth)
+      return isAuth
+    },
+    toggleProfileButtons() {
+      if (this.isProfileButtonsOpened === true)
+        setTimeout(() => {
+          this.buttonsContainerVisibility = 'hidden'
+        }, 110)
+      this.isProfileButtonsOpened = this.isAuthorized() ? !this.isProfileButtonsOpened : false
+      if (this.isProfileButtonsOpened === true)
         this.buttonsContainerVisibility = 'visible'
     },
-
+    updateIsAuth(val){
+      this.isAuth = val
+    },
+    closeAll(elem){
+      if(this.$refs['clickable'] !== elem && this.isProfileButtonsOpened)
+        this.toggleProfileButtons()
+    }
   },
 
 }

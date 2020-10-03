@@ -18,6 +18,11 @@ try {
                 include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/create.php';
             else if ($purpose == 'reset')
                 include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/password_reset.php';
+            else if ($purpose == 'stats')
+                include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/statistics/get_stats.php';
+            else if ($purpose == 'users')
+                include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/get_users.php';
+
             else
                 $error_code = CodesAndMessages::WRONG_REQUEST_PARAMS;
         } else {
@@ -26,7 +31,6 @@ try {
     } else {
         $error_code = CodesAndMessages::WRONG_REQUEST_PARAMS;
     }
-
 } catch (Exception $e) {
     $error_code = CodesAndMessages::SMTH_WRONG;
     $message = $e->getMessage();

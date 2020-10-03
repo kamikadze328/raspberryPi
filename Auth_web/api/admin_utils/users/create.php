@@ -11,6 +11,10 @@ if(isset($user_data['login'])) {
         include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
         $sec_mng = new SecurityManager();
         $sec_mng->set_secure_password($user);
+
+        if(isset($user_data['description']))
+            $user->description = $user_data['description'];
+
         if ($database->create_user($user)) {
             $data['password'] = $user->password;
             $message = "Пользователь был создан.";

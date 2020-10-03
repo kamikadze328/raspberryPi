@@ -1,14 +1,20 @@
 <template>
-  <div id="app">
-    <Header :user-name="userName"
+  <div id="app" @click="closeAll">
+    <Header ref="header"
+            :user-name="userName"
             @successful-logout="successfulLogout"
             @changing-password="changingPassword"/>
-    <router-view @successful-login="successfulLogin"/>
+    <router-view @successful-login="successfulLogin"
+                 @create-user="createUser"
+                 @delete-user="deleteUser"
+                 @reset-user-password="resetUserPassword"
+                  ref="routerView"/>
     <div class="alert"></div>
-    <Auth v-show="isChangingPassword"
-          :auth-code="$mydata.LOCAL_AUTH_CODES.CHANGING_PASSWORD"
+    <Auth v-show="isAuthMenuOpened"
+          :auth-code="authMenuCode"
+          :user="authMenuUser"
           class="over-all"
-          @close="isChangingPassword = false"/>
+          @close="isAuthMenuOpened = false"/>
   </div>
 </template>
 
@@ -22,9 +28,11 @@ export default {
   components: {Auth, Header},
   data() {
     return {
-      isChangingPassword: false,
+      isAuthMenuOpened: false,
       userName: 'carbon-dv.ru',
-      defaultUserName: 'carbon-dv.ru'
+      defaultUserName: 'carbon-dv.ru',
+      authMenuCode: -1,
+      authMenuUser: null
     }
   },
   methods: {
@@ -35,7 +43,31 @@ export default {
       this.userName = this.defaultUserName
     },
     changingPassword() {
-      this.isChangingPassword = true
+      console.log(this.authMenuCode)
+      this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.CHANGING_PASSWORD
+      console.log(this.authMenuCode)
+      this.openAuthMenu()
+    },
+    createUser(){
+      this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.CREATE_USER
+      this.openAuthMenu()
+    },
+    deleteUser(user){
+      this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.DELETE_USER
+      this.authMenuUser = user
+      this.openAuthMenu()
+    },
+    resetUserPassword(user){
+      this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.RESET_PASSWORD_USER
+      this.authMenuUser = user
+      this.openAuthMenu()
+    },
+    openAuthMenu(){
+      this.isAuthMenuOpened = true
+    },
+    closeAll(e){
+      this.$refs['routerView'].closeAll(e.target)
+      this.$refs['header'].closeAll(e.target)
     }
   },
 
@@ -168,6 +200,7 @@ button {
 }
 
 .pretty-input {
+  overflow: hidden;
   background: #fff;
   border: 1px solid #fff;
   border-radius: 8px;
@@ -184,15 +217,59 @@ button {
 }
 .my-button:hover, .my-button:focus, .button-focus{
   background: #348fe2;
-  color: white;
+  color: white !important;
 }
 .red-button{
-  border-color: #ff5b57;
-  transition: all .3s cubic-bezier(.6, 0, .4, 1);
+  border-color: #ff5b57 !important;
+  color: #ff5b57 !important;
 }
 
-.red-button:hover {
-  background: #ff5b57;
-  color: white;
+.red-button:hover, .red-button:focus {
+  background: #ff5b57 !important;
+}
+.green-button{
+  border-color: #32A932 !important;
+}
+
+.green-button:hover, .green-button:focus {
+  background: #32A932 !important;
+}
+.small-drop-menu{
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
+  border: 1px solid #348fe2;
+  background-color: #fff;
+  justify-content: space-between;
+  transition: opacity .1s ease-in-out;
+  z-index: 10000;
+}
+.small-drop-menu::before{
+  content: "";
+  background-color: #fff;
+  border-top: 1px solid #348fe2;
+  border-right: 1px solid #348fe2;
+  z-index: 9999;
+}
+.small-drop-menu > *{
+  color: #2c3e50;
+  z-index: 10000;
+}
+.small-drop-menu > *:focus, .small-drop-menu > *:hover{
+  background: #f2f4f5;
+}
+
+.small-drop-menu > button:first-child {
+  border-radius: 3px 3px 0 0;
+}
+
+.small-drop-menu > button:last-child {
+  border-radius: 0 0 3px 3px;
+}
+
+.small-drop-menu > button {
+  font-size: 14px;
+  padding: 5px;
+  min-height: 30px;
 }
 </style>

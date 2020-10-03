@@ -2,42 +2,39 @@
 <template>
   <div class="form-wrapper" @click="click">
     <form ref="form" class="login-form" v-on:submit.prevent="checkForm">
-      <input :id="'first-' + authCode" v-model="action" checked="" class="first-input" name="action" type="radio"
-             value="1">
-      <label :for="'first-' + authCode"
-             :style="{'cursor': authCode === this.$mydata.LOCAL_AUTH_CODES.CHANGING_PASSWORD ? 'default' : 'pointer'}"
-             class="disable-selection-text">
-        {{ viewText.first }}
-      </label>
-      <input :id="'second-' + authCode" v-model="action" class="second-input" name="action" type="radio" value="2">
-      <label :for="'second-' + authCode"
-             :style="{'cursor': authCode === this.$mydata.LOCAL_AUTH_CODES.CHANGING_PASSWORD ? 'default' : 'pointer'}"
-             class="disable-selection-text">
-        {{ viewText.second }}
-      </label>
+      <span :class="numberOfInputs.classText" class="disable-selection-text auth-name">{{ viewText }}</span>
       <div class="form-inside-wrapper">
         <div class="arrow"></div>
         <div :class="{'invalid':!firstInputValid}" class="warning">
-          <input :id="'name-' + authCode" v-model="firstInput" :placeholder="inputText.first" maxlength="25"
-                 minlength="3"
-                 type="text" class="pretty-input">
-          <span :data-validate="errors.name"></span>
+          <input :id="'first-input-' + authCode" v-model="firstInput" :disabled="disabledFirstInput" :placeholder="inputText.first"
+                 class="pretty-input"
+                 maxlength="50" minlength="3"
+                 type="text">
+          <span :data-validate="errors.firstInput"></span>
         </div>
-        <div :class="{'invalid':!passwordValid}" class="warning">
-          <input :id="'password-' + authCode" v-model="password" :placeholder="inputText.second" maxlength="25"
-                 minlength="3"
-                 type="password" class="pretty-input">
-          <span :data-validate="errors.password"></span>
+        <div :class="{'invalid':!secondInputValid}" class="warning">
+          <input :id="'second-input-' + authCode" :ref="secondInput" v-model="secondInput" :disabled="disabledSecondInput"
+                 :placeholder="inputText.second"
+                 :type="typeSecondInput"
+                 class="pretty-input"
+                 maxlength="50"
+                 minlength="3">
+          <span :data-validate="errors.secondInput"></span>
         </div>
-        <div :class="{'invalid':!confirmValid}" class="warning">
-          <input :id="'confirm-' + authCode" v-model="passwordConfirm" :placeholder="inputText.third" maxlength="25"
-                 minlength="3"
-                 type="password" class="pretty-input">
-          <span :data-validate="errors.passwordConfirm"></span>
+        <div :class="{'invalid':!thirdInputValid}" class="warning">
+          <input :id="'third-input-' + authCode" ref="thirdInput" v-model="thirdInput" :disabled="disabledThirdInput"
+                 :placeholder="inputText.third"
+                 :type="typeThirdInput"
+                 class="pretty-input"
+                 maxlength="50"
+                 minlength="3">
+          <span :data-validate="errors.thirdInput"></span>
         </div>
       </div>
-      <button type="submit">
+      <button :class="{'red-button': this.isUserDeleting || this.isUserPasswordResetting}" class="my-button pretty-input confirm-button clickable"
+              type="submit">
         <span class="disable-selection-text">
+          {{ submitButtonText.third }}
           <br>
           {{ submitButtonText.first }}
           <br>
@@ -56,57 +53,89 @@
 export default {
   name: "Auth",
   props: {
-    authCode: Number
+
+    authCode: {
+      type: Number,
+      default: 0,
+      required: false
+    },
+    user: Object,
   },
   data() {
     return {
-      ACTIONS: {
-        REGISTER: 'register',
+      SERVER_ACTIONS: {
+        CREATE_USER: 'create',
+        RESET_USER_PASSWORD: 'reset',
+        DELETE_USER: 'delete',
         LOGIN: 'login',
-        CHANGING_PASSWORD: 'change_password'
+        CHANGING_PASSWORD: 'change_password',
       },
-      action: '1',
       errors: {
-        name: '',
-        password: '',
-        passwordConfirm: ''
+        firstInput: '',
+        secondInput: '',
+        thirdInput: ''
       },
       response: {
         status: null,
         message: ''
       },
+      isLoading: false,
+      isUserCreated: false,
+      hasAlreadyReset: false,
       success: '',
       firstInput: null,
-      password: null,
-      passwordConfirm: null,
+      secondInput: null,
+      thirdInput: null,
       firstInputValid: true,
-      passwordValid: true,
-      confirmValid: true
+      secondInputValid: true,
+      thirdInputValid: true
     }
   },
   computed: {
+    numberOfInputs() {
+      let classText
+      let number
+      if (this.isChangingPassword || this.isUserCreated) {
+        classText = 'three-inputs'
+        number = 3
+      } else if (this.isAuth || this.isUserCreating || this.hasAlreadyReset) {
+        classText = 'two-inputs'
+        number = 2
+      } else if (this.isUserPasswordResetting || this.isUserDeleting) {
+        classText = 'one-input'
+        number = 1
+      }
+      return {classText, number}
+    },
     isAuth() {
       return this.authCode === this.$mydata.LOCAL_AUTH_CODES.LOGIN
     },
     isChangingPassword() {
       return this.authCode === this.$mydata.LOCAL_AUTH_CODES.CHANGING_PASSWORD
     },
-    isRegistration() {
-      return this.authCode === this.$mydata.LOCAL_AUTH_CODES.REGISTER
+    isUserCreating() {
+      return this.authCode === this.$mydata.LOCAL_AUTH_CODES.CREATE_USER
+    },
+    isUserPasswordResetting() {
+      return this.authCode === this.$mydata.LOCAL_AUTH_CODES.RESET_PASSWORD_USER
+    },
+    isUserDeleting() {
+      return this.authCode === this.$mydata.LOCAL_AUTH_CODES.DELETE_USER
     },
     viewText() {
-      let first, second
+      let text = ''
       if (this.isAuth) {
-        first = 'Вход'
-        second = ''
+        text = 'Вход'
       } else if (this.isChangingPassword) {
-        first = ''
-        second = 'Изменение пароля'
+        text = 'Изменение пароля'
+      } else if (this.isUserCreating) {
+        text = 'Создание нового пользователя'
+      } else if (this.isUserPasswordResetting) {
+        text = 'Сброс пароля пользователя'
+      } else if (this.isUserDeleting) {
+        text = 'Удаление пользователя'
       }
-      return {
-        first,
-        second
-      }
+      return text
     },
     inputText() {
       let first, second, third
@@ -118,6 +147,15 @@ export default {
         first = 'Старый пароль'
         second = 'Новый пароль'
         third = 'Повторите новый пароль'
+      } else if (this.isUserCreating) {
+        first = 'Имя'
+        second = 'Краткое описание'
+        third = 'Пароль'
+      } else if (this.isUserPasswordResetting) {
+        first = 'Имя'
+        second = 'Новый пароль'
+      } else if (this.isUserDeleting) {
+        first = 'Имя'
       }
       return {
         first,
@@ -125,39 +163,75 @@ export default {
         third
       }
     },
+    typeSecondInput() {
+      let type = 'password'
+      if (this.isUserCreating || this.isUserPasswordResetting)
+        type = 'text'
+      return type
+    },
+    typeThirdInput() {
+      let type = 'password'
+      if (this.isUserCreating)
+        type = 'text'
+      return type
+    },
     submitButtonText() {
-      let first, second
-      if (this.isAuth) {
+      let first, second, third
+      if (this.isLoading) {
+        first = 'Ожидайте...'
+        second = 'Ожидайте...'
+        third = 'Ожидайте...'
+      } else if (this.isAuth) {
         first = 'Войти'
-        second = 'Создать аккаунт'
       } else if (this.isChangingPassword) {
-        first = ''
         second = 'Изменить'
+      } else if (this.isUserCreating) {
+        first = 'Создать и получить пароль'
+        second = 'Скопировать пароль'
+      } else if (this.isUserPasswordResetting) {
+        third = 'Сбосить и получить новый'
+        first = 'Скопировать новый пароль'
+      } else if (this.isUserDeleting) {
+        third = 'Удалить'
       }
       return {
         first,
-        second
+        second,
+        third
       }
     },
-    actionName() {
-      let action = ''
+    serverActionName() {
+      let action
       if (this.isAuth)
-        action = this.ACTIONS.LOGIN
+        action = this.SERVER_ACTIONS.LOGIN
       else if (this.isChangingPassword)
-        action = this.ACTIONS.CHANGING_PASSWORD
-      else if (this.isRegistration)
-        action = this.ACTIONS.REGISTER
+        action = this.SERVER_ACTIONS.CHANGING_PASSWORD
+      else if (this.isUserCreating)
+        action = this.SERVER_ACTIONS.CREATE_USER
+      else if (this.isUserPasswordResetting)
+        action = this.SERVER_ACTIONS.RESET_USER_PASSWORD
+      else if (this.isUserDeleting)
+        action = this.SERVER_ACTIONS.DELETE_USER
       return action
+    },
+    disabledFirstInput() {
+      return this.isLoading || this.isUserCreated || this.isUserPasswordResetting || this.isUserDeleting
+    },
+    disabledSecondInput() {
+      return this.isLoading || this.isUserCreated
+    },
+    disabledThirdInput() {
+      return this.isLoading || this.isUserCreated
     }
   },
   watch: {
-    actionName() {
+    authCode() {
       this.clearForm()
     },
   },
   methods: {
     click(e) {
-      if (!(this.$refs['form'] === e.target || this.$refs['form'].contains(e.target))){
+      if (!(this.$refs['form'] === e.target || this.$refs['form'].contains(e.target))) {
         this.clearForm()
         this.$emit('close')
       }
@@ -169,18 +243,24 @@ export default {
       elem.classList.remove('visible')
       setTimeout(() => elem.classList.add('visible'), 150)
     },
-    registerRequest() {
-      this.request(this.actionName).catch(result => {
-        console.log(result)
-        if (result) {
-          this.setMessage('Аккаунт успешно создан!', true)
-        }
-      })
+    createUserRequest() {
+      if (!this.isUserCreated) {
+        this.isLoading = true
+        this.request().then(result => {
+          this.isLoading = false
+          if (result) {
+            this.setMessage('Успешно!', true)
+            this.thirdInput = result.password
+            this.isUserCreated = true
+          }
+        })
+      } else {
+        this.copyStrToClipboard(this.thirdInput)
+        this.setMessage('Скопировано!', true)
+      }
     },
     loginRequest() {
-      this.request(this.actionName).then(result => {
-        console.log(result)
-
+      this.request().then(result => {
         if (result) {
           this.$emit('successful-login', this.firstInput)
           this.$router.push({name: 'profile'})
@@ -189,30 +269,59 @@ export default {
       })
     },
     changePasswordRequest() {
-      this.request(this.actionName).then(result => {
-        console.log(result)
+      this.request().then(result => {
         if (result) {
-          console.log('Успешно!')
+          this.setMessage('Успешно!', true)
         }
 
       })
     },
-    request(actionName) {
+    userResetRequest() {
+      if (!this.hasAlreadyReset) {
+        this.isLoading = true
+        this.request().then(result => {
+          this.isLoading = false
+          if (result) {
+            this.setMessage('Успешно!', true)
+            this.secondInput = result.password
+            this.hasAlreadyReset = true
+          }
+        })
+      } else {
+        this.copyStrToClipboard(this.secondInput)
+        this.setMessage('Скопировано!', true)
+      }
+    },
+    userDeleteRequest() {
+      this.request().then(result => {
+        if (result) {
+          this.setMessage('Успешно!', true)
+        }
+
+      })
+    },
+    request() {
       let url = ''
       let data = {}
       if (this.isAuth) {
         url = this.$mydata.URL.auth
         data.login = this.firstInput
-        data.password = this.password
+        data.password = this.secondInput
       } else if (this.isChangingPassword) {
         url = this.$mydata.URL.changePassword
         data.login = this.$mydata.currentName()
         data.oldPassword = this.firstInput
-        data.newPassword = this.password
-        console.log(data)
-
+        data.newPassword = this.secondInput
+      } else if (this.isUserCreating) {
+        url = this.$mydata.URL.admin
+        data.login = this.firstInput
+        data.description = this.secondInput
+      } else if (this.isUserPasswordResetting || this.isUserDeleting) {
+        url = this.$mydata.URL.admin
+        data.user_id = this.user.id
+        data.login = this.user.login
       }
-      data.purpose = actionName
+      data.purpose = this.serverActionName
       return this.$axios({
         timeout: 5000,
         method: 'post',
@@ -228,7 +337,7 @@ export default {
             return false
           } else {
             this.setMessage(response.data.message, true)
-            return true
+            return response.data.data ? response.data.data : true
           }
         } else throw response
 
@@ -250,73 +359,93 @@ export default {
       })
     },
     checkForm() {
+      const emptyText = 'Свято место пусто не бывает'
+      const onlyLatin = 'Только латинские буквы и цифры'
       if (!this.firstInput) {
+
         this.firstInputValid = false;
-        if (this.isAuth)
-          this.errors.name = 'Укажите имя'
-        else if (this.isChangingPassword)
-          this.errors.name = 'Укажите старый пароль'
+        this.errors.firstInput = emptyText
       } else if (!this.firstInput.match(/^[A-Za-z0-9]*$/)) {
         this.firstInputValid = false;
-        this.errors.name = 'Только латинские буквы и цифры';
+        this.errors.firstInput = onlyLatin;
       } else {
         this.firstInputValid = true;
       }
 
-      if (!this.password) {
-        this.passwordValid = false;
-        if (this.isAuth)
-          this.errors.password = 'Укажите пароль'
-        else if (this.isChangingPassword)
-          this.errors.password = 'Укажите новый пароль'
-      } else if (!this.password.match(/^[A-Za-z0-9]*$/)) {
-        this.passwordValid = false;
-        this.errors.password = 'Только латинские буквы и цифры';
-      } else {
-        this.passwordValid = true;
-      }
+      if (this.numberOfInputs.number > 1
+          && !this.isUserPasswordResetting
+          && !this.isUserDeleting
+          && !this.hasAlreadyReset
+          && !this.isUserCreated)
+        if (!this.secondInput) {
+          this.secondInputValid = false;
+          this.errors.secondInput = emptyText
+        } else if (!this.isUserCreating && !this.secondInput.match(/^[A-Za-z0-9]*$/)) {
+          this.secondInputValid = false;
+          this.errors.secondInput = onlyLatin;
+        } else this.secondInputValid = true;
+      else this.secondInputValid = true
 
-      if (this.actionName === this.ACTIONS.LOGIN) {
-        this.confirmValid = true
-      } else if (!this.passwordConfirm) {
-        this.confirmValid = false
-        this.errors.passwordConfirm = 'Укажите пароль ещё раз'
-      } else if (this.password !== this.passwordConfirm) {
-        this.confirmValid = false
-        this.errors.passwordConfirm = 'Пароли не совпадают'
-      } else {
-        this.confirmValid = true
-      }
+      if (this.numberOfInputs.number > 2
+          && !this.isUserPasswordResetting
+          && !this.isUserDeleting
+          && !this.hasAlreadyReset
+          && !this.isUserCreated)
+        if (this.authCode === this.$mydata.LOCAL_AUTH_CODES.LOGIN) {
+          this.thirdInputValid = true
+        } else if (!this.thirdInput) {
+          this.thirdInputValid = false
+          this.errors.secondInput = emptyText
+        } else if (this.secondInput !== this.thirdInput) {
+          this.thirdInputValid = false
+          this.errors.thirdInput = 'Пароли не совпадают'
+        } else this.thirdInputValid = true
+      else this.thirdInputValid = true
 
-      console.log(this.action)
-      console.log(this.firstInputValid && this.passwordValid && this.confirmValid)
-      if (this.firstInputValid && this.passwordValid && this.confirmValid) {
-        if (this.actionName === this.ACTIONS.REGISTER)
-          this.registerRequest()
-        else if (this.actionName === this.ACTIONS.LOGIN)
+      if (this.firstInputValid && this.secondInputValid && this.thirdInputValid) {
+        if (this.isUserCreating)
+          this.createUserRequest()
+        else if (this.isAuth)
           this.loginRequest()
-        else if (this.actionName === this.ACTIONS.CHANGING_PASSWORD)
+        else if (this.isChangingPassword)
           this.changePasswordRequest()
+        else if (this.isUserPasswordResetting)
+          this.userResetRequest()
+        else if (this.isUserDeleting)
+          this.userDeleteRequest()
       }
     },
     clearForm() {
-      console.log('clear')
-      this.firstInputValid = true;
-      this.passwordValid = true;
-      this.confirmValid = true;
+      this.firstInputValid = true
+      this.secondInputValid = true
+      this.thirdInputValid = true
+      this.isLoading = false
+      this.isUserCreated = false
+      this.hasAlreadyReset = false
       this.response.message = ''
-      this.passwordConfirm = ''
+      this.thirdInput = ''
       this.firstInput = ''
-      this.password = ''
-    }
-
+      this.secondInput = ''
+      this.fillForm()
+    },
+    fillForm() {
+      if (this.isUserPasswordResetting || this.isUserDeleting)
+        this.firstInput = this.user.login
+    },
+    copyStrToClipboard(str) {
+      const el = document.createElement('textarea');
+      el.value = str;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    },
   },
   mounted() {
     this.clearForm()
-    if (this.isAuth)
-      this.action = '1'
-    else if (this.isChangingPassword)
-      this.action = '2'
   },
 
 
@@ -331,28 +460,26 @@ export default {
 .form-inside-wrapper {
   overflow: hidden;
 }
+.form-inside-wrapper .arrow {
+  left: 10px;
+}
+.one-input ~ .form-inside-wrapper {
+  height: 68px;
+}
 
-.first-input:checked ~ .form-inside-wrapper {
+.two-inputs ~ .form-inside-wrapper {
   height: 126px;
 }
 
-.first-input:checked ~ .form-inside-wrapper .arrow {
-  left: 10px;
-}
-
-.first-input:checked ~ button span {
+.two-inputs ~ button span {
   transform: translate3d(0, -48px, 0);
 }
 
-.second-input:checked ~ .form-inside-wrapper {
+.three-inputs ~ .form-inside-wrapper {
   height: 184px;
 }
 
-.second-input:checked ~ .form-inside-wrapper .arrow {
-  left: 108px;
-}
-
-.second-input:checked ~ button span {
+.three-inputs ~ button span {
   transform: translate3d(0, -96px, 0);
 }
 
@@ -363,44 +490,18 @@ form {
   margin: 0 15px;
 }
 
-input[type=radio] {
-  display: none;
-}
-
-label {
-  cursor: pointer;
+.auth-name {
   display: inline-block;
   font-size: 16px;
   font-weight: 800;
-  opacity: .5;
+  opacity: 1;
   margin-bottom: 15px;
   text-transform: uppercase;
 }
 
-label:hover {
-  transition: all .3s cubic-bezier(.6, 0, .4, 1);
-  opacity: 1;
-}
 
-label {
+.auth-name {
   margin-right: 20px;
-}
-
-input[type=radio]:checked + label {
-  opacity: 1;
-}
-
-button {
-  border: 2px solid #348fe2;
-  color: #348fe2;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 18px;
-  height: 48px;
-  width: 100%;
-  margin-bottom: 10px;
-  overflow: hidden;
-  transition: all .3s cubic-bezier(.6, 0, .4, 1);
 }
 
 button span {
@@ -409,11 +510,6 @@ button span {
   position: relative;
   top: 0;
   transform: translate3d(0, 0, 0);
-}
-
-button:hover {
-  background: #348fe2;
-  color: white;
 }
 
 .arrow {
@@ -494,5 +590,9 @@ button:hover {
 .visible {
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+.confirm-button {
+  text-indent: 0;
 }
 </style>

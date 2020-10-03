@@ -33,6 +33,5 @@ else if ($mobile_detect->isTablet())
 $db_mng = new DBManager();
 $db_mng->connect();
 $session_id = $sec_mng->is_session_exists() ? $sec_mng->get_session_id(): null;
-
 $session_id = $db_mng->save_user_stat($path, $user_id, $device, time(), $session_id);
 if($session_id !== false) $sec_mng->save_session($session_id);
