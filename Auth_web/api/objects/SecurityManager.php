@@ -122,6 +122,9 @@ class SecurityManager
 
         $cookie_options['httponly'] = false;
         setcookie($this->COOKIE_USER_META_NAME, '', $cookie_options);
+
+        $session_cookie_option = $this->get_old_session_cookie_options();
+        setcookie($this->SESSION_COOKIE_NAME, '', $session_cookie_option);
     }
 
     function set_headers()
@@ -154,6 +157,11 @@ class SecurityManager
     {
         $options = $this->get_cookie_options();
         $options['expires'] = $this->get_session_expires_time();
+        return $options;
+    }
+    private function get_old_session_cookie_options(){
+        $options = $this->get_session_cookie_options();
+        $options['expires'] = time() - 3600;
         return $options;
     }
 
