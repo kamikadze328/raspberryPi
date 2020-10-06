@@ -9,7 +9,7 @@
            :class="{'clickable disable-selection-text': isAuthorized()}"
            @click="toggleProfileButtons">
         {{ userName }}
-        <ProfileButtonsHeader @successful-logout="$emit('successful-logout')"
+        <ProfileButtonsHeader @successful-logout="logout"
                               @changing-password="$emit('changing-password')"
                               :style="{'opacity': Number(isProfileButtonsOpened), 'visibility' : buttonsContainerVisibility}"/>
       </div>
@@ -60,7 +60,11 @@ export default {
     closeAll(elem){
       if(this.$refs['clickable'] !== elem && this.isProfileButtonsOpened)
         this.toggleProfileButtons()
-    }
+    },
+    logout(){
+      this.toggleProfileButtons()
+      this.$emit('successful-logout')
+    },
   },
 
 }
