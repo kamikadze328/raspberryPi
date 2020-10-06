@@ -63,7 +63,10 @@ class DBManager
                 $user->id = $this->conn->lastInsertId();
                 return true;
             }
-            return false;
+           else {
+               $this->error_msg = $stmt->errorInfo();
+               return false;
+           }
         } catch (PDOException $e) {
             $this->error_msg = $e->getMessage();
             return false;
@@ -114,7 +117,6 @@ class DBManager
                 'token' => $token,
                 'user_id' => $user->id,
                 'expires' => $expires])) {
-                $stmt->closeCursor();
                 $this->conn->commit();
                 return true;
             } else {
@@ -135,9 +137,10 @@ class DBManager
             $query = "DELETE FROM {$this->USER_TOKENS_TABLE} 
                         WHERE user_id=:user_id and token=:token";
             $stmt = $this->conn->prepare($query);
-            $stmt->execute(['user_id' => $user_id, 'token' => $token]);
+            $result = $stmt->execute(['user_id' => $user_id, 'token' => $token]);
+            if(!$result) $this->error_msg = $stmt->errorInfo();
             $stmt->closeCursor();
-            return true;
+            return $result;
         } catch (PDOException $e) {
             $this->error_msg = $e->getMessage();
             return false;
@@ -190,6 +193,7 @@ class DBManager
                         WHERE id=:user_id";
             $stmt = $this->conn->prepare($query);
             $result = $stmt->execute(['password' => $user->password_secure, 'user_id' => $user->id]);
+            if(!$result) $this->error_msg = $stmt->errorInfo();
             $stmt->closeCursor();
             return $result;
         } catch (PDOException $e) {
@@ -205,6 +209,7 @@ class DBManager
                         WHERE id=:user_id";
             $stmt = $this->conn->prepare($query);
             $result = $stmt->execute(['user_id' => $user_id]);
+            if(!$result) $this->error_msg = $stmt->errorInfo();
             $stmt->closeCursor();
             return $result;
         } catch (PDOException $e) {
@@ -232,13 +237,13 @@ class DBManager
     }
 
 
-    function save_user_stat($path, $user_id, $device, $time, $session_id)
+    function save_user_stat($path, $user_id, $device, $time, $session_id, $ip)
     {
         try {
             $path_id = $this->get_path_id($path);
             if ($path_id !== false) {
                 if (is_null($session_id)) {
-                    $session_id = $this->init_user_session($user_id, $device);
+                    $session_id = $this->init_user_session($user_id, $device, $ip);
                     return ($session_id === false) ?
                         false :
                         $this->init_user_stat($path_id, $time, $session_id);
@@ -292,7 +297,8 @@ class DBManager
                 'url_id' => $path_id,
                 'start_time' => $current_time,
                 'end_time' => $current_time,
-                'session_id' => $session_id]);
+                'session_id' => $session_id
+            ]);
             $stmt->closeCursor();
             return $session_id;
         } catch (PDOException $e) {
@@ -301,14 +307,20 @@ class DBManager
         }
     }
 
-    private function init_user_session($user_id, $device)
+    private function init_user_session($user_id, $device, $ip)
     {
         try {
             $query = "INSERT INTO {$this->USER_SESSIONS_TABLE} 
-                        (user_id, device)
-                        VALUES (:user_id, :device);";
+                        (user_id, device, ip)
+                        VALUES (:user_id, :device, :ip);";
             $stmt = $this->conn->prepare($query);
-            $session_id = $stmt->execute(['user_id' => $user_id, 'device' => $device]) ? intval($this->conn->lastInsertId()) : false;
+            $session_id = $stmt->execute([
+                'user_id' => $user_id,
+                'device' => $device,
+                'ip' => $ip
+            ]) ?
+                intval($this->conn->lastInsertId()) :
+                false;
             $stmt->closeCursor();
             return $session_id;
         } catch (PDOException $e) {
@@ -342,13 +354,13 @@ class DBManager
                                 sess.device as device,
                                 UL.path as URL_path,
                                 UL.name as URL_name,
-                                u.login as username 
+                                u.login as username,
+                                sess.ip as ip
                     FROM {$this->USER_SESSIONS_TABLE} sess 
-                    LEFT JOIN {$this->USER_STATS_TABLE} us on sess.id = us.session_id 
+                    INNER JOIN {$this->USER_STATS_TABLE} us on sess.id = us.session_id 
                     LEFT JOIN {$this->URLs_TABLE} UL on us.url_id = UL.id
                     LEFT JOIN {$this->USERS_TABLE} u on sess.user_id = u.id
-                    WHERE us.start_time between :date_min and :date_max
-                    ORDER BY sess.id";
+                    WHERE us.start_time between :date_min and :date_max";
             $stmt = $this->conn->prepare($query);
 
             $stmt->bindParam(':date_min', $date_min, PDO::PARAM_INT);
@@ -358,10 +370,13 @@ class DBManager
                 $stmt->closeCursor();
                 $returned_array = array();
                 if (count($result_set) > 0) {
+                    $ip = is_null($result_set[0]['ip']) ? null : intval($result_set[0]['ip']);
+                    $ip = is_null($ip) ? null : '' . intdiv($ip, 1000) . '.' . ($ip % 1000) . '.0' . '.0';
                     $prev_session = array(
                         'session_id' => $result_set[0]['session_id'],
                         'device' => $result_set[0]['device'],
-                        'username' => $result_set[0]['username']
+                        'username' => $result_set[0]['username'],
+                        'ip' => $ip
                     );
                     $stats = array();
                     foreach ($result_set as $result) {
@@ -369,13 +384,17 @@ class DBManager
                             $returned_array[] = array(
                                 'device' => intval($prev_session['device']),
                                 'username' => $prev_session['username'],
+                                'ip' => $prev_session['ip'],
                                 'stats' => $stats
                             );
                             $stats = array();
+                            $ip = is_null($result['ip']) ? null : intval($result['ip']);
+                            $ip = is_null($ip) ? null : '' . intdiv($ip, 1000) . '.' . ($ip % 1000) . '.0' . '.0';
                             $prev_session = array(
                                 'session_id' => $result['session_id'],
                                 'device' => $result['device'],
-                                'username' => $result['username']
+                                'username' => $result['username'],
+                                'ip' => $ip
                             );
                         }
                         $stats[] = array(
@@ -388,25 +407,33 @@ class DBManager
                     $returned_array[] = array(
                         'device' => intval($prev_session['device']),
                         'username' => $prev_session['username'],
-                        'stats' => $stats
+                        'ip' => $prev_session['ip'],
+                        'stats' => $stats,
                     );
 
                     return $returned_array;
-                } else return false;
-            } else return false;
+                } else return array();
+            } else {
+                $this->error_msg = $stmt->errorInfo();
+                return false;
+            }
         } catch (PDOException $e) {
             $this->error_msg = $e->getMessage();
             return false;
         }
     }
 
+
+
     function get_users_with_stats($date_min, $date_max){
         try{
             $query = "SELECT u.id as id, 
                             u.login as login, 
+                            u.description as description,
                             ifnull(max(start_time), 0) as last_session, 
                             count(us.id) as count_sessions, 
-                            ifnull(avg(end_time - start_time), 0) as average_time_session
+                            ifnull(avg(end_time - start_time), 0) as average_time_session,
+                            count(distinct case when us.ip is null then 1 end) as count_distinct_places
                         FROM {$this->USER_STATS_TABLE}
                             JOIN user_sessions us ON us.id = user_statistics.session_id
                                 AND start_time between :date_min and :date_max
@@ -418,7 +445,10 @@ class DBManager
                 $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $stmt->closeCursor();
                 return $result_set;
-            } else return false;
+            } else {
+                $this->error_msg = $stmt->errorInfo();
+                return false;
+            }
         }catch (PDOException $e) {
             $this->error_msg = $e->getMessage();
             return false;

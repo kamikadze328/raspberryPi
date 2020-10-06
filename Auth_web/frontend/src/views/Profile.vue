@@ -40,11 +40,17 @@ export default {
       return this.$cookies.isKey('isAdmin') ? this.$cookies.get('isAdmin') === 'true' : false
     }
   },
+  methods: {
+    closeAll(elem){
+      elem
+    }
+  },
   beforeRouteEnter(to, from, next) {
     next(vm => {
       vm.$mydata.isAuth()
     })
   },
+
 }
 </script>
 

@@ -17,6 +17,7 @@ Vue.prototype.$mydata = {
             {
                 "device": 0,
                 "username": "123",
+                "ip": '83.102.0.0',
                 "stats": [{
                     "start_time": 1601211313,
                     "duration_sec": 1005,
@@ -225,20 +226,7 @@ Vue.prototype.$mydata = {
                 }]
             }*/
         ],
-        users: [/*
-            {
-                id: 1,
-                login: '123'
-            },
-            {
-                id: 2,
-                login: 'kekek',
-            },
-            {
-                id: 3,
-                login: 'Edward'
-            }*/
-        ]
+        users: []
     },
     dateMainMax: {
         date_min: new Date(new Date - 86400000).setHours(0, 0, 0, 0),

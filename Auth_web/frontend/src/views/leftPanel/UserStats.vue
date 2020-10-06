@@ -13,7 +13,7 @@
         </tr>
         </thead>
         <tbody>
-        <template v-for="session in filteredData">
+        <template v-for="session in sortedData">
           <tr v-show="!isLoading" :key="statsData.indexOf(session)">
             <td class="clickable" @click="toggleVisibilityStatRow">
               <div :class="openCloseRowClasses.closed" class="svg-img svg-box"></div>
@@ -25,6 +25,7 @@
                 <div :class="detectDeviceOC(session.device)" class="svg-device-box svg-img"></div>
               </div>
             </td>
+            <td>{{ session.ip }}</td>
             <td>{{ getCountStatsInSession(session) }}</td>
             <td>{{ getStartTime(session) }}</td>
             <td>{{ getDurationTime(session) }}</td>
@@ -33,11 +34,10 @@
               :style="isLoading ? 'display: none !important;' : ''"
               class="stat-row"
               style="display: none">
-            <td class="stat-refs" colspan="4">
+            <td class="stat-refs" colspan="5">
               <div>{{ stat.url_name }}</div>
               <a :href="stat.url_path">{{ getCurrentDomain() + stat.url_path }}</a>
             </td>
-            <td>{{ $mydata.secToDate(stat.start_time) }}</td>
             <td>{{ $mydata.secToHms(stat.duration_sec) }}</td>
           </tr>
         </template>
@@ -74,10 +74,12 @@ export default {
       headers: [
         {id: 0, name: 'Пользователь'},
         {id: 1, name: 'Устройство'},
-        {id: 2, name: 'Посещено страниц'},
-        {id: 3, name: 'Дата и время'},
-        {id: 4, name: 'Длительность сеанса'},
+        {id: 2, name: 'IP'},
+        {id: 3, name: 'Посещено страниц'},
+        {id: 4, name: 'Дата и время'},
+        {id: 5, name: 'Длительность сеанса'},
       ],
+      sortedBy: {columnId: 4, asc: false},
       isLoading: false,
       statsData: [],
       openCloseRowClasses: {
@@ -104,12 +106,18 @@ export default {
         else return session.username.toLowerCase().indexOf(this.inputText) > -1
       })
     },
+    sortedData: function () {
+      console.log(this.filteredData[0] ? this.filteredData[0].stats : null)
+      return [...this.filteredData].sort((a, b) => {
+        return (this.sortedBy.asc ? 1 : -1) * (this.getMinStartTime(a) - this.getMinStartTime(b))
+      })
+    },
     isNothingFound: function () {
       return this.filteredData.length === 0
     },
   },
   methods: {
-    updateDate(min, max){
+    updateDate(min, max) {
       this.get_stats(min, max)
     },
     getCurrentDomain() {
@@ -158,7 +166,10 @@ export default {
     },
 
     getStartTime(session) {
-      return this.$mydata.secToDate(Math.min.apply(null, session.stats.map(stat => stat.start_time)))
+      return this.$mydata.secToDate(this.getMinStartTime(session))
+    },
+    getMinStartTime(session) {
+      return Math.min.apply(null, session.stats.map(stat => stat.start_time))
     },
     getDurationTime(session) {
       let sum = 0
@@ -171,7 +182,7 @@ export default {
       return uniqueURLSet.size
     },
     get_stats(min, max) {
-      if(!this.isLoading) {
+      if (!this.isLoading) {
         this.isLoading = true
         this.$axios({
           timeout: 30000,
@@ -203,7 +214,7 @@ export default {
       this.statsData = data
       this.isLoading = false
     },
-    closeAll(elem){
+    closeAll(elem) {
       elem
     }
   },
@@ -277,7 +288,8 @@ a:focus, a:hover {
   margin: 0 4px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 512 512' fill='%23b8b8b8'%3E%3Cg%3E%3Cpath d='M492,236H276V20c0-11.046-8.954-20-20-20c-11.046,0-20,8.954-20,20v216H20c-11.046,0-20,8.954-20,20s8.954,20,20,20h216 v216c0,11.046,8.954,20,20,20s20-8.954,20-20V276h216c11.046,0,20-8.954,20-20C512,244.954,503.046,236,492,236z'/%3E%3C/g%3E%3C/svg%3E");
 }
-.minus-icon{
+
+.minus-icon {
   margin: 0 4px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 512 512' fill='%23b8b8b8'%3E%3Cg%3E%3Cg%3E%3Cpath d='M492,236H20c-11.046,0-20,8.954-20,20c0,11.046,8.954,20,20,20h472c11.046,0,20-8.954,20-20S503.046,236,492,236z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
@@ -295,8 +307,6 @@ a:focus, a:hover {
 .stat-refs {
   padding-left: 45px !important;
 }
-
-
 
 
 </style>

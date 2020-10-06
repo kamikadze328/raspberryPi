@@ -231,10 +231,13 @@ export default {
   },
   methods: {
     click(e) {
-      if (!(this.$refs['form'] === e.target || this.$refs['form'].contains(e.target))) {
+      if (this.$route.name!== 'auth' && !(this.$refs['form'] === e.target || this.$refs['form'].contains(e.target))) {
         this.clearForm()
         this.$emit('close')
       }
+    },
+    closeAll(elem){
+      elem
     },
     setMessage(message, isOK) {
       this.response.status = isOK

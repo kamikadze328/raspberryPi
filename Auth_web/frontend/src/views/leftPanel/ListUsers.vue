@@ -1,6 +1,7 @@
 <template>
   <div class="stat-container">
-    <AdmitPanelOverTable ref="overTable" v-model="inputText" :default-date-range="defaultDateRange" :with-add-button="true"
+    <AdmitPanelOverTable ref="overTable" v-model="inputText" :default-date-range="defaultDateRange"
+                         :with-add-button="true"
                          @add-button-click="createUser" @update-date="updateDate"/>
     <table>
       <thead>
@@ -14,9 +15,11 @@
       <tbody>
       <tr v-for="user in filteredData" v-show="!isLoading" :key="usersData.indexOf(user)">
         <td>{{ user.login }}</td>
+        <td>{{ user.description }}</td>
         <td>{{ $mydata.secToDate(Math.floor(Number(user.last_session))) }}</td>
         <td>{{ Number(user.count_sessions) }}</td>
         <td>{{ $mydata.secToHms(Math.floor(Number(user.average_time_session))) }}</td>
+        <td>{{ user.count_distinct_places }}</td>
         <td ref="clickable" class="clickable svg-box svg-img more-icon" @click="handleMenuClick">
           <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
             <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
@@ -49,9 +52,11 @@ export default {
       defaultDateRange: 'week',
       headers: [
         {id: 0, name: 'Имя'},
-        {id: 1, name: 'Последний сеанс'},
-        {id: 2, name: 'Количество сеансов'},
-        {id: 3, name: 'Средняя продолжительность'},
+        {id: 1, name: 'Описание'},
+        {id: 2, name: 'Последний сеанс'},
+        {id: 3, name: 'Количество сеансов'},
+        {id: 4, name: 'Средняя продолжительность'},
+        {id: 5, name: 'Количество мест'}
       ],
       inputText: '',
       usersData: [],
@@ -94,7 +99,6 @@ export default {
 
     },
     updateDate(min, max) {
-
       this.get_users(min, max)
     },
     createUser() {
@@ -115,7 +119,7 @@ export default {
       this.$router.push({name: 'admin-panel-stats', params: {inputText: ('/^' + user.login + '$/')}})
     },
     get_users(min, max) {
-      if(!this.isLoading) {
+      if (!this.isLoading) {
         this.isLoading = true
         this.$axios({
           timeout: 30000,
@@ -142,11 +146,14 @@ export default {
         })
       }
     },
+    updateUsers() {
+      this.$refs['overTable'].updateDates()
+    }
   },
   mounted() {
     console.log(this.$mydata.data.users.length)
     if (this.$mydata.data.users.length === 0 && !this.isLoading)
-      this.$refs['overTable'].updateDates()
+      this.updateUsers()
     else this.updateLocalUsersData(this.$mydata.data.users)
   },
 }
