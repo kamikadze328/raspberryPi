@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
+<head>
+    <script>
+        document.addEventListener("mousemove",onActivity);document.addEventListener("mousedown",onActivity);document.addEventListener("keydown",onActivity);document.addEventListener("scroll",onActivity);document.addEventListener("touchstart",onActivity);window.addEventListener("beforeunload",function(){return $jscomp.asyncExecutePromiseGeneratorProgram(function($jscomp$generator$context){if(!lastSending.isSending)return $jscomp$generator$context.jumpTo(0);console.log("here");return $jscomp$generator$context.yield(sleep(100),1)})});var currentPath=function(){return document.location.pathname};var lastSending={date:new Date,path:currentPath(),isSending:false};sendStats();function onActivity(){if(!lastSending.isSending&&(new Date-lastSending.date>6E4||lastSending.path!==currentPath()))sendStats()}function sendStats(){lastSending.isSending=true;fetch("/api/statistics/stats.php",{method:"POST"}).then(function(){lastSending.date=new Date;lastSending.path=document.location.pathname;lastSending.isSending=false})}function sleep(ms){return new Promise(function(resolve){return setTimeout(resolve,ms)})};
+    </script>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta content="width=device-width,initial-scale=1.0" name="viewport">
+    <link href="<%= BASE_URL %>favicon.ico" rel="icon">
     <title>carbon-dv</title>
-      <script type="text/javascript" src="<%= BASE_URL %>api/js/sendStats.js"></script>
-  </head>
-  <body>
-    <div id="app"></div>
+</head>
+<body>
+<div id="app"></div>
 
-  </body>
+</body>
 </html>
