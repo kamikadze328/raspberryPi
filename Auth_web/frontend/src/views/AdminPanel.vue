@@ -5,19 +5,23 @@
         <router-link :to="{name:'admin-panel-stats'}">
           Стаистика
         </router-link>
-        <router-link :to="{name: 'admin-panel-list-users'}">
+        <router-link :to="{name: 'admin-panel-users'}">
           Пользователи
+        </router-link>
+        <router-link :to="{name: 'admin-panel-roles'}">
+          Роли
         </router-link>
       </div>
       <div class="left-panel-bottom">
         <router-link :to="{name: 'profile'}">К ссылкам</router-link>
       </div>
     </div>
-    <div class="admin-content">
+    <div ref="adminContent" class="admin-content">
       <router-view ref="routerView"
                    @create-user="$emit('create-user')"
-                   @delete-user="(user) => $emit('delete-user', user)"
-                   @reset-user-password="(user) => $emit('reset-user-password', user)"/>
+                   @delete-user="user => $emit('delete-user', user)"
+                   @reset-user-password="user => $emit('reset-user-password', user)"
+                   @change-user-role="user => $emit('change-user-role', user)"/>
     </div>
   </div>
 </template>
@@ -29,8 +33,21 @@ export default {
     this.$refs['leftPanel'].classList.add('opened')
   },
   methods: {
-    closeAll(elem){
-      this.$refs['routerView'].closeAll(elem)
+    toggleLeftPanel(){
+      const left = this.$refs['leftPanel'].style.left
+      console.log(left)
+      if(left === '') this.openMenu()
+      else left === '0px' ? this.closeMenu() : this.openMenu()
+    },
+    openMenu(){
+      console.log('open')
+      this.$refs['leftPanel'].style.setProperty( 'left', '0', 'important' );
+
+
+    },
+    closeMenu(){
+      console.log('close')
+      this.$refs['leftPanel'].style.setProperty( 'left', '-190px', 'important' );
     }
   }
 }
@@ -50,15 +67,16 @@ export default {
 }
 
 .admin-left-panel {
+  z-index: 1000;
   text-transform: uppercase;
   font-weight: 500;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  flex: 0 0 170px;
+  width: 190px;
   position: relative;
   left: -170px;
-  background-color: rgba(52, 143, 226, .2);
+  background-color: #d0e3f3;
   height: 100%;
   -webkit-transition: left .2s linear;
   -moz-transition: left .2s linear;
@@ -88,10 +106,13 @@ export default {
 }
 
 .admin-content {
-  width: 100%;
+  width: 100% !important;
   box-sizing: border-box;
   padding: 15px 20px;
   overflow: auto;
+  position: relative;
+  -webkit-transition: left .2s linear;
+  transition: left .2s linear;
 }
 
 .admin-content >>> table {
@@ -122,6 +143,14 @@ export default {
 
 .left-panel-bottom {
   margin-bottom: 10px
+}
+
+@media (max-width: 1200px) {
+  .admin-left-panel{
+    left: -190px !important;
+    position: absolute;
+  }
+
 }
 
 </style>

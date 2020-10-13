@@ -1,12 +1,16 @@
 <template>
   <div class="under-table-container">
     <div class="default-box">
-      <label>
-        <input v-model="inputText" class="pretty-input search-input" placeholder="Поиск по имени"
-               type="text" @input="handleInput">
-      </label>
+      <div class="search-label">
+        <label>
+          <input v-model="inputText" class="pretty-input search-input" placeholder="Поиск по имени"
+                 type="text" @input="handleInput">
+        </label>
+        <div class="show-additional-buttons svg-box svg-img clickable" @click="toggleAllButtons"></div>
 
-      <div class="date-button-box">
+      </div>
+
+      <div ref="dateButtonBox" class="date-button-box">
         <button :class="{'button-focus': isYesterdayDates}" class="pretty-input my-button clickable"
                 @click="setYesterdayDates">Вчера
         </button>
@@ -17,9 +21,12 @@
                 @click="setWeekAgoDates">Неделя
         </button>
       </div>
-      <flatpickr v-model="dateStr" :config="dateConfig" class="flatpickr"/>
+      <div ref="calendarBox" class="calendar-box">
+        <flatpickr v-model="dateStr" :config="dateConfig" class="flatpickr"/>
+      </div>
     </div>
-    <button @click="$emit('add-button-click')" v-show="withAddButton" class="pretty-input my-button clickable green-button add-button">Добавить
+    <button v-show="withAddButton" class="pretty-input my-button clickable green-button add-button"
+            @click="$emit('add-button-click')">Добавить
       пользователя
     </button>
 
@@ -112,7 +119,7 @@ export default {
       this.$emit('input', e.target.value)
     },
     setMinMaxDates(min, max) {
-      if(min !== null && min !== undefined && max !== null && max !== undefined) {
+      if (min !== null && min !== undefined && max !== null && max !== undefined) {
         this.date.min = new Date(min)
         this.date.max = new Date(max)
       }
@@ -154,8 +161,23 @@ export default {
       else if (val === 'yesterday')
         this.setYesterdayDates()
     },
-    updateDates(){
+    updateDates() {
       this.$emit('update-date', this.date.min, this.date.max)
+    },
+    toggleAllButtons(e) {
+      e.target.classList.toggle('closed-addition-buttons')
+      if(this.$refs['calendarBox'].style.display === '') this.openAllButtons()
+      else this.$refs['calendarBox'].style.display === 'none' ? this.openAllButtons() : this.closeAllButtons()
+    },
+    openAllButtons() {
+
+      this.$refs['calendarBox'].style.display = 'block'
+      this.$refs['dateButtonBox'].style.display = 'flex'
+    },
+    closeAllButtons() {
+      this.$refs['calendarBox'].style.display = 'none'
+      this.$refs['dateButtonBox'].style.display = 'none'
+
     }
   },
   mounted() {
@@ -187,6 +209,7 @@ export default {
   cursor: pointer !important;
 
 }
+
 </style>
 <style scoped>
 .under-table-container {
@@ -231,7 +254,26 @@ export default {
   text-indent: 0;
 }
 
-@media (max-width: 800px) {
+.show-additional-buttons {
+  height: 25px;
+  width: 25px;
+  margin-left: 20px;
+  transform: rotate(0);
+  display: none;
+  -webkit-animation: .3s linear forwards;
+  animation: .3s linear forwards;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 451.847 451.847'%3E%3Cg%3E%3Cpath d='M225.923,354.706c-8.098,0-16.195-3.092-22.369-9.263L9.27,151.157c-12.359-12.359-12.359-32.397,0-44.751 c12.354-12.354,32.388-12.354,44.748,0l171.905,171.915l171.906-171.909c12.359-12.354,32.391-12.354,44.744,0 c12.365,12.354,12.365,32.392,0,44.751L248.292,345.449C242.115,351.621,234.018,354.706,225.923,354.706z'/%3E%3C/g%3E%3C/svg%3E%0A");
+}
+
+
+.search-label {
+  display: flex;
+  align-items: center;
+}
+.closed-addition-buttons{
+  transform: rotate(180deg);
+}
+@media (max-width: 500px) {
   .under-table-container {
     flex-direction: column;
     align-items: flex-start;
@@ -243,9 +285,10 @@ export default {
 }
 
 @media (max-width: 1300px) {
-  .under-table-container{
+  .under-table-container {
     justify-content: space-between;
   }
+
   .default-box {
     flex-direction: column;
     align-items: flex-start;
@@ -253,6 +296,15 @@ export default {
 
   .date-button-box {
     margin: 10px 0;
+    display: none;
   }
+
+  .calendar-box, .date-button-box {
+    display: none;
+  }
+  .show-additional-buttons{
+    display: block;
+  }
+
 }
 </style>

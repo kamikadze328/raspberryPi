@@ -1,13 +1,15 @@
 <template>
-  <div id="app" @click="closeAll">
+  <div id="app">
     <Header ref="header"
             :user-name="userName"
+            @toggle-left-admin-panel="toggleLeftAdminPanel"
             @successful-logout="successfulLogout"
             @changing-password="changingPassword"/>
     <router-view @successful-login="successfulLogin"
                  @create-user="createUser"
                  @delete-user="deleteUser"
                  @reset-user-password="resetUserPassword"
+                 @@change-user-role="changeUserRole"
                   ref="routerView"/>
     <div class="alert"></div>
     <Auth v-show="isAuthMenuOpened"
@@ -43,9 +45,7 @@ export default {
       this.userName = this.defaultUserName
     },
     changingPassword() {
-      console.log(this.authMenuCode)
       this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.CHANGING_PASSWORD
-      console.log(this.authMenuCode)
       this.openAuthMenu()
     },
     createUser(){
@@ -62,12 +62,16 @@ export default {
       this.authMenuUser = user
       this.openAuthMenu()
     },
+    changeUserRole(user){
+      this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.CHANGE_USER_ROLE
+      this.authMenuUser = user
+      this.openAuthMenu()
+    },
     openAuthMenu(){
       this.isAuthMenuOpened = true
     },
-    closeAll(e){
-      this.$refs['routerView'].closeAll(e.target)
-      this.$refs['header'].closeAll(e.target)
+    toggleLeftAdminPanel(){
+      this.$refs['routerView'].toggleLeftPanel()
     }
   },
 

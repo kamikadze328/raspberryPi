@@ -4,8 +4,9 @@ import Auth from '@/views/Auth'
 import Profile from "@/views/Profile"
 import VueCookies from 'vue-cookies'
 import AdminPanel from "@/views/AdminPanel";
-import UserStats from "@/views/leftPanel/UserStats";
-import ListUsers from "@/views/leftPanel/ListUsers";
+import Stats from "@/views/adminPanel/Stats";
+import Users from "@/views/adminPanel/Users";
+import Roles from "@/views/adminPanel/Roles";
 
 Vue.use(Router);
 Vue.use(VueCookies)
@@ -51,8 +52,7 @@ const router = new Router({
             meta: {title: 'Панель управления'},
             beforeEnter: (to, from, next) => {
                 console.log(VueCookies.get(userMeta))
-
-                if (VueCookies.isKey(userMeta) && VueCookies.isKey('isAdmin') && VueCookies.get('isAdmin') === 'true')
+                if (VueCookies.isKey(userMeta) && VueCookies.isKey(userMeta) && VueCookies.get(userMeta).isAdmin)
                     next()
                 else next({name: 'auth'})
 
@@ -60,7 +60,7 @@ const router = new Router({
             children: [
                 {
                     path: 'stats',
-                    component: UserStats,
+                    component: Stats,
                     name: 'admin-panel-stats',
                     meta: {title: 'Статистика'},
                     props: true
@@ -68,8 +68,14 @@ const router = new Router({
                 },
                 {
                     path: 'users',
-                    component: ListUsers,
-                    name: 'admin-panel-list-users',
+                    component: Users,
+                    name: 'admin-panel-users',
+                    meta: {title: 'Пользователи'},
+                },
+                {
+                    path: 'roles',
+                    component: Roles,
+                    name: 'admin-panel-roles',
                     meta: {title: 'Пользователи'},
                 }
                 ]

@@ -37,7 +37,7 @@ export default {
   },
   computed: {
     isAdmin: function () {
-      return this.$cookies.isKey('isAdmin') ? this.$cookies.get('isAdmin') === 'true' : false
+      return this.$mydata.isAdmin()
     }
   },
   methods: {

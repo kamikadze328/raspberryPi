@@ -17,7 +17,7 @@ export default {
         this.$axios({
           timeout: 5000,
           method: 'post',
-          url: this.$mydata.URL.auth,
+          url: this.$mydata.server.URL.auth,
           data: {
             purpose: 'logout',
           }
@@ -26,6 +26,7 @@ export default {
 
         // eslint-disable-next-line no-empty
       } catch {
+        this.localLogout()
       }
 
     },

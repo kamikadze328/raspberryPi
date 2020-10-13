@@ -1,9 +1,12 @@
 <template>
   <div class="header">
     <div class="header-inner">
-      <div>Ecodom</div>
+      <div>
+        <div v-show="$route.name.startsWith('admin-panel')" @click="toggleLeftMenu" class="sidebar-button svg-box svg-img clickable"></div>
+        <div class="organization-name">Ecodom</div>
+      </div>
       <a class="header-logo" href="https://se.ifmo.ru/courses/web">
-        <img crossorigin="anonymous" src="../assets/itmo_logo.png" alt="itmo logo">
+        <img crossorigin="anonymous"  src="../assets/itmo_logo.png" alt="itmo logo">
       </a>
       <div class="buttons-container" ref="clickable"
            :class="{'clickable disable-selection-text': isAuthorized()}"
@@ -57,15 +60,22 @@ export default {
     updateIsAuth(val){
       this.isAuth = val
     },
-    closeAll(elem){
-      if(this.$refs['clickable'] !== elem && this.isProfileButtonsOpened)
+    closeAll(e){
+      if(this.$refs['clickable'] !== e.target && this.isProfileButtonsOpened)
         this.toggleProfileButtons()
     },
     logout(){
       this.toggleProfileButtons()
       this.$emit('successful-logout')
     },
+    toggleLeftMenu(){
+      if(this.$route.name.startsWith('admin-panel'))
+        this.$emit('toggle-left-admin-panel')
+    }
   },
+  mounted() {
+    document.addEventListener('click', this.closeAll)
+  }
 
 }
 </script>
@@ -117,6 +127,22 @@ export default {
   display: block;
   height: 36px;
   margin: 0 auto;
+}
+
+.sidebar-button{
+  display: none;
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' aria-hidden='true' role='img' viewBox='0 0 448 512' class='icon'%3E%3Cpath fill='currentColor' d='M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z'%3E%3C/path%3E%3C/svg%3E");
+}
+
+@media (max-width: 1200px) {
+  .sidebar-button{
+    display: flex;
+  }
+  .organization-name{
+    display: none;
+  }
 }
 @media (max-width: 500px) {
   .header-inner > * {
