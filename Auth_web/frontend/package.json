@@ -12,7 +12,8 @@
     "vue": "^2.6.12",
     "vue-cookies": "^1.7.4",
     "vue-flatpickr-component": "^8.1.6",
-    "vue-router": "^3.4.3"
+    "vue-router": "^3.4.3",
+    "vue-select": "^3.10.8"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",
