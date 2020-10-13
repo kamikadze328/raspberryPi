@@ -1,12 +1,13 @@
 <?php
 class User
 {
-    public $id;
-    public $login;
-    public $password;
-    public $password_from_db;
-    public $password_secure;
-    public $description;
+    public ?int $id = null;
+    public string $login;
+    public string $password;
+    public ?string $password_from_db = null;
+    public ?string $password_secure = null;
+    public ?string $description = null;
+    public ?int $role_id = null;
 
     public function __construct($login, $password)
     {

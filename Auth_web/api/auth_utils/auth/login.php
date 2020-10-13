@@ -13,7 +13,8 @@ if (isset($user_data['login']) && isset($user_data['password'])) {
             $sec_mng = new SecurityManager();
             if ($sec_mng->check_password($user->password, $user->password_from_db)) {
 
-                $token = $sec_mng->generate_token($user);
+                $permissions = $database->get_role_permissions_by_id($user->role_id);
+                $token = $sec_mng->generate_token($user, $permissions);
                 if ($database->save_user_token($user, $token, $sec_mng->get_token_expires_time())) {
                     $sec_mng->save_token_on_client($token, $user->login);
                     $message = 'Успешно!';

@@ -6,18 +6,23 @@ include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
 
 class DBManager
 {
-    private $host = null;
-    private $db_name = null;
-    private $username = null;
-    private $password = null;
-    private $conn = null;
-    private $USERS_TABLE = "users";
-    private $USER_TOKENS_TABLE = "user_tokens";
-    private $USER_STATS_TABLE = "user_statistics";
-    private $URLs_TABLE = 'URLs';
-    private $USER_SESSIONS_TABLE = 'user_sessions';
+    private ?string $host = null;
+    private ?string $db_name = null;
+    private ?string $username = null;
+    private ?string $password = null;
+    private ?PDO $conn = null;
+    private string $USERS_TABLE = "users";
+    private string $USER_TOKENS_TABLE = "user_tokens";
+    private string $USER_STATS_TABLE = "user_statistics";
+    private string $URLs_TABLE = 'URLs';
+    private string $USER_SESSIONS_TABLE = 'user_sessions';
+    private string $USER_ROLE_TO_PERMISSION_TABLE = 'user_roleToPermissions';
+    private string $URL_PERMISSIONS_TABLE = 'URL_PERMISSIONS';
+    private string $USER_ROLES_TABLE = 'user_roles';
 
-    public $error_msg = '';
+    private int $DEFAULT_ROLE_ID = 0;
+
+    public array $error_msg = array(); //TODO
 
     public function __construct()
     {
@@ -33,7 +38,7 @@ class DBManager
 
     function connect()
     {
-        $this->error_msg = '';
+        $this->error_msg = array();
         try {
             $dsn = 'mysql:host=' . $this->host
                 . ';dbname=' . $this->db_name
@@ -50,25 +55,26 @@ class DBManager
     {
         try {
             $query = "INSERT INTO {$this->USERS_TABLE} 
-                        (login, description, password)
-                    VALUES(:login, :description, :password)";
+                        (login, description, password, role_id)
+                    VALUES(:login, :description, :password, :role_id)";
 
             $stmt = $this->conn->prepare($query);
             if ($stmt->execute([
                 'login' => $user->login,
                 'description' => $user->description,
-                'password' => $user->passowrd_secure
+                'password' => $user->passowrd_secure,
+                'role_id' => $user->role_id
             ])) {
 
                 $user->id = $this->conn->lastInsertId();
                 return true;
+            } else {
+                $this->error_msg = $stmt->errorInfo();
+                return false;
             }
-           else {
-               $this->error_msg = $stmt->errorInfo();
-               return false;
-           }
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -76,7 +82,7 @@ class DBManager
     function user_exists($user)
     {
         try {
-            $query = "SELECT id, password
+            $query = "SELECT id, password, role_id
             FROM {$this->USERS_TABLE}
             WHERE login = ?
             LIMIT 1";
@@ -91,12 +97,14 @@ class DBManager
 
                 $user->id = intval($row['id']);
                 $user->password_from_db = $row['password'];
+                $user->role_id = intval($row['role_id']);
                 return true;
             }
 
             return false;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -125,7 +133,8 @@ class DBManager
                 return false;
             }
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             $this->conn->rollBack();
             return false;
         }
@@ -138,11 +147,12 @@ class DBManager
                         WHERE user_id=:user_id and token=:token";
             $stmt = $this->conn->prepare($query);
             $result = $stmt->execute(['user_id' => $user_id, 'token' => $token]);
-            if(!$result) $this->error_msg = $stmt->errorInfo();
+            if (!$result) $this->error_msg = $stmt->errorInfo();
             $stmt->closeCursor();
             return $result;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -180,7 +190,8 @@ class DBManager
             } else return false;
 
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -193,11 +204,12 @@ class DBManager
                         WHERE id=:user_id";
             $stmt = $this->conn->prepare($query);
             $result = $stmt->execute(['password' => $user->password_secure, 'user_id' => $user->id]);
-            if(!$result) $this->error_msg = $stmt->errorInfo();
+            if (!$result) $this->error_msg = $stmt->errorInfo();
             $stmt->closeCursor();
             return $result;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -209,11 +221,12 @@ class DBManager
                         WHERE id=:user_id";
             $stmt = $this->conn->prepare($query);
             $result = $stmt->execute(['user_id' => $user_id]);
-            if(!$result) $this->error_msg = $stmt->errorInfo();
+            if (!$result) $this->error_msg = $stmt->errorInfo();
             $stmt->closeCursor();
             return $result;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -231,7 +244,8 @@ class DBManager
                 return $path_id;
             } else return false;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -250,13 +264,14 @@ class DBManager
                 } else {
                     $stat_id = $this->get_id_last_equals_stat($time, $path_id, $session_id);
                     if ($stat_id === false) return false;
-                    return (is_null($stat_id)) ?
+                    return is_null($stat_id) ?
                         $this->init_user_stat($path_id, $time, $session_id) :
-                        $this->update_user_stat($stat_id, $time) ? $session_id : false;
+                        ($this->update_user_stat($stat_id, $time) ? $session_id : false);
                 }
             } else return false;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -280,7 +295,8 @@ class DBManager
             $stmt->closeCursor();
             return $stat_id;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -302,7 +318,8 @@ class DBManager
             $stmt->closeCursor();
             return $session_id;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -324,7 +341,8 @@ class DBManager
             $stmt->closeCursor();
             return $session_id;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -340,7 +358,8 @@ class DBManager
             $stmt->closeCursor();
             return true;
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
@@ -360,7 +379,8 @@ class DBManager
                     INNER JOIN {$this->USER_STATS_TABLE} us on sess.id = us.session_id 
                     LEFT JOIN {$this->URLs_TABLE} UL on us.url_id = UL.id
                     LEFT JOIN {$this->USERS_TABLE} u on sess.user_id = u.id
-                    WHERE us.start_time between :date_min and :date_max";
+                    WHERE us.start_time between :date_min and :date_max
+                    ORDER BY session_id, start_time";
             $stmt = $this->conn->prepare($query);
 
             $stmt->bindParam(':date_min', $date_min, PDO::PARAM_INT);
@@ -418,28 +438,31 @@ class DBManager
                 return false;
             }
         } catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
     }
 
 
-
-    function get_users_with_stats($date_min, $date_max){
-        try{
+    function get_users_with_stats($date_min, $date_max)
+    {
+        try {
             $query = "SELECT u.id as id, 
-                            u.login as login, 
+                            u.login as login,
+                            ur.name as role,
                             u.description as description,
                             ifnull(max(start_time), 0) as last_session, 
                             count(us.id) as count_sessions, 
                             ifnull(avg(end_time - start_time), 0) as average_time_session,
-                            count(distinct case when us.ip is null then 1 end) as count_distinct_places
+                            count(distinct us.ip) as count_distinct_places
                         FROM {$this->USER_STATS_TABLE}
-                            JOIN user_sessions us ON us.id = user_statistics.session_id
+                            JOIN {$this->USER_SESSIONS_TABLE} us ON us.id = {$this->USER_STATS_TABLE}.session_id
                                 AND start_time between :date_min and :date_max
                                 AND user_id > -1
-                            RIGHT JOIN users u on u.id = us.user_id
-                        WHERE u.id > -1 GROUP BY u.id";
+                            RIGHT JOIN {$this->USERS_TABLE} u on u.id = us.user_id
+                            RIGHT JOIN {$this->USER_ROLES_TABLE} ur on ur.id = u.role_id
+                        WHERE u.id > -1 GROUP BY u.id ORDER BY u.login";
             $stmt = $this->conn->prepare($query);
             if ($stmt->execute(['date_min' => $date_min, 'date_max' => $date_max])) {
                 $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -449,9 +472,322 @@ class DBManager
                 $this->error_msg = $stmt->errorInfo();
                 return false;
             }
-        }catch (PDOException $e) {
-            $this->error_msg = $e->getMessage();
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
             return false;
         }
-}
+    }
+
+    function get_role_permissions_by_id($role_id)
+    {
+        try {
+            $query = "SELECT path, url_id, `read` as r, `write` as w 
+                        FROM {$this->USER_ROLE_TO_PERMISSION_TABLE}
+                        INNER JOIN {$this->URL_PERMISSIONS_TABLE} UP on UP.id = {$this->USER_ROLE_TO_PERMISSION_TABLE}.permission_id
+                        INNER JOIN {$this->URLs_TABLE} UL on UL.id = UP.url_id                        
+                            WHERE role_id = :role_id";
+            $stmt = $this->conn->prepare($query);
+            if ($stmt->execute(['role_id' => $role_id])) {
+                $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                return $result_set;
+            } else {
+                $this->error_msg = $stmt->errorInfo();
+                return false;
+            }
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return false;
+        }
+    }
+
+    function get_roles_with_permissions()
+    {
+        try {
+            $query = "SELECT ur.id as id,
+                             ur.name as name,
+                             ur.description as description,
+                             UL.name as URL_name,
+                             UL.id as URL_id,
+                            `read` as r,
+                            `write` as w 
+                        FROM {$this->USER_ROLE_TO_PERMISSION_TABLE} as rToP
+                        JOIN {$this->USER_ROLES_TABLE} ur on ur.id = rToP.role_id
+                        JOIN {$this->URL_PERMISSIONS_TABLE} UP on UP.id = rToP.permission_id
+                        JOIN {$this->URLs_TABLE} UL on UL.id = UP.url_id
+                            ORDER BY ur.name;";
+            $stmt = $this->conn->prepare($query);
+            if ($stmt->execute()) {
+                $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                $returned_array = array();
+
+
+                if (count($result_set) > 0) {
+                    $prev_role = array('id' => $result_set[0]['id']);
+                    $permissions = array();
+                    foreach ($result_set as $result) {
+                        if ($prev_role['id'] != $result['id']) {
+                            $returned_array[] = array(
+                                'id' => intval($result_set[0]['id']),
+                                'name' => $result_set[0]['name'],
+                                'description' => $result_set[0]['description'],
+                                'permissions' => $permissions
+                            );
+                            $permissions = array();
+                            $prev_role = array(
+                                'id' => $result_set[0]['id'],
+                                'name' => $result_set[0]['name'],
+                                'description' => $result_set[0]['description']
+                            );
+                        }
+                        $permissions[] = array(
+                            'r' => intval($result['r']),
+                            'w' => intval($result['w']),
+                            'url_name' => $result['URL_name'],
+                            'url_id' => $result['URL_id']
+                        );
+                    }
+                    $returned_array[] = array(
+                        'id' => intval($result_set[0]['id']),
+                        'name' => $result_set[0]['name'],
+                        'description' => $result_set[0]['description'],
+                        'permissions' => $permissions
+                    );
+                    return $returned_array;
+                } else return array();
+            } else {
+                $this->error_msg = $stmt->errorInfo();
+                return false;
+            }
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return false;
+        }
+    }
+
+    function create_role($name, $description, $permissions)
+    {
+        try {
+            $this->conn->beginTransaction();
+            $url_permissions = $this->get_array_url_permission($permissions);
+            if ($url_permissions !== false) {
+                $role_id = $this->create_role_row($name, $description);
+                if ($role_id !== false) {
+                    $result = $this->insert_roleToPermissions($role_id, $url_permissions);
+                    if ($result) {
+                        $this->conn->commit();
+                        return $role_id;
+                    } else {
+                        $this->conn->rollBack();
+                        return false;
+                    }
+                } else {
+                    $this->conn->rollBack();
+                    return false;
+                }
+            } else {
+                $this->conn->rollBack();
+                return false;
+            }
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            $this->conn->rollBack();
+            return false;
+        }
+    }
+
+    private function get_array_url_permission($permission)
+    {
+        $i = 0;
+        $len = count($permission);
+        if ($len === 0) return false;
+        $str = "";
+        foreach ($permission as $p) {
+            if (isset($p['url_id']) && is_numeric($p['url_id']) && ((int)$p['url_id'] == $p['url_id'])
+                && isset($p['write']) && is_numeric($p['write']) && ((int)$p['write'] == $p['write']) && ((int)$p['write'] === 0 || (int)$p['write'] === 1)
+                && isset($p['read']) && is_numeric($p['read']) && ((int)$p['read'] == $p['read']) && ((int)$p['read'] === 0 || (int)$p['read'] === 1)) {
+                $url_id = (int)$p['url_id'];
+                $w = (int)$p['w'];
+                $r = (int)$p['r'];
+                $str .= "(url_id={$url_id} and `read`={$r} and `write`={$w})";
+                if ($i !== $len - 1)
+                    $str .= " or ";
+                $i++;
+            } else return false;
+        }
+        $query = "SELECT id FROM {$this->URL_PERMISSIONS_TABLE} 
+                            WHERE " . $str . ";";
+        $stmt = $this->conn->prepare($query);
+        if ($stmt->execute()) {
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt->closeCursor();
+            return count($result) === $len ? $result : false;
+        } else {
+            $this->error_msg = $stmt->errorInfo();
+            $stmt->closeCursor();
+            return false;
+        }
+    }
+
+    private function create_role_row($name, $description)
+    {
+        $query = "INSERT INTO {$this->USER_ROLES_TABLE}
+                                (name, description)
+                                VALUE(:name, :description);";
+        $stmt = $this->conn->prepare($query);
+        if ($stmt->execute(['name' => $name, 'user_id' => $description])) {
+            $role_id = $this->conn->lastInsertId();
+            $stmt->closeCursor();
+            return $role_id;
+        } else {
+            $this->error_msg = $stmt->errorInfo();
+            $stmt->closeCursor();
+            return false;
+        }
+    }
+
+    private function insert_roleToPermissions($role_id, $permission_url_id)
+    {
+        $str = "";
+        $i = 0;
+        $len = count($permission_url_id);
+        foreach ($permission_url_id as $up) {
+            $str .= "({$role_id},{$up})";
+            if ($i !== $len - 1)
+                $str .= ",";
+        }
+        $query = "INSERT INTO {$this->USER_ROLE_TO_PERMISSION_TABLE}(role_id, permission_id) VALUES " . $str . ";";
+        $stmt = $this->conn->prepare($query);
+        $result = $stmt->execute();
+        if (!$result)
+            $this->error_msg = $stmt->errorInfo();
+        $stmt->closeCursor();
+        return $result;
+    }
+
+    function update_role($role_id, $permissions)
+    {
+        try {
+            if ($role_id === $this->DEFAULT_ROLE_ID) {
+                $this->error_msg[0] = -1111;
+                $this->error_msg[1] = 'Нельзя изменить эту роль.';
+                return false;
+            } else {
+                $this->conn->beginTransaction();
+                $url_permissions = $this->get_array_url_permission($permissions);
+                if ($url_permissions !== false) {
+                    $result = $this->drop_roleToPermissions($role_id);
+                    if ($result) {
+                        $this->conn->commit();
+                        return $role_id;
+                    } else {
+                        $this->conn->rollBack();
+                        return false;
+                    }
+
+                } else {
+                    $this->conn->rollBack();
+                    return false;
+                }
+            }
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            $this->conn->rollBack();
+            return false;
+        }
+    }
+
+    private function drop_roleToPermissions($role_id)
+    {
+
+        $query = "DELETE FROM {$this->USER_ROLE_TO_PERMISSION_TABLE} 
+                    WHERE role_id=:role_id";
+        $stmt = $this->conn->prepare($query);
+        $result = $stmt->execute(['role_id' => $role_id]);
+        if (!$result)
+            $this->error_msg = $stmt->errorInfo();
+        $stmt->closeCursor();
+        return $result;
+    }
+
+    function delete_role($role_id)
+    {
+        try {
+            if ($role_id === $this->DEFAULT_ROLE_ID) {
+                $this->error_msg[0] = -1111;
+                $this->error_msg[1] = 'Нельзя удалить эту роль.';
+                return false;
+            } else {
+                $this->conn->beginTransaction();
+                if ($this->set_default_user_role_instead_role($role_id)) {
+                    $query = "DELETE FROM {$this->USER_ROLE_TO_PERMISSION_TABLE} 
+                                WHERE id=:role_id";
+                    $stmt = $this->conn->prepare($query);
+                    if ($stmt->execute(['id' => $role_id])) {
+                        $stmt->closeCursor();
+                        $this->conn->commit();
+                        return true;
+                    } else {
+                        $this->error_msg = $stmt->errorInfo();
+                        $stmt->closeCursor();
+                        return false;
+                    }
+                } else {
+                    $this->conn->rollBack();
+                    return false;
+                }
+            }
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            $this->conn->rollBack();
+            return false;
+        }
+    }
+
+    private function set_default_user_role_instead_role($role_id)
+    {
+        return $this->update_users_role_by_role_id($role_id, $this->DEFAULT_ROLE_ID);
+    }
+
+    private function update_users_role_by_role_id($role_id_old, $role_id_new)
+    {
+        $query = "UPDATE {$this->USERS_TABLE} 
+                    SET role_id=:role_id_new
+                    WHERE role_id=:role_id_old";
+        $stmt = $this->conn->prepare($query);
+        $result = $stmt->execute(['role_id_old' => $role_id_old, 'role_id_new' => $role_id_new]);
+        if (!$result)
+            $this->error_msg = $stmt->errorInfo();
+        $stmt->closeCursor();
+        return $result;
+
+    }
+
+    function update_user_role_by_id($user_id, $role_id)
+    {
+        try {
+            $query = "UPDATE {$this->USERS_TABLE} 
+                    SET role_id=:role_id_new
+                    WHERE user_id=:user_id";
+            $stmt = $this->conn->prepare($query);
+            $result = $stmt->execute(['user_id' => $user_id, 'role_id_new' => $role_id]);
+            if (!$result)
+                $this->error_msg = $stmt->errorInfo();
+
+            $stmt->closeCursor();
+            return $result;
+
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return false;
+        }
+    }
 }

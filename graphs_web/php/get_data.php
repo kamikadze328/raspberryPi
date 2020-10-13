@@ -1,7 +1,11 @@
 <?php
-//$servers_file = "../../config/sync_data.conf.json";
-include_once $_SERVER['DOCUMENT_ROOT'].'/api/config/core.php';
-$CUR_DIR = $_SERVER['DOCUMENT_ROOT'].'/graphs/php/';
+/** @noinspection PhpUndefinedVariableInspection */
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/config/core.php';
+$CUR_DIR = $_SERVER['DOCUMENT_ROOT'] . '/graphs/php/';
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
+$sec_mng = new SecurityManager();
+$can_write = $sec_mng->can_write_resource($permission_level);
+$can_read = $sec_mng->can_read_resource($permission_level);
 
 function millis_to_date($millis)
 {
@@ -15,7 +19,6 @@ function get_tags_str($tags)
     foreach ($tags as $tag) $str .= "(data.id={$tag} and tags.id={$tag}) or ";
     return substr($str, 0, -4);
 }
-
 
 
 function get_graph_from_server($server, $tags, $min_date, $maxDate)
@@ -35,7 +38,7 @@ function get_graph_from_server($server, $tags, $min_date, $maxDate)
         $rows = $result->fetch_all(MYSQLI_ASSOC);
         $answer = array();
         $prev_tag = intval($tags[0]);
-        if(count($rows) > 0) {
+        if (count($rows) > 0) {
             $prev_type = $rows[0]['type'];
             $data = array();
             foreach ($rows as $row) {
@@ -62,37 +65,41 @@ function get_graph_from_server($server, $tags, $min_date, $maxDate)
     return false;
 }
 
-$post = json_decode(file_get_contents('php://input'), true);
-$isOK = false;
-$answers = array(
-    1 => "no available db servers",
-    2 => "no available data",
-    3 => "wrong request"
+if ($can_read) {
+
+    $post = json_decode(file_get_contents('php://input'), true);
+    $isOK = false;
+    $answers = array(
+        1 => "no available db servers",
+        2 => "no available data",
+        3 => "wrong request"
     );
-$answer = null;
-$errno = null;
-$error_message = "internal server error";
-if (isset($post["minDate"]) && isset($post["maxDate"]) && isset($post["tags"])) {
-    $servers = read_config();
-    $tags_arr = $post["tags"];
-    if (is_array($servers) || is_object($servers)) {
-        foreach ($servers as $server) {
-            $answer = get_graph_from_server($server,  $tags_arr, millis_to_date($post["minDate"]), millis_to_date($post["maxDate"]));
-            if ($answer) {
-                echo json_encode($answer);
-                $isOK = true;
-                break;
+    $answer = null;
+    $errno = null;
+    $error_message = "internal server error";
+    if (isset($post["minDate"]) && isset($post["maxDate"]) && isset($post["tags"])) {
+        $servers = read_config();
+        $tags_arr = $post["tags"];
+        if (is_array($servers) || is_object($servers)) {
+            foreach ($servers as $server) {
+                $answer = get_graph_from_server($server, $tags_arr, millis_to_date($post["minDate"]), millis_to_date($post["maxDate"]));
+                if ($answer) {
+                    echo json_encode($answer);
+                    $isOK = true;
+                    break;
+                }
             }
-        }
-        if (!empty($answer)) $errno = 1;
-        else $errno = 2;
-    } else  $errno = 1;
-} else {
-    $errno = 3;
-}
-if (!$isOK) {
-    $out["error"] = array("message" => $answers[$errno], "answerDB" => $answer, "request-body" => $post, "errno" => $errno);
-    echo json_encode($out);
-}
+            if (!empty($answer)) $errno = 1;
+            else $errno = 2;
+        } else  $errno = 1;
+    } else {
+        $errno = 3;
+    }
+    if (!$isOK) {
+        $out["error"] = array("message" => $answers[$errno], "answerDB" => $answer, "request-body" => $post, "errno" => $errno);
+        echo json_encode($out);
+    }
+} else throw new AccessDeniedException(false, true);
+
 
 

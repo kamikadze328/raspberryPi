@@ -19,7 +19,7 @@ function read_json($filepath)
 
 function get_answer_for_client($error_code, $message, $db_message, $data)
 {
-    $message = strlen($message) > 0 ? $message : CodesAndMessages::CODE_TO_MESSAGE[$error_code];
+    $message = $error_code < 300 ? $message : CodesAndMessages::CODE_TO_MESSAGE[$error_code];
     $message = (isset($db_message[0]) && $db_message[0]) ?  '('.$db_message[1].') ' .$message : $message;
     $answer = $error_code > 0 ?
         array(
@@ -41,4 +41,20 @@ function get_http_data(){
 
 function get_seconds_from_str_ms($ms){
     return intdiv(intval($ms), 1000);
+}
+
+function parse_current_path($refer)
+{
+    if (!is_null($refer)) {
+        preg_match('/^https?:\/\/([^\/]+)([^\?]+)/', $refer, $path);
+        if (count($path) == 3)
+            return parse_path($path[2]);
+    }
+    return null;
+}
+
+function parse_path($url){
+    if (substr($url, 0, 6) === '/admin')
+        $url = '/admin';
+    return $url;
 }

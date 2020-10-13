@@ -1,17 +1,22 @@
 <?php
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/config/core.php';
+
 class SecurityManager
 {
-    private $RANDOM_PASSWORD_LENGTH = 5;
-    private $TOKEN_LENGTH = 30;
-    private $TOKEN_LIFETIME = 604800; //week
+    private int $RANDOM_PASSWORD_LENGTH = 5;
+    private int $TOKEN_LENGTH = 8;
+    private int $TOKEN_LIFETIME = 604800; //week
     const COOKIE_DOMAIN = 'carbon-dv.ru'; //$_SERVER['HTTP_HOST']
-    private $COOKIE_SECURE_FLAG = false; //TODO !!!!!!!11
-    private $COOKIE_HTTPONLY = true;   //TODO
-    private $COOKIE_SAMESITE = 'Strict';
-    private $COOKIE_TOKEN_NAME = 'access_token';
-    private $COOKIE_USER_META_NAME = 'user_meta';
-    private $SESSION_COOKIE_NAME = 'SUID';
+    private bool $COOKIE_SECURE_FLAG = false; //TODO !!!!!!!11
+    private bool $COOKIE_HTTPONLY = true;   //TODO
+    private string $COOKIE_SAMESITE = 'Strict';
+    private string $COOKIE_TOKEN_NAME = 'access_token';
+    private string $COOKIE_USER_META_NAME = 'user_meta';
+    private string $SESSION_COOKIE_NAME = 'SUID';
     const SESSION_LIFETIME = 600;
+    const CANT_WRITE = 1;
+    const CANT_READ = 2;
+    const NOT_RIGHT_PATH = 3;
 
     function isset_token()
     {
@@ -45,24 +50,38 @@ class SecurityManager
 
     private function get_token_payload($token)
     {
-        return $this->decode_token($token)['payload'];
+        return $this->decode_token($token)['pld'];
     }
 
     function get_user_id_by_token($token)
     {
-        return $this->get_token_payload($token)['user_id'];
+        return $this->get_token_payload($token)['usid'];
     }
 
-    function generate_token($user)
+    function generate_token($user, $permissions)
     {
         $token = $this->generate_random_str($this->TOKEN_LENGTH);
         $full_token = array(
-            'token' => $token,
-            'payload' => array(
-                'user_id' => $user->id
+            'tn' => $token,
+            'pld' => array(
+                'usid' => $user->id,
+                'pm' => $this->prepare_permissions($permissions)
             )
         );
         return base64_encode(json_encode($full_token));
+    }
+
+    private function prepare_permissions($permissions)
+    {
+        // look likes array of arrays - [[],[],[],...]
+        // each array consist of four numbers - path, url_id, read_permission, write_permission
+        // For example - "pm":[['syncdata/', 5, 2-(1+1)],[6,2-(1+1)],[7,2-(1+1)],[8,2-(1+0)],[9,2-(0+0)]]
+        // So there is three level of security 0 (r and w), 1 (only r) and 2 (not r and not w).
+        $result_arr = array();
+        foreach ($permissions as $p) {
+            $result_arr[] = array(substr($p['path'], 1), intval($p['url_id']), (2 - (intval($p['r']) + intval($p['w']))));
+        }
+        return $result_arr;
     }
 
     private function generate_random_str($length)
@@ -87,8 +106,9 @@ class SecurityManager
         setcookie($this->COOKIE_TOKEN_NAME, $token, $cookie_options);
 
         $cookie_options['httponly'] = false;
-        $user_meta = array('name' => $username);
+        $user_meta = array('name' => $username, 'isAdmin'=>$this->is_admin($token));
         setcookie($this->COOKIE_USER_META_NAME, json_encode($user_meta), $cookie_options);
+
 
         $this->set_headers();
     }
@@ -159,7 +179,9 @@ class SecurityManager
         $options['expires'] = $this->get_session_expires_time();
         return $options;
     }
-    private function get_old_session_cookie_options(){
+
+    private function get_old_session_cookie_options()
+    {
         $options = $this->get_session_cookie_options();
         $options['expires'] = time() - 3600;
         return $options;
@@ -190,5 +212,46 @@ class SecurityManager
     function generate_password()
     {
         return $this->generate_random_str($this->RANDOM_PASSWORD_LENGTH);
+    }
+
+    function get_permission_level_for_request($request, $token, $refer = null)
+    {
+        $request = parse_path($request);
+        $is_for_read = substr($request, -1) === '/';
+        $refer = parse_current_path($refer);
+        $permissions = $this->get_permissions_from_token($token);
+        foreach ($permissions as $p) {
+            if (('/' . $p[0]) === $request || (!$is_for_read && !is_null($refer) && ('/' . $p[0] === $refer))) {
+                return $p[2];
+            }
+        }
+        return -1;
+    }
+
+    function can_read_resource($permission_level)
+    {
+        return $permission_level >= 0 && $permission_level <= 1;
+    }
+
+    function can_write_resource($permission_level)
+    {
+        return $permission_level == 0;
+    }
+
+    function is_admin($token)
+    {
+        $permissions = $this->get_permissions_from_token($token);
+        foreach ($permissions as $p) {
+            if ('admin' === $p[0])
+                return $this->can_read_resource($p[2]);
+
+        }
+        return false;
+    }
+
+
+    function get_permissions_from_token($token)
+    {
+        return $this->get_token_payload($token)['pm'];
     }
 }

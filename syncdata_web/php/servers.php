@@ -1,12 +1,17 @@
 <?php
+/** @noinspection PhpUndefinedVariableInspection */
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-include_once $_SERVER['DOCUMENT_ROOT'].'/api/config/core.php';
-$CUR_DIR = $_SERVER['DOCUMENT_ROOT'].'/syncdata/php/';
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/config/core.php';
+$CUR_DIR = $_SERVER['DOCUMENT_ROOT'] . '/syncdata/php/';
 $servers = [];
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
+$sec_mng = new SecurityManager();
+$can_write = $sec_mng->can_write_resource($permission_level);
+$can_read = $sec_mng->can_read_resource($permission_level);
 
 function prepareResponseJSON($info, $current_dir)
 {
-    require_once($current_dir.'servers_main_info.php');
+    require_once($current_dir . 'servers_main_info.php');
     if (!empty($info)) {
         $response = array();
         foreach ($info as $server) {
@@ -86,25 +91,28 @@ function get_info_from_server($server, $duration, $list_of_servers)
     return false;
 }
 
-if(isset($_SERVER['HTTP_ACCEPT'])) {
-    $accept = $_SERVER['HTTP_ACCEPT'];
-    $servers = read_config();
-    $post = json_decode(file_get_contents('php://input'), true);
-    if (isset($post["duration"]) && ($post["duration"] == "day" || $post["duration"] == "week" || $post["duration"] == "hour")) {
-        $duration = $post["duration"];
-        foreach ($servers as $server) {
-            $answer = get_info_from_server($server, $duration, $servers);
-            if ($answer) {
-                if ($accept == "text/html") {
-                    $_servers_main_info = $answer;
-                    include $CUR_DIR.'servers_main_info.php';
-                } else
-                    echo json_encode(prepareResponseJSON($answer, $CUR_DIR));
+if ($can_read) {
+    if (isset($_SERVER['HTTP_ACCEPT'])) {
+        $accept = $_SERVER['HTTP_ACCEPT'];
+        $servers = read_config();
+        $post = json_decode(file_get_contents('php://input'), true);
+        if (isset($post["duration"]) && ($post["duration"] == "day" || $post["duration"] == "week" || $post["duration"] == "hour")) {
+            $duration = $post["duration"];
+            foreach ($servers as $server) {
+                $answer = get_info_from_server($server, $duration, $servers);
+                if ($answer) {
+                    if ($accept == "text/html") {
+                        $_servers_main_info = $answer;
+                        include $CUR_DIR . 'servers_main_info.php';
+                    } else
+                        echo json_encode(prepareResponseJSON($answer, $CUR_DIR));
 
-                break;
+                    break;
+                }
             }
-        }
-    } else echo json_encode(array("message" => "wrong request", "request-body" => $post));
-} else echo json_encode(array("message" => "no headers accept"));
+        } else echo json_encode(array("message" => "wrong request", "request-body" => $post));
+    } else echo json_encode(array("message" => "no headers accept"));
+} else throw new AccessDeniedException(false, true);
+
 
 

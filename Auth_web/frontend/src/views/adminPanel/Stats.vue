@@ -34,7 +34,7 @@
               :style="isLoading ? 'display: none !important;' : ''"
               class="stat-row"
               style="display: none">
-            <td class="stat-refs" colspan="5">
+            <td class="stat-refs" colspan="6">
               <div>{{ stat.url_name }}</div>
               <a :href="stat.url_path">{{ getCurrentDomain() + stat.url_path }}</a>
             </td>
@@ -42,10 +42,10 @@
           </tr>
         </template>
         <tr v-show="isLoading">
-          <td colspan="6">Загрузка...</td>
+          <td colspan="7">Загрузка...</td>
         </tr>
         <tr v-show="isNothingFound && !isLoading">
-          <td colspan="6">Ничего не найдено</td>
+          <td colspan="7">Ничего не найдено</td>
         </tr>
         </tbody>
       </table>
@@ -58,7 +58,7 @@ import AdmitPanelOverTable from "@/components/AdmitPanelOverTable";
 
 export default {
 
-  name: "UserStats",
+  name: "Stats",
   props: {
     inputText: {
       required: false,
@@ -107,7 +107,6 @@ export default {
       })
     },
     sortedData: function () {
-      console.log(this.filteredData[0] ? this.filteredData[0].stats : null)
       return [...this.filteredData].sort((a, b) => {
         return (this.sortedBy.asc ? 1 : -1) * (this.getMinStartTime(a) - this.getMinStartTime(b))
       })
@@ -187,7 +186,7 @@ export default {
         this.$axios({
           timeout: 30000,
           method: 'post',
-          url: this.$mydata.URL.admin,
+          url: this.$mydata.server.URL.admin,
           data: {
             purpose: 'stats',
             date_min: new Date(min).getTime(),
@@ -214,9 +213,6 @@ export default {
       this.statsData = data
       this.isLoading = false
     },
-    closeAll(elem) {
-      elem
-    }
   },
   mounted() {
     if (this.$mydata.data.stats.length === 0)

@@ -1,11 +1,18 @@
 <?php
-include_once $_SERVER['DOCUMENT_ROOT'].'/api/config/core.php';
+/** @noinspection PhpUndefinedVariableInspection */
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/config/core.php';
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
+$sec_mng = new SecurityManager();
+$can_write = $sec_mng->can_write_resource($permission_level);
+$can_read = $sec_mng->can_read_resource($permission_level);
 
-function millis_to_date($millis){
+function millis_to_date($millis)
+{
     return date("Y-m-d H:i:s", $millis / 1000);
 }
 
-function get_now_php($duration){
+function get_now_php($duration)
+{
     return (new DateTime())->modify("-1 {$duration}")->format("Y-m-d H:i:s");
 }
 
@@ -38,15 +45,15 @@ function get_graph_from_server($server, $duration, $min_date, $list_of_servers)
                 $mysqli->close();
                 return $info;
             }
-        }catch(Exception $e){
+        } catch (Exception $e) {
         }
     return false;
 }
 
-
-$post = json_decode(file_get_contents('php://input'), true);
-if(isset($post["duration"])  && ($post["duration"] == "day" || $post["duration"] == "week" || $post["duration"] == "hour")) {
-    $servers = read_config();
+if ($can_read) {
+    $post = json_decode(file_get_contents('php://input'), true);
+    if (isset($post["duration"]) && ($post["duration"] == "day" || $post["duration"] == "week" || $post["duration"] == "hour")) {
+        $servers = read_config();
         foreach ($servers as $server) {
             $answer = get_graph_from_server($server, $post["duration"], (isset($post["minDate"])) ? millis_to_date($post["minDate"]) : get_now_php($post["duration"]), $servers);
             if ($answer) {
@@ -55,7 +62,9 @@ if(isset($post["duration"])  && ($post["duration"] == "day" || $post["duration"]
             }
         }
     } else {
-    $out["error"] = array("message" => "empty request", "request-body" => $post);
-    echo json_encode($out);
-}
+        $out["error"] = array("message" => "empty request", "request-body" => $post);
+        echo json_encode($out);
+    }
+} else throw new AccessDeniedException(false, true);
+
 

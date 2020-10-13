@@ -1,4 +1,10 @@
 <?php
+/** @noinspection PhpUndefinedVariableInspection */
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
+$sec_mng = new SecurityManager();
+$can_write = $sec_mng->can_write_resource($permission_level);
+$can_read = $sec_mng->can_read_resource($permission_level);
+
 mysqli_report(MYSQLI_REPORT_STRICT);
 include_once $_SERVER['DOCUMENT_ROOT'].'/api/config/core.php';
 $CUR_DIR = $_SERVER['DOCUMENT_ROOT'].'/syncdata/php/';
@@ -50,13 +56,15 @@ function replace_data($server, $devices, $tags)
 
 }
 
+if ($can_write) {
+    $servers = read_config();
+    $tags = json_decode(file_get_contents($tags_file), true);
+    $devices = json_decode(file_get_contents($devices_file), true);
+    $answer = array();
 
-$servers = read_config();
-$tags = json_decode(file_get_contents($tags_file), true);
-$devices = json_decode(file_get_contents($devices_file), true);
-$answer = array();
+    foreach ($servers as $server) {
+        $answer[] = array("host" => $server["host"], "status" => !!replace_data($server, $devices, $tags));
+    }
+    echo json_encode($answer);
+} else throw new AccessDeniedException(true, false);
 
-foreach ($servers as $server) {
-    $answer[] = array("host" => $server["host"], "status" => !!replace_data($server, $devices, $tags));
-}
-echo json_encode($answer);

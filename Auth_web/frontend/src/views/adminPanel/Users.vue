@@ -15,6 +15,7 @@
       <tbody>
       <tr v-for="user in filteredData" v-show="!isLoading" :key="usersData.indexOf(user)">
         <td>{{ user.login }}</td>
+        <td>{{ user.role }}</td>
         <td>{{ user.description }}</td>
         <td>{{ $mydata.secToDate(Math.floor(Number(user.last_session))) }}</td>
         <td>{{ Number(user.count_sessions) }}</td>
@@ -23,16 +24,17 @@
         <td ref="clickable" class="clickable svg-box svg-img more-icon" @click="handleMenuClick">
           <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
             <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
+            <button class="clickable" @click.stop="changeRole(user)">Изменить роль</button>
             <button class="clickable" @click.stop="resetUserPassword(user)">Сбросить пароль</button>
             <button class="clickable" @click.stop="deleteUser(user)">Удалить</button>
           </div>
         </td>
       </tr>
       <tr v-show="isLoading">
-        <td colspan="6">Загрузка...</td>
+        <td colspan="8">Загрузка...</td>
       </tr>
       <tr v-show="isNothingFound && !isLoading">
-        <td colspan="6">Ничего не найдено</td>
+        <td colspan="8">Ничего не найдено</td>
       </tr>
       </tbody>
     </table>
@@ -43,7 +45,7 @@
 import AdmitPanelOverTable from "@/components/AdmitPanelOverTable";
 
 export default {
-  name: "ListUsers",
+  name: "Users",
   components: {
     AdmitPanelOverTable
   },
@@ -52,11 +54,12 @@ export default {
       defaultDateRange: 'week',
       headers: [
         {id: 0, name: 'Имя'},
-        {id: 1, name: 'Описание'},
-        {id: 2, name: 'Последний сеанс'},
-        {id: 3, name: 'Количество сеансов'},
-        {id: 4, name: 'Средняя продолжительность'},
-        {id: 5, name: 'Количество мест'}
+        {id: 1, name: 'Роль'},
+        {id: 2, name: 'Описание'},
+        {id: 3, name: 'Последний сеанс'},
+        {id: 4, name: 'Количество сеансов'},
+        {id: 5, name: 'Средняя продолжительность'},
+        {id: 6, name: 'Количество мест'}
       ],
       inputText: '',
       usersData: [],
@@ -90,10 +93,10 @@ export default {
     handleMenuClick(e) {
       this.toggleMenuVisibility(e.target.firstChild)
     },
-    closeAll(elem) {
+    closeAll(e) {
       if (!this.isNothingFound)
         this.$refs['clickable'].forEach(clickable => {
-          if (clickable !== elem && clickable.firstChild.style.visibility === 'visible')
+          if (clickable !== e.target && clickable.firstChild.style.visibility === 'visible')
             this.toggleMenuVisibility(clickable.firstChild)
         })
 
@@ -110,6 +113,9 @@ export default {
     resetUserPassword(user) {
       this.$emit('reset-user-password', {id: user.id, login: user.login})
     },
+    changeRole(user) {
+      this.$emit('change-user-role', {id: user.id, login: user.login, role: user.role})
+    },
     updateLocalUsersData(data) {
       console.log(data)
       this.usersData = data
@@ -124,7 +130,7 @@ export default {
         this.$axios({
           timeout: 30000,
           method: 'post',
-          url: this.$mydata.URL.admin,
+          url: this.$mydata.server.URL.admin,
           data: {
             purpose: 'users',
             date_min: new Date(min).getTime(),
@@ -152,6 +158,7 @@ export default {
   },
   mounted() {
     console.log(this.$mydata.data.users.length)
+    document.addEventListener('click', this.closeAll)
     if (this.$mydata.data.users.length === 0 && !this.isLoading)
       this.updateUsers()
     else this.updateLocalUsersData(this.$mydata.data.users)
@@ -161,6 +168,7 @@ export default {
 
 <style scoped>
 .svg-box {
+  min-width: 10px;
   width: 15px;
   height: 15px;
 }
