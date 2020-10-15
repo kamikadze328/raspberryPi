@@ -14,21 +14,21 @@ try {
         $purpose = $user_data['purpose'];
         $can_write = $sec_mng->can_write_resource($permission_level);
         $can_read = $sec_mng->can_read_resource($permission_level);
-        if ($purpose == 'delete_usr')
+        if ($purpose == 'delete_user')
             if ($can_write) {
                 include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/delete.php';
             } else throw new AccessDeniedException(true, false);
-        else if ($purpose == 'create_usr')
+        else if ($purpose == 'create_user')
             if ($can_write) {
                 include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/create.php';
             } else throw new AccessDeniedException(true, false);
-        else if ($purpose == 'reset_usr_passwd')
+        else if ($purpose == 'reset_user_password')
             if ($can_write) {
                 include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/password_reset.php';
             } else throw new AccessDeniedException(true, false);
-        else if ($purpose == 'change_user_role')
+        else if ($purpose == 'update_user')
             if ($can_write) {
-                include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/update_role.php';
+                include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/update.php';
             } else throw new AccessDeniedException(true, false);
         else if ($purpose == 'update_role')
             if ($can_write) {
@@ -53,6 +53,10 @@ try {
                 include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/users/get_users.php';
             } else throw new AccessDeniedException(false, true);
         else if ($purpose == 'roles')
+            if ($can_read) {
+                include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/roles/get_roles_with_permissions.php';
+            } else throw new AccessDeniedException(false, true);
+        else if ($purpose == 'only_roles')
             if ($can_read) {
                 include $_SERVER['DOCUMENT_ROOT'] . '/api/admin_utils/roles/get_roles.php';
             } else throw new AccessDeniedException(false, true);

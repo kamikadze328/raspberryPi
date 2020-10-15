@@ -20,7 +20,6 @@ class DBManager
     private string $URL_PERMISSIONS_TABLE = 'URL_PERMISSIONS';
     private string $USER_ROLES_TABLE = 'user_roles';
 
-    private int $DEFAULT_ROLE_ID = 0;
 
     public array $error_msg = array(); //TODO
 
@@ -96,6 +95,35 @@ class DBManager
                 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
                 $user->id = intval($row['id']);
+                $user->password_from_db = $row['password'];
+                $user->role_id = intval($row['role_id']);
+                return true;
+            }
+
+            return false;
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return false;
+        }
+    }
+    function user_exists_by_id($user)
+    {
+        try {
+            $query = "SELECT login, password, role_id
+            FROM {$this->USERS_TABLE}
+            WHERE id = ?
+            LIMIT 1";
+
+            $stmt = $this->conn->prepare($query);
+            $stmt->bindParam(1, $user->id);
+            $stmt->execute();
+            $num = $stmt->rowCount();
+            if ($num > 0) {
+
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                $user->login = $row['login'];
                 $user->password_from_db = $row['password'];
                 $user->role_id = intval($row['role_id']);
                 return true;
@@ -503,6 +531,27 @@ class DBManager
         }
     }
 
+    function get_roles(){
+        try {
+            $query = "SELECT id, name 
+                        FROM {$this->USER_ROLES_TABLE};";
+            $stmt = $this->conn->prepare($query);
+            if ($stmt->execute()) {
+                $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                return $result_set;
+            } else {
+                $this->error_msg = $stmt->errorInfo();
+                $stmt->closeCursor();
+                return false;
+            }
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return false;
+        }
+    }
+
     function get_roles_with_permissions()
     {
         try {
@@ -560,6 +609,7 @@ class DBManager
                 } else return array();
             } else {
                 $this->error_msg = $stmt->errorInfo();
+                $stmt->closeCursor();
                 return false;
             }
         } catch (PDOException $e) {
@@ -673,28 +723,23 @@ class DBManager
     function update_role($role_id, $permissions)
     {
         try {
-            if ($role_id === $this->DEFAULT_ROLE_ID) {
-                $this->error_msg[0] = -1111;
-                $this->error_msg[1] = 'Нельзя изменить эту роль.';
-                return false;
-            } else {
-                $this->conn->beginTransaction();
-                $url_permissions = $this->get_array_url_permission($permissions);
-                if ($url_permissions !== false) {
-                    $result = $this->drop_roleToPermissions($role_id);
-                    if ($result) {
-                        $this->conn->commit();
-                        return $role_id;
-                    } else {
-                        $this->conn->rollBack();
-                        return false;
-                    }
-
+            $this->conn->beginTransaction();
+            $url_permissions = $this->get_array_url_permission($permissions);
+            if ($url_permissions !== false) {
+                $result = $this->drop_roleToPermissions($role_id);
+                if ($result) {
+                    $this->conn->commit();
+                    return $role_id;
                 } else {
                     $this->conn->rollBack();
                     return false;
                 }
+
+            } else {
+                $this->conn->rollBack();
+                return false;
             }
+
         } catch (PDOException $e) {
             $this->error_msg[0] = -1;
             $this->error_msg[1] = $e->getMessage();
@@ -770,14 +815,18 @@ class DBManager
 
     }
 
-    function update_user_role_by_id($user_id, $role_id)
+    function update_user_by_id($user_id, $new_role_id, $new_login)
     {
         try {
             $query = "UPDATE {$this->USERS_TABLE} 
-                    SET role_id=:role_id_new
-                    WHERE user_id=:user_id";
+                    SET role_id=:role_id_new, login=:login_new 
+                    WHERE id=:user_id";
             $stmt = $this->conn->prepare($query);
-            $result = $stmt->execute(['user_id' => $user_id, 'role_id_new' => $role_id]);
+            $result = $stmt->execute([
+                'user_id' => $user_id,
+                'role_id_new' => $new_role_id,
+                'login_new' => $new_login
+            ]);
             if (!$result)
                 $this->error_msg = $stmt->errorInfo();
 

@@ -17,6 +17,12 @@ class SecurityManager
     const CANT_WRITE = 1;
     const CANT_READ = 2;
     const NOT_RIGHT_PATH = 3;
+    const USER_ROLE_ID = 0;
+    const ADMIN_ROLE_ID = 2;
+    const SUPER_ADMIN_ROLE_ID = 1;
+    const DEFAULT_USER_ROLE_ID = self::USER_ROLE_ID;
+    const DEFAULTS_ROLES = array(self::ADMIN_ROLE_ID, self::USER_ROLE_ID, self::SUPER_ADMIN_ROLE_ID);
+
 
     function isset_token()
     {
@@ -65,7 +71,8 @@ class SecurityManager
             'tn' => $token,
             'pld' => array(
                 'usid' => $user->id,
-                'pm' => $this->prepare_permissions($permissions)
+                'pm' => $this->prepare_permissions($permissions),
+                'rlid' => $user->role_id
             )
         );
         return base64_encode(json_encode($full_token));
@@ -253,5 +260,12 @@ class SecurityManager
     function get_permissions_from_token($token)
     {
         return $this->get_token_payload($token)['pm'];
+    }
+
+    function is_user_admin(){
+        return intval($this->get_token_payload($this->get_token())['rlid']) === $this::ADMIN_ROLE_ID;
+    }
+    function is_user_super_admin(){
+        return intval($this->get_token_payload($this->get_token())['rlid']) === $this::SUPER_ADMIN_ROLE_ID;
     }
 }

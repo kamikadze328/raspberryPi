@@ -10,6 +10,9 @@ class CodesAndMessages
     const USER_NOT_EXISTS = 408;
     const USER_EXISTS = 409;
     const SMTH_WRONG = 410;
+    const CANT_UPDATE_ROLE = 420;
+    const CANT_UPDATE_USER = 421;
+    const CANT_SET_ROLE = 422;
 
     const CODE_TO_MESSAGE = array(
         self::WRONG_REQUEST_PARAMS => 'Неверные параметры запроса.',
@@ -23,5 +26,8 @@ class CodesAndMessages
         self::USER_NOT_EXISTS => 'Такого пользователя не существует.',
         self::USER_EXISTS => 'Такой пользователь существует.',
         self::SMTH_WRONG => 'Что-то пошло не так.',
+        self::CANT_UPDATE_ROLE => 'Эту роль нельзя изменить.',
+        self::CANT_UPDATE_USER => 'Вы не можете изменять этого пользователя.',
+        self::CANT_SET_ROLE => 'Вы не можете назначить эту роль.'
         );
 }
