@@ -48,7 +48,7 @@ export default {
       this.$refs['leftPanel'].style.setProperty('left', '-190px', 'important');
     },
     closeAll(e) {
-      if (this.$refs['leftPanel'] !== e.target && this.$refs['leftPanel'].style && this.$refs['leftPanel'].style.left === '0px')
+      if (this.$refs['leftPanel'] && this.$refs['leftPanel'] !== e.target && this.$refs['leftPanel'].style && this.$refs['leftPanel'].style.left === '0px')
         this.closeMenu()
     }
   },
