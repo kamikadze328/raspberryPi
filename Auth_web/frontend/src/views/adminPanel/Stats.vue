@@ -21,7 +21,7 @@
             <td :class="{'user-info-column': isSuperSmallMobile}">
               <div>{{ session.username }}</div>
               <div v-show="isSuperSmallMobile">{{ getStartTime(session) }}</div>
-              <div v-show="isSuperSmallMobile" :title="deviceName(session.device)" class="device-cell" >
+              <div v-show="isSuperSmallMobile" :title="deviceName(session.device)" class="device-cell">
                 <div>{{ session.ip }}</div>
                 <div :class="detectDevice(session.device)" class="svg-device-box svg-img"></div>
                 <div :class="detectDeviceOC(session.device)" class="svg-device-box svg-img"></div>
@@ -29,7 +29,7 @@
             </td>
             <td v-show="!isSuperSmallMobile">{{ getStartTime(session) }}</td>
             <td v-show="!isSuperSmallMobile">
-              <div :title="deviceName(session.device)" class="device-cell" >
+              <div :title="deviceName(session.device)" class="device-cell">
                 <div :class="detectDevice(session.device)" class="svg-device-box svg-img"></div>
                 <div :class="detectDeviceOC(session.device)" class="svg-device-box svg-img"></div>
                 <div>{{ session.ip }}</div>
@@ -101,12 +101,12 @@ export default {
     isMobile: function () {
       return this.width <= 900
     },
-    isSuperSmallMobile: function (){
+    isSuperSmallMobile: function () {
       return this.width <= 550
     },
     headers: function () {
       let login, dateAndTime, device, numberPages, durationSession, headers
-      if(this.isSuperSmallMobile){
+      if (this.isSuperSmallMobile) {
         login = 'Пользователь'
         numberPages = 'Страниц'
         durationSession = 'Длительность'
@@ -115,8 +115,7 @@ export default {
           {id: 4, name: numberPages},
           {id: 5, name: durationSession},
         ]
-      }
-      else if (this.isMobile) {
+      } else if (this.isMobile) {
         login = 'Пользователь'
         dateAndTime = 'Время'
         device = 'Устройство'

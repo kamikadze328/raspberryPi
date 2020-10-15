@@ -2,19 +2,20 @@
   <div class="header">
     <div class="header-inner">
       <div>
-        <div v-show="$route.name.startsWith('admin-panel')" @click.stop="toggleLeftMenu" class="sidebar-button svg-box svg-img clickable"></div>
+        <div v-show="$route.name.startsWith('admin-panel')" class="sidebar-button svg-box svg-img clickable"
+             @click.stop="toggleLeftMenu"></div>
         <div class="organization-name">Ecodom</div>
       </div>
       <a class="header-logo" href="https://se.ifmo.ru/courses/web">
-        <img crossorigin="anonymous"  src="../assets/itmo_logo.png" alt="itmo logo">
+        <img alt="itmo logo" crossorigin="anonymous" src="../assets/itmo_logo.png">
       </a>
-      <div class="buttons-container" ref="clickable"
-           :class="{'clickable disable-selection-text': isAuthorized()}"
+      <div ref="clickable" :class="{'clickable disable-selection-text': isAuthorized()}"
+           class="buttons-container"
            @click="toggleProfileButtons">
         {{ userName }}
-        <ProfileButtonsHeader @successful-logout="logout"
-                              @changing-password="$emit('changing-password')"
-                              :style="{'opacity': Number(isProfileButtonsOpened), 'visibility' : buttonsContainerVisibility}"/>
+        <ProfileButtonsHeader :style="{'opacity': Number(isProfileButtonsOpened), 'visibility' : buttonsContainerVisibility}"
+                              @successful-logout="logout"
+                              @changing-password="$emit('changing-password')"/>
       </div>
 
     </div>
@@ -24,6 +25,7 @@
 
 <script>
 import ProfileButtonsHeader from "@/components/ProfileButtonsHeader";
+
 export default {
   name: "Header",
   components: {ProfileButtonsHeader},
@@ -43,7 +45,7 @@ export default {
     }
   },
   methods: {
-    isAuthorized(){
+    isAuthorized() {
       const isAuth = this.$mydata.isAuth()
       this.updateIsAuth(isAuth)
       return isAuth
@@ -57,19 +59,19 @@ export default {
       if (this.isProfileButtonsOpened === true)
         this.buttonsContainerVisibility = 'visible'
     },
-    updateIsAuth(val){
+    updateIsAuth(val) {
       this.isAuth = val
     },
-    closeAll(e){
-      if(this.$refs['clickable'] !== e.target && this.isProfileButtonsOpened)
+    closeAll(e) {
+      if (this.$refs['clickable'] !== e.target && this.isProfileButtonsOpened)
         this.toggleProfileButtons()
     },
-    logout(){
+    logout() {
       this.toggleProfileButtons()
       this.$emit('successful-logout')
     },
-    toggleLeftMenu(){
-      if(this.$route.name.startsWith('admin-panel'))
+    toggleLeftMenu() {
+      if (this.$route.name.startsWith('admin-panel'))
         this.$emit('toggle-left-admin-panel')
     }
   },
@@ -81,15 +83,16 @@ export default {
 </script>
 
 <style scoped>
-.buttons-container{
+.buttons-container {
   position: relative;
 }
+
 .header {
   width: 100%;
   margin-bottom: 20px;
   background-color: #fafafb;
   font-size: 1rem;
-  box-shadow: 0 1px 0 rgba(12,13,14,0.1), 0 1px 6px rgba(59,64,69,0.1);
+  box-shadow: 0 1px 0 rgba(12, 13, 14, 0.1), 0 1px 6px rgba(59, 64, 69, 0.1);
   color: #212223;
   border-top: 3px solid #348fe2;
 }
@@ -129,7 +132,7 @@ export default {
   margin: 0 auto;
 }
 
-.sidebar-button{
+.sidebar-button {
   display: none;
   width: 20px;
   height: 20px;
@@ -137,13 +140,15 @@ export default {
 }
 
 @media (max-width: 1200px) {
-  .sidebar-button{
+  .sidebar-button {
     display: flex;
   }
-  .organization-name{
+
+  .organization-name {
     display: none;
   }
 }
+
 @media (max-width: 500px) {
   .header-inner > * {
     width: calc(100% / 2);

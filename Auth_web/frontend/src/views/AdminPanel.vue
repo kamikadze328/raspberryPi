@@ -21,7 +21,7 @@
                    @create-user="$emit('create-user')"
                    @delete-user="user => $emit('delete-user', user)"
                    @reset-user-password="user => $emit('reset-user-password', user)"
-                   @change-user-role="user => $emit('change-user-role', user)"/>
+                   @update-user="user => $emit('update-user', user)"/>
     </div>
   </div>
 </template>
@@ -32,7 +32,7 @@ export default {
   mounted() {
     this.$refs['leftPanel'].classList.add('opened')
     document.addEventListener('click', this.closeAll)
-    if(this.$route.name === 'admin-panel')
+    if (this.$route.name === 'admin-panel')
       this.$router.push({name: 'admin-panel-users'})
   },
   methods: {
@@ -47,16 +47,15 @@ export default {
     closeMenu() {
       this.$refs['leftPanel'].style.setProperty('left', '-190px', 'important');
     },
-    closeAll(e){
-       if(this.$refs['leftPanel']!== e.target && this.$refs['leftPanel'].style.left === '0px')
-         this.closeMenu()
-      }
+    closeAll(e) {
+      if (this.$refs['leftPanel'] !== e.target && this.$refs['leftPanel'].style && this.$refs['leftPanel'].style.left === '0px')
+        this.closeMenu()
+    }
   },
 }
 </script>
 
 <style scoped>
-
 
 
 .component-fade-enter-active, .component-fade-leave-active {
@@ -72,7 +71,7 @@ export default {
 }
 
 .admin-left-panel {
-  z-index: 1000;
+  z-index: 10000;
   text-transform: uppercase;
   font-weight: 500;
   display: flex;

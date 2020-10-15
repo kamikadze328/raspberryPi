@@ -1,7 +1,7 @@
 <template>
   <div class="buttons-wrapper small-drop-menu">
-    <button class="clickable" @click.stop="changePassword">Изменить пароль</button>
-    <button class="clickable" @click.stop="logout">Выйти из аккаунта</button>
+    <button class="clickable" @click="changePassword">Изменить пароль</button>
+    <button class="clickable" @click="logout">Выйти из аккаунта</button>
   </div>
 </template>
 

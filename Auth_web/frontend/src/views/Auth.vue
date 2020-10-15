@@ -5,40 +5,43 @@
       <span :class="numberOfInputs.classText" class="disable-selection-text auth-name">{{ viewText }}</span>
       <div class="form-inside-wrapper">
         <div class="arrow"></div>
-        <div :class="{'invalid':!firstInputValid}" class="warning" v-show="numberOfInputs.number >= 1">
+        <div v-show="numberOfInputs.number >= 1" :class="{'invalid':!firstInputValid}" class="warning">
           <input v-model="firstInput" :disabled="disabledFirstInput" :placeholder="inputText.first"
                  class="pretty-input"
                  maxlength="50" minlength="3"
                  type="text">
           <span :data-validate="errors.firstInput"></span>
         </div>
-        <div :class="{'invalid':!selectInputValid}" class="warning select-box" v-show="isUserCreating">
-        <v-select :options="$mydata.data.roles" label="name" v-model="selectInput"
-                  :clearable="false" :placeholder="inputText.select"
-                  :disabled="disabledSelectInput"></v-select>
+        <div v-show="isWithSelectInput" :class="{'invalid':!selectInputValid}" class="warning select-box">
+          <v-select v-model="selectInput" :clearable="false" :disabled="disabledSelectInput"
+                    :options="roles" :placeholder="inputText.select"
+                    label="name">
+            <div slot="no-options">Ничего не найдено!</div>
+          </v-select>
           <span :data-validate="errors.firstInput"></span>
         </div>
-        <div :class="{'invalid':!secondInputValid}" class="warning" v-show="(numberOfInputs.number >= 3 && isUserCreating) || (numberOfInputs.number >= 2 && !isUserCreating)">
-          <input v-model="secondInput" :disabled="disabledSecondInput" :placeholder="inputText.second"
-                 class="pretty-input"
-                 :class="{'answer-input':hasAlreadyReset}"
-                 maxlength="200" minlength="3"
-                 :type="typeSecondInput">
+        <div v-show="isWithTwoTextInput" :class="{'invalid':!secondInputValid}" class="warning">
+          <input v-model="secondInput" :class="{'answer-input':hasAlreadyReset}" :disabled="disabledSecondInput"
+                 :placeholder="inputText.second"
+                 :type="typeSecondInput"
+                 class="pretty-input" maxlength="200"
+                 minlength="3">
           <span :data-validate="errors.firstInput"></span>
         </div>
 
-        <div :class="{'invalid':!thirdInputValid}" class="warning" v-show="(numberOfInputs.number >= 4 && isUserCreating) || (numberOfInputs.number >= 3 && !isUserCreating)">
-          <input ref="thirdInput" v-model="thirdInput" :disabled="disabledThirdInput"
+        <div v-show="isWithThreeTextInputs" :class="{'invalid':!thirdInputValid}" class="warning">
+          <input ref="thirdInput" v-model="thirdInput" :class="{'answer-input':isUserCreated}"
+                 :disabled="disabledThirdInput"
                  :placeholder="inputText.third"
                  :type="typeThirdInput"
                  class="pretty-input"
-                 :class="{'answer-input':isUserCreated}"
                  maxlength="50"
                  minlength="3">
           <span :data-validate="errors.thirdInput"></span>
         </div>
       </div>
-      <button :class="{'red-button': this.isUserDeleting || this.isUserPasswordResetting}" class="my-button pretty-input confirm-button clickable"
+      <button :class="{'red-button': this.isUserDeleting || this.isUserPasswordResetting}"
+              class="my-button pretty-input confirm-button clickable"
               type="submit">
         <span class="disable-selection-text">
           {{ submitButtonText.third }}
@@ -64,11 +67,11 @@ import 'vue-select/dist/vue-select.css';
 
 export default {
   name: "Auth",
-  components:{
+  components: {
     vSelect
   },
   props: {
-
+    isVisible: Boolean,
     authCode: {
       type: Number,
       default: 0,
@@ -78,6 +81,7 @@ export default {
   },
   data() {
     return {
+      roles: [],
       errors: {
         firstInput: '',
         secondInput: '',
@@ -109,11 +113,10 @@ export default {
       if (this.isUserCreated) {
         classText = 'four-inputs'
         number = 4
-      }
-      else if (this.isChangingPassword || this.isUserCreating) {
+      } else if (this.isChangingPassword || this.isUserCreating) {
         classText = 'three-inputs'
         number = 3
-      } else if (this.isAuth || this.hasAlreadyReset) {
+      } else if (this.isAuth || this.hasAlreadyReset || this.isUserUpdating) {
         classText = 'two-inputs'
         number = 2
       } else if (this.isUserPasswordResetting || this.isUserDeleting) {
@@ -137,6 +140,12 @@ export default {
     isUserDeleting() {
       return this.authCode === this.$mydata.LOCAL_AUTH_CODES.DELETE_USER
     },
+    isUserUpdating() {
+      return this.authCode === this.$mydata.LOCAL_AUTH_CODES.UPDATE_USER
+    },
+    isWithSelectInput() {
+      return this.isUserCreating || this.isUserUpdating
+    },
     viewText() {
       let text = ''
       if (this.isAuth) {
@@ -149,6 +158,8 @@ export default {
         text = 'Сброс пароля пользователя'
       } else if (this.isUserDeleting) {
         text = 'Удаление пользователя'
+      } else if (this.isUserUpdating) {
+        text = 'Обновление пользователя'
       }
       return text
     },
@@ -170,6 +181,8 @@ export default {
         first = 'Имя'
         second = 'Новый пароль'
       } else if (this.isUserDeleting) {
+        first = 'Имя'
+      } else if (this.isUserUpdating) {
         first = 'Имя'
       }
       select = 'Роль'
@@ -211,6 +224,8 @@ export default {
         first = 'Скопировать новый пароль'
       } else if (this.isUserDeleting) {
         third = 'Удалить'
+      } else if (this.isUserUpdating) {
+        first = 'Обновить'
       }
       return {
         first,
@@ -231,6 +246,8 @@ export default {
         action = this.$mydata.server.action.RESET_USER_PASSWORD
       else if (this.isUserDeleting)
         action = this.$mydata.server.action.DELETE_USER
+      else if (this.isUserUpdating)
+        action = this.$mydata.server.action.UPDATE_USER
       return action
     },
     disabledFirstInput() {
@@ -242,18 +259,29 @@ export default {
     disabledThirdInput() {
       return this.isLoading || this.isUserCreated
     },
-    disabledSelectInput(){
+    disabledSelectInput() {
       return false
+    },
+    isWithTwoTextInput() {
+      return (this.numberOfInputs.number >= 3 && this.isWithSelectInput) || (this.numberOfInputs.number >= 2 && !this.isWithSelectInput)
+    },
+    isWithThreeTextInputs() {
+      return (this.numberOfInputs.number >= 4 && this.isWithSelectInput) || (this.numberOfInputs.number >= 3 && !this.isWithSelectInput)
+
     }
   },
   watch: {
-    authCode() {
+    isVisible(val) {
       this.clearForm()
+      if (val && this.isWithSelectInput)
+        this.get_roles()
+
     },
+
   },
   methods: {
     click(e) {
-      if (this.$route.name!== 'auth' && !(this.$refs['form'] === e.target || this.$refs['form'].contains(e.target))) {
+      if (this.$route.name !== 'auth' && !(this.$refs['form'] === e.target || this.$refs['form'].contains(e.target))) {
         this.clearForm()
         this.$emit('close')
       }
@@ -291,11 +319,12 @@ export default {
       })
     },
     changePasswordRequest() {
+      this.defaultRequest()
+    },
+    defaultRequest() {
       this.request().then(result => {
-        if (result) {
+        if (result)
           this.setMessage('Успешно!', true)
-        }
-
       })
     },
     userResetRequest() {
@@ -315,12 +344,10 @@ export default {
       }
     },
     userDeleteRequest() {
-      this.request().then(result => {
-        if (result) {
-          this.setMessage('Успешно!', true)
-        }
-
-      })
+      this.defaultRequest()
+    },
+    userUpdateRequest() {
+      this.defaultRequest()
     },
     request() {
       let url = ''
@@ -335,15 +362,21 @@ export default {
         data.oldPassword = this.firstInput
         data.newPassword = this.secondInput
       } else if (this.isUserCreating) {
-        url = this.$mydata.server.URL.admin
         data.login = this.firstInput
         data.description = this.secondInput
         data.role_id = this.selectInput.id
       } else if (this.isUserPasswordResetting || this.isUserDeleting) {
-        url = this.$mydata.server.URL.admin
         data.user_id = this.user.id
         data.login = this.user.login
+      } else if (this.isUserUpdating) {
+        data.user_id = this.user.id
+        data.login = this.user.login
+        data.new_role_id = this.selectInput.id
+        data.new_login = this.firstInput
       }
+      if (!this.isAuth && !this.isChangingPassword)
+        url = this.$mydata.server.URL.admin
+
       data.purpose = this.serverActionName
       return this.$axios({
         timeout: 5000,
@@ -383,11 +416,26 @@ export default {
         return false
       })
     },
+    get_roles() {
+      this.$axios({
+        timeout: 10000,
+        method: 'post',
+        url: this.$mydata.server.URL.admin,
+        data: {
+          purpose: 'only_roles',
+        }
+      }).then(response => {
+        if (response.data.error) throw response.data.error
+        else this.roles = response.data.data
+      }).catch(error => {
+        console.log(error.response)
+        console.log(error)
+      })
+    },
     checkForm() {
       const emptyText = 'Свято место пусто не бывает'
       const onlyLatin = 'Только латинские буквы и цифры'
       if (!this.firstInput) {
-
         this.firstInputValid = false;
         this.errors.firstInput = emptyText
       } else if (!this.firstInput.match(/^[A-Za-z0-9]*$/)) {
@@ -397,11 +445,7 @@ export default {
         this.firstInputValid = true;
       }
 
-      if (this.numberOfInputs.number > 1
-          && !this.isUserPasswordResetting
-          && !this.isUserDeleting
-          && !this.hasAlreadyReset
-          && !this.isUserCreated)
+      if (this.isWithTwoTextInput)
         if (!this.secondInput) {
           this.secondInputValid = false;
           this.errors.secondInput = emptyText
@@ -411,12 +455,7 @@ export default {
         } else this.secondInputValid = true;
       else this.secondInputValid = true
 
-      if (this.numberOfInputs.number > 2
-          && !this.isUserPasswordResetting
-          && !this.isUserDeleting
-          && !this.hasAlreadyReset
-          && !this.isAuth
-          && !this.isUserCreating)
+      if (this.isWithThreeTextInputs)
         if (!this.thirdInput) {
           this.thirdInputValid = false
           this.errors.secondInput = emptyText
@@ -428,17 +467,13 @@ export default {
       else this.thirdInputValid = true
 
 
-      if(this.isUserCreating) {
-        console.log(this.selectInput)
+      if (this.isWithSelectInput) {
         if (!this.selectInput) {
           this.selectInputValid = false
           this.errors.selectInput = emptyText
         } else this.selectInputValid = true
       } else this.selectInputValid = true
-       console.log(this.firstInputValid && this.secondInputValid && this.thirdInputValid && this.selectInputValid)
-      console.log(this.firstInputValid)
-      console.log(this.secondInputValid)
-      console.log(this.thirdInputValid)
+
       if (this.firstInputValid && this.secondInputValid && this.thirdInputValid && this.selectInputValid) {
         if (this.isUserCreating)
           this.createUserRequest()
@@ -450,12 +485,15 @@ export default {
           this.userResetRequest()
         else if (this.isUserDeleting)
           this.userDeleteRequest()
+        else if (this.isUserUpdating)
+          this.userUpdateRequest()
       }
     },
     clearForm() {
       this.firstInputValid = true
       this.secondInputValid = true
       this.thirdInputValid = true
+      this.selectInputValid = true
       this.isLoading = false
       this.isUserCreated = false
       this.hasAlreadyReset = false
@@ -463,11 +501,14 @@ export default {
       this.thirdInput = ''
       this.firstInput = ''
       this.secondInput = ''
+      this.selectInput = null
       this.fillForm()
     },
     fillForm() {
-      if (this.isUserPasswordResetting || this.isUserDeleting)
+      if ((this.isUserPasswordResetting || this.isUserDeleting || this.isUserUpdating) && this.user)
         this.firstInput = this.user.login
+      if (this.isUserUpdating && this.user)
+        this.selectInput = this.user.role
     },
     copyStrToClipboard(str) {
       const el = document.createElement('textarea');
@@ -483,18 +524,11 @@ export default {
   },
   mounted() {
     this.clearForm()
-    console.log('mounted')
   },
-  beforeUpdate() {
-    console.log('before update')
-
-  }
-
-
 }
 </script>
 <style>
-.vs__search{
+.vs__search {
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -507,39 +541,49 @@ export default {
   text-indent: 20px;
   transition: all .2s ease-in-out;
 }
-.vs__search:focus{
+
+.vs__search:focus {
   margin: 0;
   padding: 0;
 }
-.vs__dropdown-toggle{
+
+.vs__dropdown-toggle {
   background-color: white;
   padding: 0;
   border: 0;
 }
+
 .vs__actions:hover, .vs__actions:focus {
   cursor: pointer !important;
 }
-.v-select{
+
+.v-select {
   width: 99.8%;
   border-radius: 8px;
 }
-.vs__dropdown-menu{
+
+.vs__dropdown-menu {
   border: 0;
 }
-.vs__dropdown-option--highlight{
+
+.vs__dropdown-option--highlight {
   background-color: #348fe2;
 }
-.vs__actions{
- margin-right: 9px;
+
+.vs__actions {
+  margin-right: 9px;
 }
-.vs__selected{
+
+.vs__selected {
   padding: 0;
   margin-left: 20px;
   top: 8px;
 }
-.vs__search::placeholder{
+
+.vs__search::placeholder {
   color: #7b7b7b;
 }
+
 .invalid .v-select {
   border: 1px solid #FF5B57;
   border-radius: 6px;
@@ -547,14 +591,16 @@ export default {
 
 </style>
 <style scoped>
-.warning.select-box.invalid > span{
+.warning.select-box.invalid > span {
   background: none;
   margin-right: 16px;
 }
-.warning.select-box.invalid > span::after{
+
+.warning.select-box.invalid > span::after {
   right: 0;
   padding-right: 6px;
 }
+
 .form-inside-wrapper, label, .arrow, button span {
   transition: height, transform .5s, .5s ease, -webkit-transform .5s;
 }
@@ -562,6 +608,7 @@ export default {
 .form-inside-wrapper .arrow {
   left: 10px;
 }
+
 .one-input ~ .form-inside-wrapper {
   height: 68px;
 }
@@ -589,9 +636,11 @@ export default {
 .four-inputs ~ button span {
   transform: translate3d(0, -144px, 0);
 }
-.answer-input{
+
+.answer-input {
   font-weight: bold;
 }
+
 form {
   max-width: 450px;
   width: 100%;

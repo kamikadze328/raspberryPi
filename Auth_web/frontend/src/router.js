@@ -22,7 +22,6 @@ const router = new Router({
             props: {authCode: 0},
             meta: {title: 'Авторизация'},
             beforeEnter: (to, from, next) => {
-                console.log(VueCookies.get(userMeta))
                 if (VueCookies.isKey(userMeta)) next({name: 'profile'})
                 else next()
 
@@ -34,14 +33,7 @@ const router = new Router({
             component: Profile,
             meta: {title: 'Профиль'},
             beforeEnter: (to, from, next) => {
-                console.log(VueCookies.get(userMeta))
-
-                console.log(to)
-                console.log(from)
-                console.log(document.cookie)
-                console.log(VueCookies.isKey(userMeta))
                 if (VueCookies.isKey(userMeta)) next()
-
                 else next({name: 'auth'})
             },
         },
@@ -51,7 +43,6 @@ const router = new Router({
             component: AdminPanel,
             meta: {title: 'Панель управления'},
             beforeEnter: (to, from, next) => {
-                console.log(VueCookies.get(userMeta))
                 if (VueCookies.isKey(userMeta) && VueCookies.isKey(userMeta) && VueCookies.get(userMeta).isAdmin)
                     next()
                 else next({name: 'auth'})

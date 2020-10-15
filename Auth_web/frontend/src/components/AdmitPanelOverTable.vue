@@ -166,7 +166,7 @@ export default {
     },
     toggleAllButtons(e) {
       e.target.classList.toggle('closed-addition-buttons')
-      if(this.$refs['calendarBox'].style.display === '') this.openAllButtons()
+      if (this.$refs['calendarBox'].style.display === '') this.openAllButtons()
       else this.$refs['calendarBox'].style.display === 'none' ? this.openAllButtons() : this.closeAllButtons()
     },
     openAllButtons() {
@@ -270,9 +270,11 @@ export default {
   display: flex;
   align-items: center;
 }
-.closed-addition-buttons{
+
+.closed-addition-buttons {
   transform: rotate(180deg);
 }
+
 @media (max-width: 500px) {
   .under-table-container {
     flex-direction: column;
@@ -302,7 +304,8 @@ export default {
   .calendar-box, .date-button-box {
     display: none;
   }
-  .show-additional-buttons{
+
+  .show-additional-buttons {
     display: block;
   }
 

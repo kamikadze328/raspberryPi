@@ -20,7 +20,7 @@
             <div v-show="isMobile" ref="clickable" class="relative">
               <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
                 <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
-                <button class="clickable" @click.stop="changeRole(user)">Изменить роль</button>
+                <button class="clickable" @click.stop="updateUser(user)">Изменить пользователя</button>
                 <button class="clickable" @click.stop="resetUserPassword(user)">Сбросить пароль</button>
                 <button class="clickable" @click.stop="deleteUser(user)">Удалить</button>
               </div>
@@ -39,7 +39,7 @@
               @click="handleMenuClick">
             <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
               <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
-              <button class="clickable" @click.stop="changeRole(user)">Изменить роль</button>
+              <button class="clickable" @click.stop="updateUser(user)">Изменить пользователя</button>
               <button class="clickable" @click.stop="resetUserPassword(user)">Сбросить пароль</button>
               <button class="clickable" @click.stop="deleteUser(user)">Удалить</button>
             </div>
@@ -78,12 +78,12 @@ export default {
     isMobile: function () {
       return this.width <= 1000
     },
-    isSuperSmallMobile: function (){
+    isSuperSmallMobile: function () {
       return this.width <= 550
     },
     headers: function () {
       let login, role, description, lastSession, numberSessions, avgDuration, numberPlaces, headers
-      if(this.isSuperSmallMobile){
+      if (this.isSuperSmallMobile) {
         login = 'Пользователь'
         role = 'Роль'
         description = 'Описание'
@@ -98,8 +98,7 @@ export default {
           {id: 6, name: numberPlaces},
           {id: 2, name: description}
         ]
-      }
-      else if (this.isMobile) {
+      } else if (this.isMobile) {
         login = 'Пользователь'
         role = 'Роль'
         description = 'Описание'
@@ -163,9 +162,7 @@ export default {
         let row = e.target
         while (row.tagName.toLowerCase() !== 'tr')
           row = row.parentElement
-        console.log(row.firstElementChild.firstElementChild.firstElementChild)
         this.toggleMenuVisibility(row.firstElementChild.firstElementChild.firstElementChild)
-
       }
     },
     handleMenuClick(e) {
@@ -200,8 +197,8 @@ export default {
     resetUserPassword(user) {
       this.$emit('reset-user-password', {id: user.id, login: user.login})
     },
-    changeRole(user) {
-      this.$emit('change-user-role', {id: user.id, login: user.login, role: user.role})
+    updateUser(user) {
+      this.$emit('update-user', {id: user.id, login: user.login, role: user.role})
     },
     updateLocalUsersData(data) {
       this.usersData = data
@@ -288,6 +285,7 @@ export default {
 .description-header {
   text-align: left;
 }
+
 .description-body {
   max-width: 700px;
   word-wrap: break-word;

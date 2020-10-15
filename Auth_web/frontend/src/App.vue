@@ -5,18 +5,19 @@
             @toggle-left-admin-panel="toggleLeftAdminPanel"
             @successful-logout="successfulLogout"
             @changing-password="changingPassword"/>
-    <router-view @successful-login="successfulLogin"
+    <router-view ref="routerView"
+                 @successful-login="successfulLogin"
                  @create-user="createUser"
                  @delete-user="deleteUser"
                  @reset-user-password="resetUserPassword"
-                 @@change-user-role="changeUserRole"
-                  ref="routerView"/>
+                 @update-user="updateUser"/>
     <div class="alert"></div>
     <Auth v-show="isAuthMenuOpened"
           :auth-code="authMenuCode"
+          :isVisible="isAuthMenuOpened"
           :user="authMenuUser"
           class="over-all"
-          @close="isAuthMenuOpened = false"/>
+          @close="closeAuthMenu"/>
   </div>
 </template>
 
@@ -48,29 +49,33 @@ export default {
       this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.CHANGING_PASSWORD
       this.openAuthMenu()
     },
-    createUser(){
+    createUser() {
       this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.CREATE_USER
       this.openAuthMenu()
     },
-    deleteUser(user){
+    deleteUser(user) {
       this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.DELETE_USER
       this.authMenuUser = user
       this.openAuthMenu()
     },
-    resetUserPassword(user){
+    resetUserPassword(user) {
       this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.RESET_PASSWORD_USER
       this.authMenuUser = user
       this.openAuthMenu()
     },
-    changeUserRole(user){
-      this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.CHANGE_USER_ROLE
+    updateUser(user) {
+      this.authMenuCode = this.$mydata.LOCAL_AUTH_CODES.UPDATE_USER
       this.authMenuUser = user
       this.openAuthMenu()
     },
-    openAuthMenu(){
+    openAuthMenu() {
       this.isAuthMenuOpened = true
     },
-    toggleLeftAdminPanel(){
+    closeAuthMenu() {
+      this.authMenuUser = null
+      this.isAuthMenuOpened = false
+    },
+    toggleLeftAdminPanel() {
       this.$refs['routerView'].toggleLeftPanel()
     }
   },
@@ -215,15 +220,18 @@ button {
   text-indent: 20px;
   transition: all .2s ease-in-out;
 }
-.my-button{
+
+.my-button {
   border: 2px solid #348fe2;
   transition: all .3s cubic-bezier(.6, 0, .4, 1);
 }
-.my-button:hover, .my-button:focus, .button-focus{
+
+.my-button:hover, .my-button:focus, .button-focus {
   background: #348fe2;
   color: white !important;
 }
-.red-button{
+
+.red-button {
   border-color: #ff5b57 !important;
   color: #ff5b57 !important;
 }
@@ -231,14 +239,16 @@ button {
 .red-button:hover, .red-button:focus {
   background: #ff5b57 !important;
 }
-.green-button{
+
+.green-button {
   border-color: #32A932 !important;
 }
 
 .green-button:hover, .green-button:focus {
   background: #32A932 !important;
 }
-.small-drop-menu{
+
+.small-drop-menu {
   display: flex;
   flex-direction: column;
   border-radius: 4px;
@@ -246,20 +256,23 @@ button {
   background-color: #fff;
   justify-content: space-between;
   transition: opacity .1s ease-in-out;
-  z-index: 10000;
+  z-index: 1000;
 }
-.small-drop-menu::before{
+
+.small-drop-menu::before {
   content: "";
   background-color: #fff;
   border-top: 1px solid #348fe2;
   border-right: 1px solid #348fe2;
-  z-index: 9999;
+  z-index: 999;
 }
-.small-drop-menu > *{
+
+.small-drop-menu > * {
   color: #2c3e50;
-  z-index: 10000;
+  z-index: 1000;
 }
-.small-drop-menu > *:focus, .small-drop-menu > *:hover{
+
+.small-drop-menu > *:focus, .small-drop-menu > *:hover {
   background: #f2f4f5;
 }
 
@@ -276,10 +289,12 @@ button {
   padding: 5px;
   min-height: 30px;
 }
+
 .table-box {
   overflow-y: auto;
   height: 95%;
 }
+
 .stat-container {
   display: flex;
   flex-direction: column;
