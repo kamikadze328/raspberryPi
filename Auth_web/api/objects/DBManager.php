@@ -224,7 +224,7 @@ class DBManager
         }
     }
 
-    function update_user_passwd($user)
+    function update_user_password($user)
     {
         try {
             $query = "UPDATE {$this->USERS_TABLE} 

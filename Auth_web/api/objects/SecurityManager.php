@@ -211,10 +211,7 @@ class SecurityManager
         return password_hash($password, PASSWORD_BCRYPT);
     }
 
-    function set_secure_password($user)
-    {
-        $user->passowrd_secure = $this->get_secure_password($user->password);
-    }
+
 
     function generate_password()
     {

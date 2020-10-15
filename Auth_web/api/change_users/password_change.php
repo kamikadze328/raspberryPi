@@ -20,7 +20,7 @@ if(isset($user_data['login']) && isset($user_data['oldPassword']) && isset($user
                 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
                 $sec_mng = new SecurityManager();
                 if ($sec_mng->check_password($user->password, $user->password_from_db)) {
-                    if($database->update_user_passwd($user->id, $sec_mng->get_secure_password($user_data['newPassword']))){
+                    if($database->update_user_password($user->id, $sec_mng->get_secure_password($user_data['newPassword']))){
                         $message = 'Успешно!';
                     } else{
                         $error_code = CodesAndMessages::SMTH_WRONG;
