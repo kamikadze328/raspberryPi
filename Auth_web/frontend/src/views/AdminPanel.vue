@@ -3,7 +3,7 @@
     <div ref="leftPanel" class="admin-left-panel">
       <div class="left-panel-top">
         <router-link :to="{name:'admin-panel-stats'}">
-          Стаистика
+          Статистика
         </router-link>
         <router-link :to="{name: 'admin-panel-users'}">
           Пользователи
@@ -31,29 +31,34 @@ export default {
   name: "AdminPanel",
   mounted() {
     this.$refs['leftPanel'].classList.add('opened')
+    document.addEventListener('click', this.closeAll)
+    if(this.$route.name === 'admin-panel')
+      this.$router.push({name: 'admin-panel-users'})
   },
   methods: {
-    toggleLeftPanel(){
+    toggleLeftPanel() {
       const left = this.$refs['leftPanel'].style.left
-      console.log(left)
-      if(left === '') this.openMenu()
+      if (left === '') this.openMenu()
       else left === '0px' ? this.closeMenu() : this.openMenu()
     },
-    openMenu(){
-      console.log('open')
-      this.$refs['leftPanel'].style.setProperty( 'left', '0', 'important' );
-
-
+    openMenu() {
+      this.$refs['leftPanel'].style.setProperty('left', '0', 'important');
     },
-    closeMenu(){
-      console.log('close')
-      this.$refs['leftPanel'].style.setProperty( 'left', '-190px', 'important' );
-    }
-  }
+    closeMenu() {
+      this.$refs['leftPanel'].style.setProperty('left', '-190px', 'important');
+    },
+    closeAll(e){
+       if(this.$refs['leftPanel']!== e.target && this.$refs['leftPanel'].style.left === '0px')
+         this.closeMenu()
+      }
+  },
 }
 </script>
 
 <style scoped>
+
+
+
 .component-fade-enter-active, .component-fade-leave-active {
   transition: opacity .2s ease;
 }
@@ -145,8 +150,9 @@ export default {
   margin-bottom: 10px
 }
 
+
 @media (max-width: 1200px) {
-  .admin-left-panel{
+  .admin-left-panel {
     left: -190px !important;
     position: absolute;
   }

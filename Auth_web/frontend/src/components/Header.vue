@@ -2,7 +2,7 @@
   <div class="header">
     <div class="header-inner">
       <div>
-        <div v-show="$route.name.startsWith('admin-panel')" @click="toggleLeftMenu" class="sidebar-button svg-box svg-img clickable"></div>
+        <div v-show="$route.name.startsWith('admin-panel')" @click.stop="toggleLeftMenu" class="sidebar-button svg-box svg-img clickable"></div>
         <div class="organization-name">Ecodom</div>
       </div>
       <a class="header-logo" href="https://se.ifmo.ru/courses/web">

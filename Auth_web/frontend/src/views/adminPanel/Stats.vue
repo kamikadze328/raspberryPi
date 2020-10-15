@@ -5,36 +5,44 @@
       <table>
         <thead>
         <tr>
-          <td></td>
-          <td v-for="header in headers" :key="header.id">
+          <th v-show="!isMobile"></th>
+          <th v-for="header in headers" :key="header.id">
             <div>{{ header.name }}</div>
             <span :class="''" class="svg-box"></span>
-          </td>
+          </th>
         </tr>
         </thead>
         <tbody>
         <template v-for="session in sortedData">
-          <tr v-show="!isLoading" :key="statsData.indexOf(session)">
-            <td class="clickable" @click="toggleVisibilityStatRow">
+          <tr v-show="!isLoading" :key="statsData.indexOf(session)" @click="onClickRow">
+            <td v-show="!isMobile" class="clickable" @click="onClickOpenClose">
               <div :class="openCloseRowClasses.closed" class="svg-img svg-box"></div>
             </td>
-            <td>{{ session.username }}</td>
-            <td>
-              <div :title="deviceName(session.device)" class="device-cell">
+            <td :class="{'user-info-column': isSuperSmallMobile}">
+              <div>{{ session.username }}</div>
+              <div v-show="isSuperSmallMobile">{{ getStartTime(session) }}</div>
+              <div v-show="isSuperSmallMobile" :title="deviceName(session.device)" class="device-cell" >
+                <div>{{ session.ip }}</div>
                 <div :class="detectDevice(session.device)" class="svg-device-box svg-img"></div>
                 <div :class="detectDeviceOC(session.device)" class="svg-device-box svg-img"></div>
               </div>
             </td>
-            <td>{{ session.ip }}</td>
+            <td v-show="!isSuperSmallMobile">{{ getStartTime(session) }}</td>
+            <td v-show="!isSuperSmallMobile">
+              <div :title="deviceName(session.device)" class="device-cell" >
+                <div :class="detectDevice(session.device)" class="svg-device-box svg-img"></div>
+                <div :class="detectDeviceOC(session.device)" class="svg-device-box svg-img"></div>
+                <div>{{ session.ip }}</div>
+              </div>
+            </td>
             <td>{{ getCountStatsInSession(session) }}</td>
-            <td>{{ getStartTime(session) }}</td>
             <td>{{ getDurationTime(session) }}</td>
           </tr>
           <tr v-for="stat in session.stats" :key="statsData.indexOf(session) + '-' + session.stats.indexOf(stat)"
               :style="isLoading ? 'display: none !important;' : ''"
               class="stat-row"
               style="display: none">
-            <td class="stat-refs" colspan="6">
+            <td :colspan="isMobile ? '2' : '5'" class="stat-refs">
               <div>{{ stat.url_name }}</div>
               <a :href="stat.url_path">{{ getCurrentDomain() + stat.url_path }}</a>
             </td>
@@ -42,10 +50,10 @@
           </tr>
         </template>
         <tr v-show="isLoading">
-          <td colspan="7">Загрузка...</td>
+          <td colspan="6">Загрузка...</td>
         </tr>
         <tr v-show="isNothingFound && !isLoading">
-          <td colspan="7">Ничего не найдено</td>
+          <td colspan="6">Ничего не найдено</td>
         </tr>
         </tbody>
       </table>
@@ -71,14 +79,7 @@ export default {
   },
   data() {
     return {
-      headers: [
-        {id: 0, name: 'Пользователь'},
-        {id: 1, name: 'Устройство'},
-        {id: 2, name: 'IP'},
-        {id: 3, name: 'Посещено страниц'},
-        {id: 4, name: 'Дата и время'},
-        {id: 5, name: 'Длительность сеанса'},
-      ],
+      width: 0,
       sortedBy: {columnId: 4, asc: false},
       isLoading: false,
       statsData: [],
@@ -97,6 +98,53 @@ export default {
   },
 
   computed: {
+    isMobile: function () {
+      return this.width <= 900
+    },
+    isSuperSmallMobile: function (){
+      return this.width <= 550
+    },
+    headers: function () {
+      let login, dateAndTime, device, numberPages, durationSession, headers
+      if(this.isSuperSmallMobile){
+        login = 'Пользователь'
+        numberPages = 'Страниц'
+        durationSession = 'Длительность'
+        headers = [
+          {id: 1, name: login},
+          {id: 4, name: numberPages},
+          {id: 5, name: durationSession},
+        ]
+      }
+      else if (this.isMobile) {
+        login = 'Пользователь'
+        dateAndTime = 'Время'
+        device = 'Устройство'
+        numberPages = 'Страниц'
+        durationSession = 'Длительность'
+        headers = [
+          {id: 1, name: login},
+          {id: 2, name: dateAndTime},
+          {id: 3, name: device},
+          {id: 4, name: numberPages},
+          {id: 5, name: durationSession},
+        ]
+      } else {
+        login = 'Пользователь'
+        dateAndTime = 'Дата и время'
+        device = 'Устройство'
+        numberPages = 'Посещено страниц'
+        durationSession = 'Длительность сеанса'
+        headers = [
+          {id: 1, name: login},
+          {id: 2, name: dateAndTime},
+          {id: 3, name: device},
+          {id: 4, name: numberPages},
+          {id: 5, name: durationSession},
+        ]
+      }
+      return headers
+    },
     filteredData: function () {
       const regex = this.inputText.startsWith('/') && this.inputText.endsWith('/') ?
           RegExp(this.inputText.substring(1, this.inputText.length - 1).toLowerCase()) :
@@ -122,17 +170,27 @@ export default {
     getCurrentDomain() {
       return document.location.host
     },
-
-    toggleVisibilityStatRow(e) {
+    onClickOpenClose(e) {
       const isChild = e.target.classList.contains('svg-box')
       const child = isChild ? e.target : e.target.firstChild
-      let nextRow = (isChild ? e.target.parentElement : e.target).parentElement.nextElementSibling
-      while (nextRow.classList.contains('stat-row')) {
-        nextRow.style.display = nextRow.style.display === 'none' ? 'table-row' : 'none'
-        nextRow = nextRow.nextElementSibling
-      }
       child.classList.toggle(this.openCloseRowClasses.closed)
       child.classList.toggle(this.openCloseRowClasses.opened)
+      let nextRow = (isChild ? e.target.parentElement : e.target).parentElement.nextElementSibling
+      this.toggleVisibilityStatRow(nextRow)
+    },
+    toggleVisibilityStatRow(row) {
+      while (row.classList.contains('stat-row')) {
+        row.style.display = row.style.display === 'none' ? 'table-row' : 'none'
+        row = row.nextElementSibling
+      }
+    },
+    onClickRow(e) {
+      if (this.isMobile) {
+        let row = e.target
+        while (row.tagName.toLowerCase() !== 'tr')
+          row = row.parentElement
+        this.toggleVisibilityStatRow(row.nextElementSibling)
+      }
     },
     detectDevice(deviceCode) {
       let deviceIconClass = this.deviceClasses.pc
@@ -195,7 +253,6 @@ export default {
         }).then(response => {
           if (response.data.error) throw response.data.error
           else {
-            console.log(response)
             this.$mydata.data.stats = response.data.data
             this.updateLocalStatsData(this.$mydata.data.stats)
             return response.data.data
@@ -209,15 +266,19 @@ export default {
       }
     },
     updateLocalStatsData(data) {
-      console.log(data)
       this.statsData = data
       this.isLoading = false
+    },
+    onResize() {
+      this.width = document.body.getBoundingClientRect().width
     },
   },
   mounted() {
     if (this.$mydata.data.stats.length === 0)
       this.$refs['overTable'].updateDates()
     else this.updateLocalStatsData(this.$mydata.data.stats)
+    this.onResize()
+    window.addEventListener('resize', this.onResize)
   },
 }
 </script>
@@ -230,16 +291,6 @@ a, a:visited {
 
 a:focus, a:hover {
   color: #115593;
-}
-
-.table-box {
-  overflow-y: auto;
-}
-
-.stat-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
 }
 
 .svg-box {
@@ -258,6 +309,7 @@ a:focus, a:hover {
 
 .device-cell {
   display: flex;
+  justify-content: space-between;
 }
 
 .android-icon {
@@ -303,6 +355,5 @@ a:focus, a:hover {
 .stat-refs {
   padding-left: 45px !important;
 }
-
 
 </style>

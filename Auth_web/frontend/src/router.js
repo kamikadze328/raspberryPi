@@ -87,11 +87,7 @@ const router = new Router({
     ]
 });
 router.beforeEach((to, from, next) => {
-    console.log(to)
-    console.log(from)
     document.title = to.meta.title
-    console.log(VueCookies.get(userMeta))
-
     next()
 })
 export default router;

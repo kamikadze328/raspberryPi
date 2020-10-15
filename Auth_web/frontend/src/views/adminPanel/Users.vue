@@ -3,41 +3,57 @@
     <AdmitPanelOverTable ref="overTable" v-model="inputText" :default-date-range="defaultDateRange"
                          :with-add-button="true"
                          @add-button-click="createUser" @update-date="updateDate"/>
-    <table>
-      <thead>
-      <tr>
-        <td v-for="header in headers" :key="header.id">
-          {{ header.name }}
-        </td>
-        <td></td>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="user in filteredData" v-show="!isLoading" :key="usersData.indexOf(user)">
-        <td>{{ user.login }}</td>
-        <td>{{ user.role }}</td>
-        <td>{{ user.description }}</td>
-        <td>{{ $mydata.secToDate(Math.floor(Number(user.last_session))) }}</td>
-        <td>{{ Number(user.count_sessions) }}</td>
-        <td>{{ $mydata.secToHms(Math.floor(Number(user.average_time_session))) }}</td>
-        <td>{{ user.count_distinct_places }}</td>
-        <td ref="clickable" class="clickable svg-box svg-img more-icon" @click="handleMenuClick">
-          <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
-            <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
-            <button class="clickable" @click.stop="changeRole(user)">Изменить роль</button>
-            <button class="clickable" @click.stop="resetUserPassword(user)">Сбросить пароль</button>
-            <button class="clickable" @click.stop="deleteUser(user)">Удалить</button>
-          </div>
-        </td>
-      </tr>
-      <tr v-show="isLoading">
-        <td colspan="8">Загрузка...</td>
-      </tr>
-      <tr v-show="isNothingFound && !isLoading">
-        <td colspan="8">Ничего не найдено</td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-box">
+      <table>
+        <thead>
+        <tr>
+          <th v-for="header in headers" :key="header.id" :class="{'description-header':header.id===2}">
+            {{ header.name }}
+          </th>
+          <th v-show="!isMobile"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="user in filteredData" v-show="!isLoading" :key="usersData.indexOf(user)" ref="mobileClickable"
+            @click="onClickRow">
+          <td :class="{'user-info-column': isMobile}">
+            <div v-show="isMobile" ref="clickable" class="relative">
+              <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
+                <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
+                <button class="clickable" @click.stop="changeRole(user)">Изменить роль</button>
+                <button class="clickable" @click.stop="resetUserPassword(user)">Сбросить пароль</button>
+                <button class="clickable" @click.stop="deleteUser(user)">Удалить</button>
+              </div>
+            </div>
+            <div>{{ user.login }}</div>
+            <div v-show="isMobile">{{ user.role }}</div>
+            <div v-show="isSuperSmallMobile">{{ $mydata.secToDate(Math.floor(Number(user.last_session))) }}</div>
+          </td>
+          <td v-show="!isSuperSmallMobile">{{ $mydata.secToDate(Math.floor(Number(user.last_session))) }}</td>
+          <td v-show="!isMobile">{{ user.role }}</td>
+          <td>{{ Number(user.count_sessions) }}</td>
+          <td>{{ $mydata.secToHms(Math.floor(Number(user.average_time_session))) }}</td>
+          <td>{{ user.count_distinct_places }}</td>
+          <td class="description-body">{{ user.description }}</td>
+          <td v-show="!isMobile" ref="clickable" class="clickable svg-box svg-img more-icon relative"
+              @click="handleMenuClick">
+            <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
+              <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
+              <button class="clickable" @click.stop="changeRole(user)">Изменить роль</button>
+              <button class="clickable" @click.stop="resetUserPassword(user)">Сбросить пароль</button>
+              <button class="clickable" @click.stop="deleteUser(user)">Удалить</button>
+            </div>
+          </td>
+        </tr>
+        <tr v-show="isLoading">
+          <td colspan="8">Загрузка...</td>
+        </tr>
+        <tr v-show="isNothingFound && !isLoading">
+          <td colspan="8">Ничего не найдено</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -51,22 +67,74 @@ export default {
   },
   data() {
     return {
+      width: 0,
       defaultDateRange: 'week',
-      headers: [
-        {id: 0, name: 'Имя'},
-        {id: 1, name: 'Роль'},
-        {id: 2, name: 'Описание'},
-        {id: 3, name: 'Последний сеанс'},
-        {id: 4, name: 'Количество сеансов'},
-        {id: 5, name: 'Средняя продолжительность'},
-        {id: 6, name: 'Количество мест'}
-      ],
       inputText: '',
       usersData: [],
       isLoading: false,
     }
   },
   computed: {
+    isMobile: function () {
+      return this.width <= 1000
+    },
+    isSuperSmallMobile: function (){
+      return this.width <= 550
+    },
+    headers: function () {
+      let login, role, description, lastSession, numberSessions, avgDuration, numberPlaces, headers
+      if(this.isSuperSmallMobile){
+        login = 'Пользователь'
+        role = 'Роль'
+        description = 'Описание'
+        lastSession = 'Активность'
+        numberSessions = 'Сессий'
+        avgDuration = 'Ср. время'
+        numberPlaces = 'Мест'
+        headers = [
+          {id: 0, name: login},
+          {id: 4, name: numberSessions},
+          {id: 5, name: avgDuration},
+          {id: 6, name: numberPlaces},
+          {id: 2, name: description}
+        ]
+      }
+      else if (this.isMobile) {
+        login = 'Пользователь'
+        role = 'Роль'
+        description = 'Описание'
+        lastSession = 'Активность'
+        numberSessions = 'Сессий'
+        avgDuration = 'Ср. время'
+        numberPlaces = 'Мест'
+        headers = [
+          {id: 0, name: login},
+          {id: 3, name: lastSession},
+          {id: 4, name: numberSessions},
+          {id: 5, name: avgDuration},
+          {id: 6, name: numberPlaces},
+          {id: 2, name: description}
+        ]
+      } else {
+        login = 'Имя'
+        role = 'Роль'
+        description = 'Описание'
+        lastSession = 'Последний сеанс'
+        numberSessions = 'Количество сеансов'
+        avgDuration = 'Средняя продолжительность'
+        numberPlaces = 'Количество мест'
+        headers = [
+          {id: 0, name: login},
+          {id: 3, name: lastSession},
+          {id: 1, name: role},
+          {id: 4, name: numberSessions},
+          {id: 5, name: avgDuration},
+          {id: 6, name: numberPlaces},
+          {id: 2, name: description}
+        ]
+      }
+      return headers
+    },
     filteredData: function () {
       return this.usersData.filter(user => {
         return user.login.toLowerCase().indexOf(this.inputText) > -1
@@ -90,16 +158,35 @@ export default {
         style.opacity = '1'
       }
     },
+    onClickRow(e) {
+      if (this.isMobile) {
+        let row = e.target
+        while (row.tagName.toLowerCase() !== 'tr')
+          row = row.parentElement
+        console.log(row.firstElementChild.firstElementChild.firstElementChild)
+        this.toggleMenuVisibility(row.firstElementChild.firstElementChild.firstElementChild)
+
+      }
+    },
     handleMenuClick(e) {
       this.toggleMenuVisibility(e.target.firstChild)
     },
     closeAll(e) {
       if (!this.isNothingFound)
-        this.$refs['clickable'].forEach(clickable => {
-          if (clickable !== e.target && clickable.firstChild.style.visibility === 'visible')
-            this.toggleMenuVisibility(clickable.firstChild)
-        })
-
+        if (this.isMobile) {
+          let row = e.target
+          while (row && row.tagName.toLowerCase() !== 'tr')
+            row = row.parentElement
+          this.$refs['mobileClickable'].forEach(clickable => {
+            if (clickable !== row && clickable.firstElementChild.firstElementChild.firstElementChild.style.visibility === 'visible')
+              this.toggleMenuVisibility(clickable.firstElementChild.firstElementChild.firstElementChild)
+          })
+        } else {
+          this.$refs['clickable'].forEach(clickable => {
+            if (clickable !== e.target && clickable.firstElementChild.style.visibility === 'visible')
+              this.toggleMenuVisibility(clickable.firstElementChild)
+          })
+        }
     },
     updateDate(min, max) {
       this.get_users(min, max)
@@ -117,7 +204,6 @@ export default {
       this.$emit('change-user-role', {id: user.id, login: user.login, role: user.role})
     },
     updateLocalUsersData(data) {
-      console.log(data)
       this.usersData = data
       this.isLoading = false
     },
@@ -139,7 +225,6 @@ export default {
         }).then(response => {
           if (response.data.error) throw response.data.error
           else {
-            console.log(response)
             this.$mydata.data.users = response.data.data
             this.updateLocalUsersData(this.$mydata.data.users)
             return response.data.data
@@ -154,14 +239,18 @@ export default {
     },
     updateUsers() {
       this.$refs['overTable'].updateDates()
-    }
+    },
+    onResize() {
+      this.width = document.body.getBoundingClientRect().width
+    },
   },
   mounted() {
-    console.log(this.$mydata.data.users.length)
     document.addEventListener('click', this.closeAll)
     if (this.$mydata.data.users.length === 0 && !this.isLoading)
       this.updateUsers()
     else this.updateLocalUsersData(this.$mydata.data.users)
+    this.onResize()
+    window.addEventListener('resize', this.onResize)
   },
 }
 </script>
@@ -174,8 +263,11 @@ export default {
 }
 
 .more-icon {
-  position: relative;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='0 0 384 384' %3E%3Cg%3E%3Cg%3E%3Ccircle style='fill:%23b8b8b8;' cx='192' cy='42.667' r='35'/%3E%3C/g%3E%3C/g%3E%3Cg%3E%3Cg%3E%3Ccircle style='fill:%23b8b8b8;' cx='192' cy='192' r='35'/%3E%3C/g%3E%3C/g%3E%3Cg%3E%3Cg%3E%3Ccircle style='fill:%23b8b8b8;' cx='192' cy='341.333' r='35'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+.relative {
+  position: relative;
 }
 
 .more-info-menu {
@@ -191,5 +283,26 @@ export default {
   top: 7px;
   height: 15px;
   width: 15px;
+}
+
+.description-header {
+  text-align: left;
+}
+.description-body {
+  max-width: 700px;
+  word-wrap: break-word;
+}
+
+@media (max-width: 1000px) {
+  .more-info-menu {
+    left: 50px;
+    top: -6px;
+  }
+
+  .more-info-menu::before {
+    transform: rotate(-135deg);
+    left: -9px;
+    right: auto;
+  }
 }
 </style>

@@ -276,4 +276,18 @@ button {
   padding: 5px;
   min-height: 30px;
 }
+.table-box {
+  overflow-y: auto;
+  height: 95%;
+}
+.stat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
+.user-info-column {
+  min-width: 140px;
+}
 </style>
