@@ -274,7 +274,7 @@ export default {
     isVisible(val) {
       this.clearForm()
       if (val && this.isWithSelectInput)
-        this.get_roles()
+        this.getRoles()
 
     },
 
@@ -416,13 +416,13 @@ export default {
         return false
       })
     },
-    get_roles() {
+    getRoles() {
       this.$axios({
         timeout: 10000,
         method: 'post',
         url: this.$mydata.server.URL.admin,
         data: {
-          purpose: 'only_roles',
+          purpose: this.$mydata.server.action.GET_ROLES,
         }
       }).then(response => {
         if (response.data.error) throw response.data.error
@@ -436,6 +436,7 @@ export default {
       const emptyText = 'Свято место пусто не бывает'
       const onlyLatin = 'Только латинские буквы и цифры'
       if (!this.firstInput) {
+        console.log(this.firstInput)
         this.firstInputValid = false;
         this.errors.firstInput = emptyText
       } else if (!this.firstInput.match(/^[A-Za-z0-9]*$/)) {
@@ -447,6 +448,7 @@ export default {
 
       if (this.isWithTwoTextInput)
         if (!this.secondInput) {
+          console.log(1)
           this.secondInputValid = false;
           this.errors.secondInput = emptyText
         } else if (!this.isUserCreating && !this.secondInput.match(/^[A-Za-z0-9]*$/)) {
@@ -458,7 +460,7 @@ export default {
       if (this.isWithThreeTextInputs)
         if (!this.thirdInput) {
           this.thirdInputValid = false
-          this.errors.secondInput = emptyText
+          this.errors.thirdInput = emptyText
         } else if (this.secondInput !== this.thirdInput) {
 
           this.thirdInputValid = false
@@ -685,71 +687,6 @@ button span {
   background-color: #f7f7f7;
   padding: 30px;
   border-radius: 4px;
-}
-
-.warning {
-  position: relative;
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.warning > span {
-  visibility: hidden;
-  position: absolute;
-  right: 16px;
-  width: 1rem;
-  height: 1rem;
-  background: url("../assets/warning.svg") no-repeat;
-  background-size: 1rem;
-  transition: opacity 0.5s ease;
-  transform-style: preserve-3d;
-}
-
-.warning > span::after {
-  content: attr(data-validate);
-  position: absolute;
-  visibility: hidden;
-  opacity: 0;
-  right: -5px;
-  top: 50%;
-  padding: 0 28px 0 4px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #FF5B57;
-  white-space: nowrap;
-  transform: translateY(-50%) translateZ(-1px);
-  transition: opacity .2s;
-}
-
-.invalid span {
-  visibility: visible !important;
-  opacity: 1;
-  z-index: 2;
-}
-
-.invalid input {
-  border-color: #FF5B57;
-}
-
-
-.invalid:hover span::after {
-  visibility: visible;
-  opacity: 1;
-}
-
-.response-message {
-}
-
-.response-message p {
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity .15s;
-}
-
-.visible {
-  opacity: 1 !important;
-  visibility: visible !important;
 }
 
 .confirm-button {

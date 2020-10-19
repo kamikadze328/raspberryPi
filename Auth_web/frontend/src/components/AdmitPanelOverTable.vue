@@ -3,14 +3,15 @@
     <div class="default-box">
       <div class="search-label">
         <label>
-          <input v-model="inputText" class="pretty-input search-input" placeholder="Поиск по имени"
+          <input v-model="inputText" :placeholder="'Поиск по ' + searchByPlaceHolder" class="pretty-input search-input"
                  type="text" @input="handleInput">
         </label>
-        <div class="show-additional-buttons svg-box svg-img clickable" @click="toggleAllButtons"></div>
+        <div v-show="withCalendar" class="show-additional-buttons svg-box svg-img clickable"
+             @click="toggleAllButtons"></div>
 
       </div>
 
-      <div ref="dateButtonBox" class="date-button-box">
+      <div v-show="withCalendar" ref="dateButtonBox" class="date-button-box">
         <button :class="{'button-focus': isYesterdayDates}" class="pretty-input my-button clickable"
                 @click="setYesterdayDates">Вчера
         </button>
@@ -21,14 +22,22 @@
                 @click="setWeekAgoDates">Неделя
         </button>
       </div>
-      <div ref="calendarBox" class="calendar-box">
+      <div v-show="withCalendar" ref="calendarBox" class="calendar-box">
         <flatpickr v-model="dateStr" :config="dateConfig" class="flatpickr"/>
       </div>
     </div>
-    <button v-show="withAddButton" class="pretty-input my-button clickable green-button add-button"
-            @click="$emit('add-button-click')">Добавить
-      пользователя
-    </button>
+    <div class="left-buttons-under-table">
+      <button class="pretty-input my-button clickable update-button svg-img" @click="updateData"></button>
+      <button v-show="withRedButton" class="pretty-input my-button clickable red-button add-button"
+              @click="$emit('red-button-click')">{{ redButtonText }}
+      </button>
+      <button v-show="withYellowButton" class="pretty-input my-button clickable yellow-button add-button"
+              @click="$emit('yellow-button-click')">{{ yellowButtonText }}
+      </button>
+      <button v-show="withGreenButton" class="pretty-input my-button clickable green-button add-button"
+              @click="$emit('green-button-click')">{{ greenButtonText }}
+      </button>
+    </div>
 
   </div>
 </template>
@@ -56,12 +65,46 @@ export default {
       required: false,
       default: 'today'
     },
-    withAddButton: {
+    withGreenButton: {
       type: Boolean,
       required: false,
       default: false
     },
-    data: String
+    withYellowButton: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    withRedButton: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    withCalendar: {
+      type: Boolean,
+      required: false,
+      default: false
+    },
+    searchByPlaceHolder: {
+      type: String,
+      required: false,
+      default: 'имени'
+    },
+    greenButtonText: {
+      type: String,
+      required: false,
+      default: ''
+    },
+    yellowButtonText: {
+      type: String,
+      required: false,
+      default: ''
+    },
+    redButtonText: {
+      type: String,
+      required: false,
+      default: ''
+    },
   },
   watch: {
     defaultDateRange: function (val) {
@@ -170,14 +213,16 @@ export default {
       else this.$refs['calendarBox'].style.display === 'none' ? this.openAllButtons() : this.closeAllButtons()
     },
     openAllButtons() {
-
       this.$refs['calendarBox'].style.display = 'block'
       this.$refs['dateButtonBox'].style.display = 'flex'
     },
     closeAllButtons() {
       this.$refs['calendarBox'].style.display = 'none'
       this.$refs['dateButtonBox'].style.display = 'none'
-
+    },
+    updateData() {
+      if (this.withCalendar) this.updateDates()
+      else this.$emit('update-data')
     }
   },
   mounted() {
@@ -250,8 +295,8 @@ export default {
 }
 
 .add-button {
-  width: 220px;
-  text-indent: 0;
+  padding: 0 15px;
+  white-space: nowrap;
 }
 
 .show-additional-buttons {
@@ -275,10 +320,38 @@ export default {
   transform: rotate(180deg);
 }
 
+.left-buttons-under-table {
+  display: flex;
+}
+
+.left-buttons-under-table > * {
+  margin-left: 10px;
+  text-indent: 0;
+  min-width: min-content;
+}
+
+.left-buttons-under-table > *:first-child {
+  margin-left: 0;
+}
+
+.update-button {
+  width: 46px;
+  min-width: 46px;
+  background-repeat: no-repeat !important;
+  background-position: center center !important;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='-2 0 512 512' fill='%23348fe2' width='28px' height='28px' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m45.390625 363.96875c-10.210937 4.234375-21.90625-.625-26.132813-10.820312-12.777343-30.828126-19.257812-63.511719-19.257812-97.148438 0-140.394531 113.652344-253.933594 254-253.933594 59.765625 0 119.546875 20.886719 167.804688 63.375v-45.441406c0-11.046875 8.957031-20 20-20 11.046874 0 20 8.953125 20 20v95.402344c.601562 11.421875-8.640626 21.089844-20 21.089844h-96.519532c-11.046875 0-20-8.953126-20-20 0-11.046876 8.953125-20 20-20h51.285156c-37.949218-33.902344-87.601562-54.425782-142.570312-54.425782-118.289062 0-214 95.699219-214 213.933594 0 28.351562 5.453125 55.886719 16.210938 81.832031 4.226562 10.207031-.613282 21.90625-10.820313 26.136719zm443.351563-205.117188c-4.230469-10.207031-15.929688-15.046874-26.132813-10.820312-10.207031 4.230469-15.046875 15.933594-10.820313 26.136719 10.757813 25.945312 16.210938 53.480469 16.210938 81.832031 0 118.234375-95.710938 213.933594-214 213.933594-54.96875 0-104.621094-20.523438-142.570312-54.425782h51.285156c11.046875 0 20-8.957031 20-20 0-11.046874-8.953125-20-20-20h-96.519532c-11.335937 0-20.605468 9.578126-20 21.089844v95.402344c0 11.046875 8.953126 20 20 20 11.042969 0 20-8.953125 20-20v-45.441406c48.257813 42.488281 108.039063 63.375 167.804688 63.375 140.347656 0 254-113.539063 254-253.933594 0-33.636719-6.480469-66.320312-19.257812-97.148438zm0 0'/%3E%3C/svg%3E");
+}
+
+.update-button:focus, .update-button:hover {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='-2 0 512 512' fill='%23fff' width='28px' height='28px' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m45.390625 363.96875c-10.210937 4.234375-21.90625-.625-26.132813-10.820312-12.777343-30.828126-19.257812-63.511719-19.257812-97.148438 0-140.394531 113.652344-253.933594 254-253.933594 59.765625 0 119.546875 20.886719 167.804688 63.375v-45.441406c0-11.046875 8.957031-20 20-20 11.046874 0 20 8.953125 20 20v95.402344c.601562 11.421875-8.640626 21.089844-20 21.089844h-96.519532c-11.046875 0-20-8.953126-20-20 0-11.046876 8.953125-20 20-20h51.285156c-37.949218-33.902344-87.601562-54.425782-142.570312-54.425782-118.289062 0-214 95.699219-214 213.933594 0 28.351562 5.453125 55.886719 16.210938 81.832031 4.226562 10.207031-.613282 21.90625-10.820313 26.136719zm443.351563-205.117188c-4.230469-10.207031-15.929688-15.046874-26.132813-10.820312-10.207031 4.230469-15.046875 15.933594-10.820313 26.136719 10.757813 25.945312 16.210938 53.480469 16.210938 81.832031 0 118.234375-95.710938 213.933594-214 213.933594-54.96875 0-104.621094-20.523438-142.570312-54.425782h51.285156c11.046875 0 20-8.957031 20-20 0-11.046874-8.953125-20-20-20h-96.519532c-11.335937 0-20.605468 9.578126-20 21.089844v95.402344c0 11.046875 8.953126 20 20 20 11.042969 0 20-8.953125 20-20v-45.441406c48.257813 42.488281 108.039063 63.375 167.804688 63.375 140.347656 0 254-113.539063 254-253.933594 0-33.636719-6.480469-66.320312-19.257812-97.148438zm0 0'/%3E%3C/svg%3E");
+}
+
 @media (max-width: 500px) {
   .under-table-container {
     flex-direction: column;
     align-items: flex-start;
+    min-height: 104px;
+    overflow-x: auto;
   }
 
   .under-table-container > :first-child {

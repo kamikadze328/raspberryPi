@@ -203,6 +203,12 @@ button {
   color: #949494;
 }
 
+.response-message p {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .15s;
+}
+
 .visible {
   opacity: 1 !important;
   visibility: visible !important;
@@ -238,6 +244,15 @@ button {
 
 .red-button:hover, .red-button:focus {
   background: #ff5b57 !important;
+}
+
+.yellow-button {
+  border-color: #f59c1a !important;
+  color: #f59c1a !important;
+}
+
+.yellow-button:hover, .yellow-button:focus {
+  background: #f59c1a !important;
 }
 
 .green-button {
@@ -295,7 +310,7 @@ button {
   height: 95%;
 }
 
-.stat-container {
+.admin-content-inside-container {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -304,5 +319,57 @@ button {
 
 .user-info-column {
   min-width: 140px;
+}
+
+.warning {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  text-transform: none;
+}
+
+.warning > span {
+  visibility: hidden;
+  position: absolute;
+  right: 16px;
+  width: 1rem;
+  height: 1rem;
+  background: url("assets/warning.svg") no-repeat;
+  background-size: 1rem;
+  transition: opacity 0.5s ease;
+  transform-style: preserve-3d;
+}
+
+.warning > span::after {
+  content: attr(data-validate);
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  right: -5px;
+  top: 50%;
+  padding: 0 28px 0 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #FF5B57;
+  white-space: nowrap;
+  transform: translateY(-50%) translateZ(-1px);
+  transition: opacity .2s;
+}
+
+.invalid span {
+  visibility: visible !important;
+  opacity: 1;
+  z-index: 2;
+}
+
+.invalid .pretty-input, .invalid textarea {
+  border-color: #FF5B57;
+}
+
+
+.invalid:hover span::after {
+  visibility: visible;
+  opacity: 1;
 }
 </style>

@@ -29,11 +29,21 @@
 <script>
 export default {
   name: "AdminPanel",
-  mounted() {
-    this.$refs['leftPanel'].classList.add('opened')
-    document.addEventListener('click', this.closeAll)
-    if (this.$route.name === 'admin-panel')
-      this.$router.push({name: 'admin-panel-users'})
+  data(){
+    return {
+    width: 0
+    }
+  },
+  computed: {
+    isMobile: function () {
+      return this.width <= 1200
+    },
+  },
+  watch: {
+    isMobile: function (val){
+      if(!val)
+        this.$refs['leftPanel'].style.setProperty('left', '', '');
+    }
   },
   methods: {
     toggleLeftPanel() {
@@ -50,7 +60,20 @@ export default {
     closeAll(e) {
       if (this.$refs['leftPanel'] && this.$refs['leftPanel'] !== e.target && this.$refs['leftPanel'].style && this.$refs['leftPanel'].style.left === '0px')
         this.closeMenu()
-    }
+    },
+    onResize() {
+      this.width = document.body.getBoundingClientRect().width
+    },
+  },
+  mounted() {
+    this.$refs['leftPanel'].classList.add('opened')
+    document.addEventListener('click', this.closeAll)
+    if (this.$route.name === 'admin-panel')
+      this.$router.push({name: 'admin-panel-users'})
+
+    this.onResize()
+    window.removeEventListener('resize', this.onResize)
+    window.addEventListener('resize', this.onResize)
   },
 }
 </script>
@@ -100,7 +123,7 @@ export default {
 }
 
 .router-link-exact-active {
-  border-left: 3px solid #348fe2 !important;
+  border-left: 4px solid #348fe2 !important;
   font-weight: bold;
 
 }
@@ -154,6 +177,7 @@ export default {
   .admin-left-panel {
     left: -190px !important;
     position: absolute;
+    font-size: 1.2rem;
   }
 
 }

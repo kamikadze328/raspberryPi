@@ -1,6 +1,9 @@
 <template>
-  <div class="stat-container">
-    <AdmitPanelOverTable ref="overTable" v-model="inputText" @update-date="updateDate"/>
+  <div class="admin-content-inside-container">
+    <AdmitPanelOverTable ref="overTable"
+                         v-model="inputText"
+                         @update-date="updateDate"
+                         :with-calendar="true"/>
     <div class="table-box">
       <table>
         <thead>
@@ -44,7 +47,7 @@
               style="display: none">
             <td :colspan="isMobile ? '2' : '5'" class="stat-refs">
               <div>{{ stat.url_name }}</div>
-              <a :href="stat.url_path">{{ getCurrentDomain() + stat.url_path }}</a>
+              <a :href="stat.url_path">{{ $mydata.getCurrentDomain() + stat.url_path }}</a>
             </td>
             <td>{{ $mydata.secToHms(stat.duration_sec) }}</td>
           </tr>
@@ -67,15 +70,15 @@ import AdmitPanelOverTable from "@/components/AdmitPanelOverTable";
 export default {
 
   name: "Stats",
+  components: {
+    AdmitPanelOverTable
+  },
   props: {
     inputText: {
       required: false,
       type: String,
       default: ''
-    },
-  },
-  components: {
-    AdmitPanelOverTable
+    }
   },
   data() {
     return {
@@ -164,10 +167,7 @@ export default {
   },
   methods: {
     updateDate(min, max) {
-      this.get_stats(min, max)
-    },
-    getCurrentDomain() {
-      return document.location.host
+      this.getStats(min, max)
     },
     onClickOpenClose(e) {
       const isChild = e.target.classList.contains('svg-box')
@@ -237,7 +237,7 @@ export default {
       session.stats.forEach(stat => uniqueURLSet.add(stat.url_name))
       return uniqueURLSet.size
     },
-    get_stats(min, max) {
+    getStats(min, max) {
       if (!this.isLoading) {
         this.isLoading = true
         this.$axios({
@@ -245,7 +245,7 @@ export default {
           method: 'post',
           url: this.$mydata.server.URL.admin,
           data: {
-            purpose: 'stats',
+            purpose: this.$mydata.server.action.GET_STATS,
             date_min: new Date(min).getTime(),
             date_max: new Date(max).getTime()
           }
@@ -276,7 +276,9 @@ export default {
     if (this.$mydata.data.stats.length === 0)
       this.$refs['overTable'].updateDates()
     else this.updateLocalStatsData(this.$mydata.data.stats)
+
     this.onResize()
+    window.removeEventListener('resize', this.onResize)
     window.addEventListener('resize', this.onResize)
   },
 }

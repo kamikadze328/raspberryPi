@@ -1,8 +1,10 @@
 <template>
-  <div class="stat-container">
+  <div class="admin-content-inside-container">
     <AdmitPanelOverTable ref="overTable" v-model="inputText" :default-date-range="defaultDateRange"
-                         :with-add-button="true"
-                         @add-button-click="createUser" @update-date="updateDate"/>
+                         :with-green-button="true"
+                         :with-calendar="true"
+                         :green-button-text="'Добавить пользователя'"
+                         @green-button-click="createUser" @update-date="updateDate"/>
     <div class="table-box">
       <table>
         <thead>
@@ -186,7 +188,7 @@ export default {
         }
     },
     updateDate(min, max) {
-      this.get_users(min, max)
+      this.getUsers(min, max)
     },
     createUser() {
       this.$emit('create-user')
@@ -207,7 +209,7 @@ export default {
     goToStats(user) {
       this.$router.push({name: 'admin-panel-stats', params: {inputText: ('/^' + user.login + '$/')}})
     },
-    get_users(min, max) {
+    getUsers(min, max) {
       if (!this.isLoading) {
         this.isLoading = true
         this.$axios({
@@ -215,7 +217,7 @@ export default {
           method: 'post',
           url: this.$mydata.server.URL.admin,
           data: {
-            purpose: 'users',
+            purpose: this.$mydata.server.action.GET_USERS,
             date_min: new Date(min).getTime(),
             date_max: new Date(max).getTime()
           }
@@ -243,10 +245,15 @@ export default {
   },
   mounted() {
     document.addEventListener('click', this.closeAll)
+    console.log('mounted')
+    console.log(this.$mydata.data.users.length === 0)
+    console.log(!this.isLoading)
     if (this.$mydata.data.users.length === 0 && !this.isLoading)
       this.updateUsers()
     else this.updateLocalUsersData(this.$mydata.data.users)
+
     this.onResize()
+    window.removeEventListener('resize', this.onResize)
     window.addEventListener('resize', this.onResize)
   },
 }
@@ -270,6 +277,7 @@ export default {
 .more-info-menu {
   position: absolute;
   left: -130px;
+  width: 125px;
   top: 0;
 }
 

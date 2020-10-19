@@ -2,9 +2,11 @@
   <div class="header">
     <div class="header-inner">
       <div>
-        <div v-show="$route.name.startsWith('admin-panel')" class="sidebar-button svg-box svg-img clickable"
-             @click.stop="toggleLeftMenu"></div>
-        <div class="organization-name">Ecodom</div>
+        <div class="left-header-box">
+          <div v-show="$route.name.startsWith('admin-panel')" class="sidebar-button svg-box svg-img clickable"
+               @click.stop="toggleLeftMenu"></div>
+          <div class="organization-name">Ecodom</div>
+        </div>
       </div>
       <a class="header-logo" href="https://se.ifmo.ru/courses/web">
         <img alt="itmo logo" crossorigin="anonymous" src="../assets/itmo_logo.png">
@@ -13,9 +15,10 @@
            class="buttons-container"
            @click="toggleProfileButtons">
         {{ userName }}
-        <ProfileButtonsHeader :style="{'opacity': Number(isProfileButtonsOpened), 'visibility' : buttonsContainerVisibility}"
-                              @successful-logout="logout"
-                              @changing-password="$emit('changing-password')"/>
+        <ProfileButtonsHeader
+            :style="{'opacity': Number(isProfileButtonsOpened), 'visibility' : buttonsContainerVisibility}"
+            @successful-logout="logout"
+            @changing-password="$emit('changing-password')"/>
       </div>
 
     </div>
@@ -138,14 +141,22 @@ export default {
   height: 20px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' aria-hidden='true' role='img' viewBox='0 0 448 512' class='icon'%3E%3Cpath fill='currentColor' d='M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z'%3E%3C/path%3E%3C/svg%3E");
 }
+.left-header-box{
+  display: flex;
+  align-items: center;
+}
+.left-header-box>*:last-child{
+  padding: 0 15px;
+}
+.organization-name{
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: #2c3e50;
+}
 
 @media (max-width: 1200px) {
   .sidebar-button {
     display: flex;
-  }
-
-  .organization-name {
-    display: none;
   }
 }
 
