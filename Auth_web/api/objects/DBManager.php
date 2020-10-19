@@ -337,12 +337,12 @@ class DBManager
                         VALUES(:start_time, :end_time, :url_id, :session_id)";
 
             $stmt = $this->conn->prepare($query);
-            $stmt->execute([
+            $session_id = ($stmt->execute([
                 'url_id' => $path_id,
                 'start_time' => $current_time,
                 'end_time' => $current_time,
                 'session_id' => $session_id
-            ]);
+            ])) ? $session_id : false;
             $stmt->closeCursor();
             return $session_id;
         } catch (PDOException $e) {
@@ -363,9 +363,7 @@ class DBManager
                 'user_id' => $user_id,
                 'device' => $device,
                 'ip' => $ip
-            ]) ?
-                intval($this->conn->lastInsertId()) :
-                false;
+            ]) ? intval($this->conn->lastInsertId()) : false;
             $stmt->closeCursor();
             return $session_id;
         } catch (PDOException $e) {
@@ -476,6 +474,7 @@ class DBManager
     function get_users_with_stats($date_min, $date_max)
     {
         try {
+            //TODO last activity
             $query = "SELECT u.id as id, 
                             u.login as login,
                             ur.name as role,
@@ -551,6 +550,29 @@ class DBManager
             return false;
         }
     }
+    function get_urls(){
+        try {
+            $query = "SELECT id, name, path
+                        FROM {$this->URLs_TABLE}";
+
+            $stmt = $this->conn->prepare($query);
+            if ($stmt->execute()) {
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($result as &$r)
+                    $r['id'] = intval($r['id']);
+                $stmt->closeCursor();
+            } else {
+                $this->error_msg = $stmt->errorInfo();
+                $stmt->closeCursor();
+                $result = false;
+            }
+            return $result;
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return false;
+        }
+    }
 
     function get_roles_with_permissions()
     {
@@ -558,7 +580,6 @@ class DBManager
             $query = "SELECT ur.id as id,
                              ur.name as name,
                              ur.description as description,
-                             UL.name as URL_name,
                              UL.id as URL_id,
                             `read` as r,
                             `write` as w 
@@ -573,36 +594,37 @@ class DBManager
                 $stmt->closeCursor();
                 $returned_array = array();
 
-
                 if (count($result_set) > 0) {
-                    $prev_role = array('id' => $result_set[0]['id']);
+                    $prev_role = array(
+                        'id' => $result_set[0]['id'],
+                        'name' => $result_set[0]['name'],
+                        'description' => $result_set[0]['description']);
                     $permissions = array();
                     foreach ($result_set as $result) {
                         if ($prev_role['id'] != $result['id']) {
                             $returned_array[] = array(
-                                'id' => intval($result_set[0]['id']),
-                                'name' => $result_set[0]['name'],
-                                'description' => $result_set[0]['description'],
+                                'id' => intval($prev_role['id']),
+                                'name' => $prev_role['name'],
+                                'description' => $prev_role['description'],
                                 'permissions' => $permissions
                             );
                             $permissions = array();
                             $prev_role = array(
-                                'id' => $result_set[0]['id'],
-                                'name' => $result_set[0]['name'],
-                                'description' => $result_set[0]['description']
+                                'id' => $result['id'],
+                                'name' => $result['name'],
+                                'description' => $result['description']
                             );
                         }
                         $permissions[] = array(
                             'r' => intval($result['r']),
                             'w' => intval($result['w']),
-                            'url_name' => $result['URL_name'],
-                            'url_id' => $result['URL_id']
+                            'url_id' => intval($result['URL_id'])
                         );
                     }
                     $returned_array[] = array(
-                        'id' => intval($result_set[0]['id']),
-                        'name' => $result_set[0]['name'],
-                        'description' => $result_set[0]['description'],
+                        'id' => intval($prev_role['id']),
+                        'name' => $prev_role['name'],
+                        'description' => $prev_role['description'],
                         'permissions' => $permissions
                     );
                     return $returned_array;
@@ -658,9 +680,12 @@ class DBManager
         if ($len === 0) return false;
         $str = "";
         foreach ($permission as $p) {
+            $p['w'] = is_bool($p['w']) ? (int) $p['w'] : $p['w'];
+            $p['r'] = is_bool($p['r']) ? (int) $p['r'] : $p['r'];
+
             if (isset($p['url_id']) && is_numeric($p['url_id']) && ((int)$p['url_id'] == $p['url_id'])
-                && isset($p['write']) && is_numeric($p['write']) && ((int)$p['write'] == $p['write']) && ((int)$p['write'] === 0 || (int)$p['write'] === 1)
-                && isset($p['read']) && is_numeric($p['read']) && ((int)$p['read'] == $p['read']) && ((int)$p['read'] === 0 || (int)$p['read'] === 1)) {
+                && isset($p['w']) && is_numeric($p['w']) && ((int)$p['w'] == $p['w']) && ((int)$p['w'] === 0 || (int)$p['w'] === 1)
+                && isset($p['r']) && is_numeric($p['r']) && ((int)$p['r'] == $p['r']) && ((int)$p['r'] === 0 || (int)$p['r'] === 1)) {
                 $url_id = (int)$p['url_id'];
                 $w = (int)$p['w'];
                 $r = (int)$p['r'];
@@ -674,7 +699,9 @@ class DBManager
                             WHERE " . $str . ";";
         $stmt = $this->conn->prepare($query);
         if ($stmt->execute()) {
-            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($result as &$r)
+                $r = intval($r['id']);
             $stmt->closeCursor();
             return count($result) === $len ? $result : false;
         } else {
@@ -690,7 +717,7 @@ class DBManager
                                 (name, description)
                                 VALUE(:name, :description);";
         $stmt = $this->conn->prepare($query);
-        if ($stmt->execute(['name' => $name, 'user_id' => $description])) {
+        if ($stmt->execute(['name' => $name, 'description' => $description])) {
             $role_id = $this->conn->lastInsertId();
             $stmt->closeCursor();
             return $role_id;
@@ -710,6 +737,7 @@ class DBManager
             $str .= "({$role_id},{$up})";
             if ($i !== $len - 1)
                 $str .= ",";
+            $i++;
         }
         $query = "INSERT INTO {$this->USER_ROLE_TO_PERMISSION_TABLE}(role_id, permission_id) VALUES " . $str . ";";
         $stmt = $this->conn->prepare($query);
@@ -720,7 +748,8 @@ class DBManager
         return $result;
     }
 
-    function update_role($role_id, $permissions)
+
+    function update_role($role_id, $permissions, $name, $description)
     {
         try {
             $this->conn->beginTransaction();
@@ -728,13 +757,24 @@ class DBManager
             if ($url_permissions !== false) {
                 $result = $this->drop_roleToPermissions($role_id);
                 if ($result) {
-                    $this->conn->commit();
-                    return $role_id;
+                    $result = $this->insert_roleToPermissions($role_id, $url_permissions);
+                    if ($result) {
+                        $result = $this->update_role_additional($role_id, $name, $description);
+                        if ($result) {
+                            $this->conn->commit();
+                            return true;
+                        } else {
+                            $this->conn->rollBack();
+                            return false;
+                        }
+                    } else {
+                        $this->conn->rollBack();
+                        return false;
+                    }
                 } else {
                     $this->conn->rollBack();
                     return false;
                 }
-
             } else {
                 $this->conn->rollBack();
                 return false;
@@ -746,6 +786,25 @@ class DBManager
             $this->conn->rollBack();
             return false;
         }
+    }
+
+    private function update_role_additional($role_id, $name, $description)
+    {
+
+        $query = "UPDATE {$this->USER_ROLES_TABLE} 
+                    SET name=:name, description=:description
+                    WHERE id=:role_id
+                    ";
+        $stmt = $this->conn->prepare($query);
+        $result = $stmt->execute([
+            'role_id' => $role_id,
+            'name' => $name,
+            'description' =>$description
+        ]);
+        if (!$result)
+            $this->error_msg = $stmt->errorInfo();
+        $stmt->closeCursor();
+        return $result;
     }
 
     private function drop_roleToPermissions($role_id)
@@ -764,7 +823,8 @@ class DBManager
     function delete_role($role_id)
     {
         try {
-            if ($role_id === $this->DEFAULT_ROLE_ID) {
+            include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
+            if (in_array($role_id, SecurityManager::DEFAULTS_ROLES)) {
                 $this->error_msg[0] = -1111;
                 $this->error_msg[1] = 'Нельзя удалить эту роль.';
                 return false;
@@ -798,7 +858,8 @@ class DBManager
 
     private function set_default_user_role_instead_role($role_id)
     {
-        return $this->update_users_role_by_role_id($role_id, $this->DEFAULT_ROLE_ID);
+        include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
+        return $this->update_users_role_by_role_id($role_id, SecurityManager::DEFAULT_USER_ROLE_ID);
     }
 
     private function update_users_role_by_role_id($role_id_old, $role_id_new)
