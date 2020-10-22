@@ -3,10 +3,7 @@ import Router from 'vue-router'
 import Auth from '@/views/Auth'
 import Profile from "@/views/Profile"
 import VueCookies from 'vue-cookies'
-import AdminPanel from "@/views/AdminPanel";
-import Stats from "@/views/adminPanel/Stats";
-import Users from "@/views/adminPanel/Users";
-import Roles from "@/views/adminPanel/Roles";
+
 
 Vue.use(Router);
 Vue.use(VueCookies)
@@ -40,7 +37,7 @@ const router = new Router({
         {
             name: 'admin-panel',
             path: '/admin',
-            component: AdminPanel,
+            component: () => import(/* webpackChunkName: "group-admin-panel" */ '@/views/AdminPanel'),
             meta: {title: 'Панель управления'},
             beforeEnter: (to, from, next) => {
                 if (VueCookies.isKey(userMeta) && VueCookies.isKey(userMeta) && VueCookies.get(userMeta).isAdmin)
@@ -51,7 +48,7 @@ const router = new Router({
             children: [
                 {
                     path: 'stats',
-                    component: Stats,
+                    component: () => import(/* webpackChunkName: "group-admin-panel" */ '@/views/adminPanel/Stats'),
                     name: 'admin-panel-stats',
                     meta: {title: 'Статистика'},
                     props: true
@@ -59,13 +56,13 @@ const router = new Router({
                 },
                 {
                     path: 'users',
-                    component: Users,
+                    component: () => import(/* webpackChunkName: "group-admin-panel" */ '@/views/adminPanel/Users'),
                     name: 'admin-panel-users',
                     meta: {title: 'Пользователи'},
                 },
                 {
                     path: 'roles',
-                    component: Roles,
+                    component: () => import(/* webpackChunkName: "group-admin-panel" */ '@/views/adminPanel/Roles'),
                     name: 'admin-panel-roles',
                     meta: {title: 'Пользователи'},
                 }
