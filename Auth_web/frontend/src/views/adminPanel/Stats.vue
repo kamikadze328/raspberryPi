@@ -45,7 +45,7 @@
               :style="isLoading ? 'display: none !important;' : ''"
               class="stat-row"
               style="display: none">
-            <td :colspan="isMobile ? '2' : '5'" class="stat-refs">
+            <td :colspan="isSuperSmallMobile ? '2' : (isMobile ? '4' : '5')" class="stat-refs">
               <div>{{ stat.url_name }}</div>
               <a :href="stat.url_path">{{ $mydata.getCurrentDomain() + stat.url_path }}</a>
             </td>
@@ -252,7 +252,7 @@ export default {
         }).then(response => {
           if (response.data.error) throw response.data.error
           else {
-            this.$mydata.data.stats = response.data.data
+            this.$mydata.data.stats = response.data.data ? response.data.data : []
             this.updateLocalStatsData(this.$mydata.data.stats)
             return response.data.data
           }

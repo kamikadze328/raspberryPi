@@ -20,7 +20,7 @@
             @click="onClickRow">
           <td :class="{'user-info-column': isMobile}">
             <div v-show="isMobile" ref="clickable" class="relative">
-              <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
+              <div class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
                 <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
                 <button class="clickable" @click.stop="updateUser(user)">Изменить пользователя</button>
                 <button class="clickable" @click.stop="resetUserPassword(user)">Сбросить пароль</button>
@@ -39,7 +39,7 @@
           <td class="description-body">{{ user.description }}</td>
           <td v-show="!isMobile" ref="clickable" class="clickable svg-box svg-img more-icon relative"
               @click="handleMenuClick">
-            <div ref="dropMenu" class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
+            <div class="small-drop-menu more-info-menu" style="opacity: 0; visibility: hidden">
               <button class="clickable" @click.stop="goToStats(user)">Статистика</button>
               <button class="clickable" @click.stop="updateUser(user)">Изменить пользователя</button>
               <button class="clickable" @click.stop="resetUserPassword(user)">Сбросить пароль</button>
@@ -224,7 +224,7 @@ export default {
         }).then(response => {
           if (response.data.error) throw response.data.error
           else {
-            this.$mydata.data.users = response.data.data
+            this.$mydata.data.users = response.data.data ? response.data.data : []
             this.updateLocalUsersData(this.$mydata.data.users)
             return response.data.data
           }

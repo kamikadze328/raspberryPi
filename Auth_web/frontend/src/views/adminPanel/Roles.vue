@@ -362,11 +362,14 @@ export default {
         }).then(response => {
           if (response.data.error) throw response.data.error
           else {
-            this.$mydata.data.roles = response.data.data.roles
-            this.$mydata.data.urls = response.data.data.urls
-            this.rolesData = this.$mydata.data.roles
-            this.urlsData = this.$mydata.data.urls
-            return response.data.data
+            this.$mydata.data.users = response.data.data ? response.data.data : []
+            if (response.data.data) {
+              this.$mydata.data.roles = response.data.data.roles ? response.data.data.roles : []
+              this.$mydata.data.urls = response.data.data.urls ? response.data.data.urls : []
+              this.rolesData = this.$mydata.data.roles
+              this.urlsData = this.$mydata.data.urls
+              return response.data.data
+            } else return false
           }
         }).catch(error => {
           console.log(error.response)
