@@ -29,12 +29,14 @@ function is_path_in_whitelist($path)
 {
     return (substr($path, -18) === '/info_dev_err.html'
         || substr($path, -14) === '/info_teg.html'
-        || substr($path, -25) === '/api/statistics/stats.php'
     );
 }
 
-$sec_man = new SecurityManager();
+function is_stats ($path){
+    return (substr($path, -25) === '/api/statistics/stats.php');
+}
 
+$sec_man = new SecurityManager();
 
 $uri = parse_path($_SERVER['REQUEST_URI']);
 $db = new DBManager();
@@ -44,26 +46,30 @@ try {
         $permission_level = 0;
         pass_to_uri();
     } else if ($sec_man->isset_token() && $sec_man->isset_user_meta()) {
-
         if ($db->connect()) {
+
             $token = $sec_man->get_token();
             $user_id = intval($sec_man->get_user_id_by_token($token));
             if ($db->is_valid_token($token, $user_id)) {
-                $permission_level = $sec_man->get_permission_level_for_request($_SERVER['REQUEST_URI'], $token, $_SERVER['HTTP_REFERER']);
-                if ($permission_level < 0)
-                    throw new PageNotFoundException();
-                if (substr($uri, -4) === '.php') {
+                if (is_stats($uri))
                     pass_to_uri();
-                } else if (substr($uri, -1) === '/') {
-                    if ($sec_man->can_read_resource($permission_level))
-                        include $_SERVER['DOCUMENT_ROOT'] . $uri . 'index.html';
-                    else throw new AccessDeniedException(false, true);
-                } else
-                    throw new PageNotFoundException();
-
+                else {
+                    $permission_level = $sec_man->get_permission_level_for_request($_SERVER['REQUEST_URI'], $token, $_SERVER['HTTP_REFERER']);
+                    if ($permission_level < 0)
+                        throw new PageNotFoundException();
+                    if (substr($uri, -4) === '.php') {
+                        pass_to_uri();
+                    } else if (substr($uri, -1) === '/') {
+                        if ($sec_man->can_read_resource($permission_level))
+                            include $_SERVER['DOCUMENT_ROOT'] . $uri . 'index.html';
+                        else throw new AccessDeniedException(false, true);
+                    } else
+                        throw new PageNotFoundException();
+                }
             } else {
                 throw new UnauthorizedException();
             }
+
         } else {
             $error_code = CodesAndMessages::DB_NOT_AVAILABLE;
         }

@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpUndefinedVariableInspection */
+
 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/config/core.php';
 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/DBManager.php';
 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
@@ -7,12 +8,11 @@ require_once $_SERVER['DOCUMENT_ROOT'] . '/api/libs/Mobile_Detect.php';
 $error_code = 0;
 $message = '';
 $data = array();
-$db = new DBManager();
 try {
     $user_data = get_http_data();
     $path = parse_current_path($_SERVER['HTTP_REFERER']);
     if (!is_null($path)) {
-        if ($db->connect()) {
+        if ($db->is_connected() || $db->connect()) {
             $sec_mng = new SecurityManager();
             $user_id = $sec_mng->is_auth_user() ? $sec_mng->get_user_id_by_token($sec_mng->get_token()) : -1;
             if (!($user_id == -1 && $path == '/')) {

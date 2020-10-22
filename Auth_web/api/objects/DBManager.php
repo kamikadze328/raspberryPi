@@ -50,6 +50,10 @@ class DBManager
         }
     }
 
+    function is_connected(){
+        return !is_null($this->conn);
+    }
+
     function create_user($user)
     {
         try {
@@ -493,6 +497,12 @@ class DBManager
             $stmt = $this->conn->prepare($query);
             if ($stmt->execute(['date_min' => $date_min, 'date_max' => $date_max])) {
                 $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach($result_set as &$r) {
+                    if (intval($r['last_session']) === 0) {
+                        $last_session = $this->get_last_user_activity(intval($r['id']));
+                        $r['last_session'] = intval($last_session);
+                    }
+                }
                 $stmt->closeCursor();
                 return $result_set;
             } else {
@@ -502,6 +512,25 @@ class DBManager
         } catch (PDOException $e) {
             $this->error_msg[0] = -1;
             $this->error_msg[1] = $e->getMessage();
+            return false;
+        }
+    }
+
+    private function get_last_user_activity($user_id){
+        $query = "SELECT IF(max(start_time) is null, 0, max(start_time)) as last_activity
+                        FROM {$this->USER_STATS_TABLE} 
+                        WHERE session_id = (
+                            SELECT max(id) 
+                            FROM {$this->USER_SESSIONS_TABLE} 
+                            WHERE user_id = :user_id
+                        );";
+        $stmt = $this->conn->prepare($query);
+        if ($stmt->execute(['user_id' => $user_id])) {
+            $last_activity = $stmt->fetch(PDO::FETCH_ASSOC)['last_activity'];
+            $stmt->closeCursor();
+            return $last_activity;
+        } else {
+            $this->error_msg = $stmt->errorInfo();
             return false;
         }
     }
