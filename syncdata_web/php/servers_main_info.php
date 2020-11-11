@@ -28,12 +28,14 @@ if (!empty($_servers_main_info)) {
         $status_number_err = get_status_number_error($number_err);
 
         $status_date = "error";
-        $server_id = str_replace(".", "", $server["host"])
+        $server_id = str_replace(".", "", $server["host"] . $server["database"])
     ?>
         <div class="db" id="db-<?php echo $server_id ?>">
             <div class="db-main-info card">
                 <div class="db-name text-main">
                     <?php echo $server["host"] ?>
+                    <br/>
+                    <?php echo $server["database"] ?>
                 </div>
                 <div class="rows-stat">
                     <div class="db-time-conn row-stat">

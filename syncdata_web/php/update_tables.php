@@ -63,7 +63,7 @@ if ($can_write) {
     $answer = array();
 
     foreach ($servers as $server) {
-        $answer[] = array("host" => $server["host"], "status" => !!replace_data($server, $devices, $tags));
+        $answer[] = array("host" => $server["host"], "status" => false/*!!replace_data($server, $devices, $tags)*/);
     }
     echo json_encode($answer);
 } else throw new AccessDeniedException(true, false);
