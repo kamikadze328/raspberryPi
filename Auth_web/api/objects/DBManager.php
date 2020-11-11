@@ -860,10 +860,10 @@ class DBManager
             } else {
                 $this->conn->beginTransaction();
                 if ($this->set_default_user_role_instead_role($role_id)) {
-                    $query = "DELETE FROM {$this->USER_ROLE_TO_PERMISSION_TABLE} 
+                    $query = "DELETE FROM {$this->USER_ROLES_TABLE} 
                                 WHERE id=:role_id";
                     $stmt = $this->conn->prepare($query);
-                    if ($stmt->execute(['id' => $role_id])) {
+                    if ($stmt->execute(['role_id' => $role_id])) {
                         $stmt->closeCursor();
                         $this->conn->commit();
                         return true;

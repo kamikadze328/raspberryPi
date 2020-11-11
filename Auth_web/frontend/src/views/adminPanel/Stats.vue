@@ -101,13 +101,13 @@ export default {
   },
 
   computed: {
-    isMobile: function () {
+    isMobile() {
       return this.width <= 900
     },
-    isSuperSmallMobile: function () {
+    isSuperSmallMobile() {
       return this.width <= 550
     },
-    headers: function () {
+    headers() {
       let login, dateAndTime, device, numberPages, durationSession, headers
       if (this.isSuperSmallMobile) {
         login = 'Пользователь'
@@ -147,7 +147,7 @@ export default {
       }
       return headers
     },
-    filteredData: function () {
+    filteredData() {
       const regex = this.inputText.startsWith('/') && this.inputText.endsWith('/') ?
           RegExp(this.inputText.substring(1, this.inputText.length - 1).toLowerCase()) :
           null
@@ -156,12 +156,12 @@ export default {
         else return session.username.toLowerCase().indexOf(this.inputText) > -1
       })
     },
-    sortedData: function () {
+    sortedData() {
       return [...this.filteredData].sort((a, b) => {
         return (this.sortedBy.asc ? 1 : -1) * (this.getMinStartTime(a) - this.getMinStartTime(b))
       })
     },
-    isNothingFound: function () {
+    isNothingFound() {
       return this.filteredData.length === 0
     },
   },

@@ -35,12 +35,12 @@ export default {
     }
   },
   computed: {
-    isMobile: function () {
+    isMobile() {
       return this.width <= 1200
     },
   },
   watch: {
-    isMobile: function (val){
+    isMobile(val){
       if(!val)
         this.$refs['leftPanel'].style.setProperty('left', '', '');
     }

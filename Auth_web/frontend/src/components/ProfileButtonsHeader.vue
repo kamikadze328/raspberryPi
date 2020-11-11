@@ -9,10 +9,10 @@
 export default {
   name: "ProfileButtonsHeader",
   methods: {
-    changePassword: function () {
+    changePassword() {
       this.$emit('changing-password')
     },
-    logout: function () {
+    logout() {
       try {
         this.$axios({
           timeout: 5000,
@@ -30,7 +30,7 @@ export default {
       }
 
     },
-    localLogout: function () {
+    localLogout() {
       this.$cookies.remove(this.$mydata.cookieName)
       this.$cookies.remove(this.$mydata.cookieName, '/', '.' + window.location.hostname)
       this.$emit('successful-logout')

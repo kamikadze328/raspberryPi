@@ -3,7 +3,7 @@
     <div class="header-inner">
       <div>
         <div class="left-header-box">
-          <div v-show="$route.name.startsWith('admin-panel')" class="sidebar-button svg-box svg-img clickable"
+          <div v-show="$route.name && $route.name.startsWith('admin-panel')" class="sidebar-button svg-box svg-img clickable"
                @click.stop="toggleLeftMenu"></div>
           <div class="organization-name">Ecodom</div>
         </div>
@@ -74,7 +74,7 @@ export default {
       this.$emit('successful-logout')
     },
     toggleLeftMenu() {
-      if (this.$route.name.startsWith('admin-panel'))
+      if (this.$route.name && this.$route.name.startsWith('admin-panel'))
         this.$emit('toggle-left-admin-panel')
     }
   },

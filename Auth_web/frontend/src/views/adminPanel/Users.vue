@@ -77,13 +77,13 @@ export default {
     }
   },
   computed: {
-    isMobile: function () {
+    isMobile() {
       return this.width <= 1000
     },
-    isSuperSmallMobile: function () {
+    isSuperSmallMobile() {
       return this.width <= 550
     },
-    headers: function () {
+    headers() {
       let login, role, description, lastSession, numberSessions, avgDuration, numberPlaces, headers
       if (this.isSuperSmallMobile) {
         login = 'Пользователь'
@@ -136,12 +136,12 @@ export default {
       }
       return headers
     },
-    filteredData: function () {
+    filteredData() {
       return this.usersData.filter(user => {
         return user.login.toLowerCase().indexOf(this.inputText) > -1
       })
     },
-    isNothingFound: function () {
+    isNothingFound() {
       return this.filteredData.length === 0
     },
   },

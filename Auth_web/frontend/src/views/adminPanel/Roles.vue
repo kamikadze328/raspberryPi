@@ -2,14 +2,14 @@
   <div class="admin-content-inside-container">
     <AdmitPanelOverTable ref="overTable" v-model="inputText"
                          :green-button-text="greenButtonText"
-                         :red-button-text="'Отмена'"
+                         :yellow-button-text="yellowButtonText"
+                         :red-button-text="redButtonText"
                          :search-by-place-holder="'названию'"
                          :with-green-button="true"
                          :with-red-button="withRedButton"
                          :with-yellow-button="withYellowButton"
-                         :yellow-button-text="'Изменить роль'"
                          @green-button-click="onClickGreenButton"
-                         @red-button-click="cancelAllModes"
+                         @red-button-click="onClickRedButton"
                          @yellow-button-click="isChangingMode = !!activeRole"
                          @update-data="getRolesAndUrls"/>
     <div class="roles-box">
@@ -27,7 +27,8 @@
           <label :class="{'invalid':!newRoleNameValid}" class="warning">
             <input v-model="changedActiveRole.name" class="pretty-input new-role-name" maxlength="50" minlength="3"
                    placeholder="Название"
-                   type="text">
+                   type="text"
+            ref="changedActiveRoleName">
             <span :data-validate="errors.newRoleName"></span>
           </label>
         </div>
@@ -42,7 +43,8 @@
             <label :class="{'invalid':!newRoleNameValid}" class="warning">
               <input v-model="changedActiveRole.name" class="pretty-input new-role-name" maxlength="50" minlength="3"
                      placeholder="Название"
-                     type="text">
+                     type="text"
+                     ref="changedActiveRoleNameMobile">
               <span :data-validate="errors.newRoleName"></span>
             </label>
           </div>
@@ -60,7 +62,7 @@
                       placeholder="Описание роли"></textarea>
           <span :data-validate="errors.newRoleDescription"></span>
         </label>
-        <div v-show="!isAddingNewRole && !isChangingMode && !isLoading" class="role-description">
+        <div v-show="!isAddingNewRole && !isChangingMode && !isLoading && activeRole" class="role-description">
           {{ activeRole ? activeRole.description : '' }}
         </div>
         <table v-show="!isLoading && ((activeRole && !isNothingFound) || isAddingNewRole)" class="permissions-box">
@@ -133,40 +135,54 @@ export default {
     }
   },
   computed: {
-    isOpenedListRoles: function () {
+    isOpenedListRoles() {
       return this.isSuperSmallMobile ? this.isMayBeOpenedListRoles : true
     },
-    isSuperSmallMobile: function () {
-      return this.width <= 500
+    isSuperSmallMobile() {
+      return this.width <= 550
     },
-    filteredData: function () {
+    isMobile(){
+      return this.width <= 750
+    },
+    filteredData() {
       return this.rolesData.filter(role => {
         return role.name.toLowerCase().indexOf(this.inputText) > -1
       })
     },
-    isNothingFound: function () {
+    isNothingFound() {
       return this.filteredData.length === 0
     },
-    greenButtonText: function () {
+    greenButtonText() {
       if (this.isWaitingServer) return 'Ожидайте...'
-      return this.isChangingMode || this.isAddingNewRole ? 'Сохранить' : 'Добавить роль'
+      const addRole = 'Добавить' + (this.isMobile ? '' : ' роль')
+      return this.isChangingMode || this.isAddingNewRole ? 'Сохранить' : addRole
     },
-    isActiveDefaultRole: function () {
+    yellowButtonText(){
+      if (this.isWaitingServer) return 'Ожидайте...'
+      return 'Изменить' + (this.isMobile ? '' : ' роль')
+    },
+    redButtonText(){
+      if (this.isWaitingServer) return 'Ожидайте...'
+      const deleteRole = 'Удалить' + (this.isMobile ? '' : ' роль')
+      return this.isChangingMode || this.isAddingNewRole ? 'Отменить' : deleteRole
+    },
+    isActiveDefaultRole() {
       return this.activeRole && this.$mydata.DEFAULT_ROLE_IDs.includes(this.activeRole.id)
     },
-    withRedButton: function () {
-      return (this.isChangingMode || this.isAddingNewRole) && !this.isActiveDefaultRole
+    withRedButton() {
+      return this.activeRole && !this.isActiveDefaultRole
     },
-    withYellowButton: function () {
+    withYellowButton() {
       return !this.isChangingMode && !!this.activeRole && !this.isActiveDefaultRole
     }
   },
   watch: {
-    activeRole: function (val) {
-      if (val) this.cancelAllModes()
+    activeRole(val) {
+      console.log(val)
+      if (val) this.cancelAllModes();
+      if(val === null && !this.isNothingFound) this.activeRole = this.setActiveRole(this.filteredData[0]);
     },
-    isOpenedListRoles: function (val) {
-      console.log('here')
+    isOpenedListRoles(val) {
       if(this.isSuperSmallMobile) {
         if (val) {
           this.$refs['roleNamesBox'].style.display = 'block'
@@ -177,7 +193,7 @@ export default {
         }
       }
     },
-    isSuperSmallMobile: function (val){
+    isSuperSmallMobile(val){
       if(!val){
         this.$refs['roleNamesBox'].style.display = 'block'
         this.$refs['rolesTableBox'].style.display = 'block'
@@ -186,6 +202,10 @@ export default {
   },
 
   methods: {
+    setActiveRole(role){
+      if(role)
+        this.activeRole = JSON.parse(JSON.stringify(role))
+    },
     cancelAllModes() {
       this.isChangingMode = false
       this.isAddingNewRole = false
@@ -203,13 +223,37 @@ export default {
     onClickGreenButton() {
       this.isChangingMode ? this.updateActiveRole() : this.addNewRole()
     },
+    onClickRedButton(){
+      this.isChangingMode || this.isAddingNewRole ? this.cancelAllModes() : this.deleteActiveRole()
+    },
     updateActiveRole() {
       if (this.checkForms()) {
         this.updateRoleRequest().then(ret => {
           if (ret) {
-            this.activeRole = JSON.parse(JSON.stringify(this.changedActiveRole))
+            this.setActiveRole(this.changedActiveRole)
             this.isChangingMode = false
             this.getRolesAndUrls()
+          }
+        })
+      }
+    },
+    deleteActiveRole(){
+      if(!this.isActiveDefaultRole){
+        this.deleteRoleRequest().then(ret => {
+          if (ret) {
+            const countRoles = this.filteredData.length
+            const activeRoleId = this.activeRole.id
+            const indexDeleted =  this.rolesData.findIndex(role => role.id === activeRoleId)
+            let newIndex = indexDeleted - 1
+            if(countRoles === 1) newIndex = null
+            else if(indexDeleted === 0) newIndex = 1
+            console.log(this.rolesData)
+            console.log(this.activeRole)
+            console.log(newIndex)
+            console.log(this.rolesData[newIndex])
+            this.setActiveRole(this.rolesData[newIndex])
+            this.getRolesAndUrls()
+            this.cancelAllModes()
           }
         })
       }
@@ -258,6 +302,8 @@ export default {
           url_id: url.id
         }), this)
         this.isAddingNewRole = true
+        if(!this.isSuperSmallMobile)
+          this.$refs['changedActiveRoleName'].focus()
       }
     },
     getReadPermissionByUrlId(urlId) {
@@ -296,6 +342,14 @@ export default {
         name: this.changedActiveRole.name,
         description: this.changedActiveRole.description,
         permissions: JSON.stringify(this.changedActiveRole.permissions)
+      }
+      return this.request(url, data)
+    },
+    deleteRoleRequest(){
+      const url = this.$mydata.server.URL.admin
+      const data = {
+        purpose: this.$mydata.server.action.DELETE_ROLE,
+        role_id: this.activeRole.id
       }
       return this.request(url, data)
     },
@@ -352,7 +406,7 @@ export default {
       this.cancelAllModes()
       if (!this.isLoading) {
         this.isLoading = true
-        this.$axios({
+        return this.$axios({
           timeout: 30000,
           method: 'post',
           url: this.$mydata.server.URL.admin,
@@ -385,7 +439,6 @@ export default {
   },
 
   mounted() {
-    console.log('mounted')
     if(this.isSuperSmallMobile)
       this.$refs['rolesTableBox'].style.display = 'none'
 
@@ -455,12 +508,12 @@ export default {
 }
 
 .role-description {
+  overflow-y: auto;
   font-size: 1.25rem;
   height: 3rem;
   max-height: 3rem;
   margin-bottom: 10px;
   text-overflow: ellipsis;
-  overflow: hidden;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -527,7 +580,7 @@ textarea.role-description {
   height: 40px;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 550px) {
   .role-description {
     font-size: 1rem;
     max-height: 5rem;

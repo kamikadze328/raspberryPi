@@ -36,13 +36,8 @@ export default {
     }
   },
   computed: {
-    isAdmin: function () {
+    isAdmin() {
       return this.$mydata.isAdmin()
-    }
-  },
-  methods: {
-    closeAll(elem){
-      elem
     }
   },
   beforeRouteEnter(to, from, next) {
