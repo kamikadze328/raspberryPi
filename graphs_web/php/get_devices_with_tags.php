@@ -20,7 +20,7 @@ function get_devices_with_tags($server)
         $devices = $result->fetch_all(MYSQLI_ASSOC);
         $result->close();
 
-        $sql = "select id, ID_NAME as description from tags order by id;";
+        $sql = "select id, ID_NAME as description, TAG_TYPE as type from tags order by id;";
         $result = $mysqli->query($sql);
         $tags = $result->fetch_all(MYSQLI_ASSOC);
         $result->close();
@@ -44,6 +44,7 @@ function get_devices_with_tags($server)
             $current_tags[] = array(
                 'id' => intval($tag['id']),
                 'description' => $tag['description'],
+                'type' => $tag['type']
             );
         }
         $answer[] = array(

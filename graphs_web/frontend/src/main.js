@@ -40,7 +40,7 @@ const store = new Vuex.Store({
             digitalInputs: [],
         },
         tagsData: [
-            //{id, type, data}
+            //{id, data}
         ],
         EMPTY_CONFIG: {
             name: 'Текущая конфигурация',
@@ -173,8 +173,7 @@ const store = new Vuex.Store({
                 maxValue = Number.MIN_VALUE
             let isThereData = false
             let dataLength = newTag.data.length
-            const id = Number(newTag.id),
-                type = String(newTag.type).toUpperCase()
+            const id = Number(newTag.id)
             let isPrevNull = false
             for (let i = 0; i < dataLength; i++) {
                 const d = newTag.data[i],
@@ -197,7 +196,7 @@ const store = new Vuex.Store({
                 } else isPrevNull = true
             }
             if (isThereData) {
-                Vue.set(state.tagsData, newTag.id, {id, type, data: newTag.data, minMaxData: {minValue, maxValue}})
+                Vue.set(state.tagsData, newTag.id, {id, data: newTag.data, minMaxData: {minValue, maxValue}})
                 console.log(state.tagsData)
             }
         },
@@ -252,6 +251,12 @@ const store = new Vuex.Store({
 
     },
     getters: {
+        getTagType: state => tagId =>{
+          for (const device of state.devices){
+              const tag = device.tags.find(tag => tag.id === tagId)
+              if(tag !== undefined) return tag.type
+          }
+        },
         setOfCurrentSelectedTags: state => {
             let uniqueTagsId = new Set()
             state.currentConfig.charts.forEach(chart => chart.tags.forEach(tag => uniqueTagsId.add(tag)))

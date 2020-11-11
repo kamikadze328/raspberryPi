@@ -15,9 +15,7 @@ function millis_to_date($millis)
 
 function get_tags_str($tags)
 {
-    $str = '';
-    foreach ($tags as $tag) $str .= "(data.id={$tag} and tags.id={$tag}) or ";
-    return substr($str, 0, -4);
+    return '(' . implode(",", $tags) . ')';
 }
 
 
@@ -28,25 +26,22 @@ function get_graph_from_server($server, $tags, $min_date, $maxDate)
     if (!$mysqli->connect_errno) {
         $mysqli->set_charset("utf8");
         $str_tags = get_tags_str($tags);
-        $sql = "select data.ID as id, data.ID_DATETIME as date, IF(data.ID_VALUE > 10000000, null, data.ID_VALUE) as value, tags.TAG_TYPE as type
-                    from data, tags
-                    where data.ID_DATETIME between '{$min_date}' and '{$maxDate}'
-                        and ({$str_tags})
-                    order by id, ID_DATETIME";
-
+        $sql = "select ID as id, ID_DATETIME as date, IF(data.ID_VALUE > 10000000, null, data.ID_VALUE) as value
+                    from data
+                    where ID_DATETIME between '{$min_date}' and '{$maxDate}'
+                        and ID in {$str_tags}
+                    order by ID, ID_DATETIME";
         $result = $mysqli->query($sql);
         $rows = $result->fetch_all(MYSQLI_ASSOC);
         $answer = array();
         $prev_tag = intval($tags[0]);
         if (count($rows) > 0) {
-            $prev_type = $rows[0]['type'];
             $data = array();
             foreach ($rows as $row) {
                 if ($prev_tag != $row['id']) {
-                    $answer[] = array('id' => $prev_tag, 'type' => $row['id'], 'data' => $data);
+                    $answer[] = array('id' => $prev_tag, 'data' => $data);
                     $data = array();
                     $prev_tag = intval($row['id']);
-                    $prev_type = $row['type'];
                 }
                 $data[] = array(
                     'value' => $row['value'],
@@ -54,8 +49,7 @@ function get_graph_from_server($server, $tags, $min_date, $maxDate)
                 );
 
             }
-            if (count($rows)) $answer[] = array('id' => $prev_tag, 'type' => $prev_type, 'data' => $data);
-
+            if (count($rows)) $answer[] = array('id' => $prev_tag, 'data' => $data);
             $result->close();
             $mysqli->close();
             return $answer;

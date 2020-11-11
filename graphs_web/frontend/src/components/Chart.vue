@@ -67,6 +67,7 @@ export default {
             'd3Zoom',
             'doTooltipShow',
             'tooltipCurrentDate',
+            'getTagType'
         ]),
         coefficient: function () {
             return {
@@ -491,7 +492,7 @@ export default {
         addLine: function (tag) {
             console.log('addLine: ' + tag.id)
             this.setMaxMinVariables(tag.minMaxData)
-            const type = tag.type,
+            const type = this.getTagType(tag.id),
                 curve = this.getCurveD3(type),
                 line = d3.line()
                     .defined(d => !isNaN(d.value))
