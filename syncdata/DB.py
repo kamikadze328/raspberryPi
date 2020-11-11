@@ -20,14 +20,14 @@ def dict_to_sql(data_dict):
     return sql
 
 
-def list_to_sql(data_list):
+def list_to_sql(data_list, factory_id=None):
     sql = ''
     for one_data in data_list:
         sql += '('
         for param in one_data:
             param = None if "" else param
             sql += '\'' + _mysql.escape_string(param) + '\',' if param else 'NULL,'
-        sql = sql[:-1] + '),'
+        sql = sql[:-1] + (',' + _mysql.escape_string(factory_id) if factory_id is not None else '') + '),'
     return sql
 
 
@@ -71,35 +71,53 @@ class Server(object):
         return table_name in self.whitelist
 
     def replace_many_rows(self, data, table_name_with_params):
+        cursor = self.__get_cursor()
+        start_time_execute = time.time()
+        self.__replace_many_rows_without_commit(data, table_name_with_params, cursor)
+        self.__con.commit()
+        cursor.close()
+        return time.time() - start_time_execute
+
+    def __replace_many_rows_without_commit(self, data, table_name_with_params, cursor, factory_id=None):
         if not self.__is_in_table_whitelist(table_name_with_params.split('(')[0]):
             raise connector.Error('table %s doesn`t exist' % table_name_with_params.split('(')[0].upper())
         sql = 'REPLACE INTO %s VALUES' % table_name_with_params
-
         if isinstance(data[0], list):
-            sql += list_to_sql(data)
+            sql += list_to_sql(data, factory_id)
         else:
             sql += dict_to_sql(data)
 
         sql = sql[:-1] + ';'
-
-        start_time_execute = time.time()
-        cursor = self.__get_cursor()
         cursor.execute(sql)
+
+
+    def delete_between_dates(self, date1, date2, table_name, data_column):
+        cursor = self.__get_cursor()
+        self.__delete_between_dates_without_commit(date1, date2, table_name, data_column, cursor)
         self.__con.commit()
         cursor.close()
 
-        return time.time() - start_time_execute
-
-    def delete_between_dates(self, date1, date2, table_name, data_column):
+    def __delete_between_dates_without_commit(self, date1, date2, table_name, data_column, cursor):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):
             raise connector.Error('table %s doesn`t exist' % table_name.upper())
-        cursor = self.__get_cursor()
         date1 = '\'' + date1.strftime('%Y-%m-%d %H:%M:%S') + '\''
         date2 = '\'' + date2.strftime('%Y-%m-%d %H:%M:%S') + '\''
         sql = 'DELETE from %s where %s between %s and %s;' % (table_name, data_column, date1, date2)
         cursor.execute(sql)
-        self.__con.commit()
-        cursor.close()
+
+    def delete_and_replace(self, date1, date2, table_name, data_column, data, table_name_with_params, factory_id=None):
+        start_time_execute = time.time()
+        self.__con.autocommit = False
+        cursor = self.__get_cursor()
+        try:
+            self.__delete_between_dates_without_commit(date1, date2, table_name, data_column, cursor)
+            self.__replace_many_rows_without_commit(data, table_name_with_params, cursor, factory_id)
+            self.__con.commit()
+            cursor.close()
+            return time.time() - start_time_execute
+        except connector.Error as e:
+            self.__con.rollback()
+            raise e
 
     def load_last_date(self, table_name):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):

@@ -7,7 +7,8 @@ import time
 from datetime import datetime
 from datetime import timedelta
 import errno
-
+from enum import Enum
+import Config
 import DB
 import Logger
 
@@ -15,40 +16,47 @@ import Logger
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-#Paths to my files
-current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
-config_path = '/var/www/html/config/sync_data.conf.json'
-tmp_path = '/var/www/html/RAMdisk/'
-current_path = tmp_path + 'syncdata/'
-
-my_logs_path = current_path + 'logs/'
-stat_path = current_path + 'stats/'
 
 # Create not existed dirs
-if not os.path.exists(current_path):
-    os.mkdir(current_path)
-if not os.path.exists(my_logs_path):
-    os.mkdir(my_logs_path)
-if not os.path.exists(stat_path):
-    os.mkdir(stat_path)
-
-# Path to not my files
-data_path = tmp_path + 'DATA_UNP300/'
-dyn_data_name = '.DynDATA.json'
+if not os.path.exists(Config.WORKING_DIR):
+    os.mkdir(Config.WORKING_DIR)
+if not os.path.exists(Config.MY_LOGS_PATH):
+    os.mkdir(Config.MY_LOGS_PATH)
+if not os.path.exists(Config.MY_STATS_PATH):
+    os.mkdir(Config.MY_STATS_PATH)
 
 
 # Tables in db with parameters
 table_in_db = {
     'data': 'data(id_datetime, id, id_value)',
     'dyn_data': 'data_dyn(id, id_value)',
-    'logs': 'logs(id_datetime, log_id, log_text)',
-    'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text)',
-    'statistics_syncdata': 'statistics_syncdata(id_datetime, host_name, time_upload_ms, time_connection_ms, is_error)',
+    'logs': 'logs(id_datetime, log_id, log_text, id_factory)',
+    'logs_syncdata': 'logs_syncdata(id_datetime, log_id, log_text, id_factory)',
+    'statistics_syncdata': 'statistics_syncdata(id_datetime, '
+                                                'host_name, '
+                                                'database_name, '
+                                                'time_upload_ms, '
+                                                'time_connection_ms, '
+                                                'count_rows_uploaded, '
+                                                'count_files_uploaded, '
+                                                'was_error, '
+                                                'id_factory)',
 }
 data_names = ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']
 
 MAX_DATE = datetime(9000, 12, 31, 23, 59)
 MIN_DATE = datetime(2000, 1, 1, 0, 0)
+
+class ErrorCommonCode(Enum):
+    CANT_READ_DYN_DATA = 1
+    NETWORK_ERROR = 2
+
+
+def get_table_name(table_in_db_key):
+    return table_in_db.get(table_in_db_key).split('(')[0]
+
+def get_filename_without_extension(fullname):
+    return fullname.split('.')[0]
 
 def filter_files_by_date(dir_path, type_files, min_date):
     """
@@ -65,11 +73,12 @@ def filter_files_by_date(dir_path, type_files, min_date):
     """
     files = []
     for one_file in os.listdir(dir_path):
-        if one_file.endswith(type_files) and min_date <= one_file.split('.')[0]:
+        if one_file.endswith(type_files) and min_date <= get_filename_without_extension(one_file):
             files.append(one_file)
     return sorted(files)
 
 
+# noinspection PyBroadException
 def read_files_by_type(dir_path, type_files, first_date):
     """
     Read data from files with needed type. Now only two types:
@@ -108,6 +117,7 @@ def read_files_by_type(dir_path, type_files, first_date):
     return data_from_files, list_success_files, list_broken_files
 
 
+# noinspection PyBroadException
 def connect_to_db(server_to_connect):
     """
     Connecting to server via DB module from this project
@@ -119,7 +129,7 @@ def connect_to_db(server_to_connect):
     try:
         connect_time = server_to_connect.connect()
     except:
-        Logger.write('Connect to ' + str(server_to_connect.config.get('host')) + '  -->  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
+        Logger.write('Connect --> ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
         add_row_statistics(time_connection=-1, with_error=True)
         return False
     else:
@@ -127,6 +137,7 @@ def connect_to_db(server_to_connect):
         return True
 
 
+# noinspection PyBroadException
 def get_last_date_from_server(db_server, tablename):
     """
     Get almost last date(average, median of several last rows) from server.
@@ -146,29 +157,10 @@ def get_last_date_from_server(db_server, tablename):
             return datetime(1900, 01, 01, 00, 00).strftime("%Y-%m-%d %H%M")
     except:
         Logger.write('Can`t check server data -->  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
-        return None
+        return datetime(2000, 01, 01, 00, 00).strftime("%Y-%m-%d %H%M")
 
 
-def get_last_date(db_server, tablename):
-    """
-    Get last date of upload data.
-    It gets from file or if file broken(?) from server
-    :param db_server: The server
-    :type db_server: DB.Server
-    :param tablename: The name of table from 'table_in_db'
-    :type tablename: str
-    :return: Last date of data format (Y-m-d HM) or None if file broken and server not available
-    :rtype: str
-    """
-    last_upload_data = Logger.read_json_file(Logger.last_upload_path, True)
-    if last_upload_data and len(last_upload_data) > 0:
-        for host in last_upload_data:
-            if host.get('host') == db_server.config.get('host'):
-                return str(host.get(tablename))
-    else:
-        return get_last_date_from_server(db_server, tablename)
-
-
+# noinspection PyBroadException
 def upload_data(list_data, list_filenames, table_with_params):
     """
     Upload data to server.
@@ -195,15 +187,14 @@ def upload_data(list_data, list_filenames, table_with_params):
             # Stop when get exception
             for one_data in list_data:
                 if len(one_data) > 0:
-
-                    # Prepare table for logs and statistics because its doesn`t have a primary key.
+                    # Prepare table for logs and statistics because its doesn't have a primary key.
                     # So I delete all of data of this minute (I get needed minute from name of file)
                     if table_with_params.startswith('logs') or table_with_params.startswith('statistics_syncdata'):
-                        date1 = datetime.strptime(list_filenames[index].split('.')[0], '%Y-%m-%d %H%M')
+                        date1 = datetime.strptime(get_filename_without_extension(list_filenames[index]), '%Y-%m-%d %H%M')
                         date2 = date1 + timedelta(seconds=59)
-                        server.delete_between_dates(date1, date2, table_name, 'id_datetime')
-
-                    new_upload_time = server.replace_many_rows(one_data, table_with_params)
+                        new_upload_time = server.delete_and_replace(date1, date2, table_name, 'id_datetime', one_data, table_with_params, Config.FACTORY_ID)
+                    else:
+                        new_upload_time = server.replace_many_rows(one_data, table_with_params)
                     upload_time += new_upload_time
                     number_rows += len(one_data)
                     index += 1
@@ -214,7 +205,7 @@ def upload_data(list_data, list_filenames, table_with_params):
 
         # Save statistics
         if number_rows > 0:
-            add_row_statistics(time_upload=upload_time*10, with_error=with_error)
+            add_row_statistics(time_upload=upload_time*10, count_rows=number_rows, count_files=index, with_error=with_error)
         else:
             add_row_statistics(time_upload=-1, with_error=True)
 
@@ -222,12 +213,16 @@ def upload_data(list_data, list_filenames, table_with_params):
 
 
 
-def add_row_statistics(time_upload=None, time_connection=None, with_error=False):
+def add_row_statistics(time_upload=None, time_connection=None, count_rows=None, count_files=None, with_error=False):
     """
     Save one row of statistics.
     Get host name from current server parameter (from outside the function).
     Save row with only one from time_upload or time_connection (second param will be null)
      because to make in db rows with connection stat and upload stat different.
+    :param count_files: count of successfully uploaded files
+    :type count_files: int
+    :param count_rows: count of rows in successfully uploaded files
+    :type count_rows: int
     :param time_upload: Time of uploading in ms or if upload failed -1.
     :type time_upload: float
     :param time_connection: Time of connection in ms or if connection failed -1.
@@ -238,9 +233,12 @@ def add_row_statistics(time_upload=None, time_connection=None, with_error=False)
     one_row_stat = {
         'id_datetime': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'host_name': server.config.get('host'),
+        'database_name': server.config.get('database'),
         'time_upload_ms': round(time_upload, 3) if time_upload else None,
         'time_connection_ms': round(time_connection, 2) if time_connection else None,
-        'is_error':int(with_error)
+        'count_rows_uploaded': count_rows,
+        'count_files_uploaded': count_files,
+        'was_error':int(with_error)
     }
     statistics_rows.append(one_row_stat)
 
@@ -270,7 +268,7 @@ def delete_files_by_date(dir_path, type_files, max_date):
     """
     count = 0
     for one_file in os.listdir(dir_path):
-        if one_file.endswith(type_files) and max_date >= one_file.split('.')[0]:
+        if one_file.endswith(type_files) and max_date >= get_filename_without_extension(one_file):
             os.remove(dir_path + one_file)
             count += 1
     return count
@@ -288,7 +286,7 @@ def clean():
             'logs_syncdata': MAX_DATE,
             'statistics_syncdata': MAX_DATE,
         }
-        dates_and_numbers = Logger.read_json_file(Logger.last_upload_path, do_check_file=True)
+        dates_and_numbers = Logger.read_json_file(Config.LAST_UPLOAD_PATH, do_check_file=True)
         if dates_and_numbers:
             broken_files_for_delete = []
             # Define minimal dates.
@@ -330,6 +328,7 @@ def clean_no_space():
     return number_deleted_files
 
 
+# noinspection PyBroadException
 def delete_by_name(filepath):
     try:
         os.remove(filepath)
@@ -339,23 +338,23 @@ def delete_by_name(filepath):
 
 def get_path_and_type_for_name(data_name):
     if data_name == 'data':
-        return data_path, '.dat'
+        return Config.DATA_DIR, '.dat'
     if data_name == 'logs':
-        return data_path, '.log'
+        return Config.DATA_DIR, '.log'
     elif data_name == 'logs_syncdata':
-        return my_logs_path, '.log'
+        return Config.MY_LOGS_PATH, '.log'
     elif data_name == 'statistics_syncdata':
-        return stat_path, '.stat'
+        return Config.MY_STATS_PATH, '.stat'
 
 # =========================================================================================================================================================================================
-#  СТАРТ программы
+#  START program
 # =========================================================================================================================================================================================
 print "START SYNCDATA program"
-
-configs_servers = Logger.read_json_file(config_path)
+configs_servers = Logger.read_json_file(Config.SERVERS_CONFIG_PATH)
 statistics_rows = []
 if configs_servers:
     Logger.init_last_upload_date(configs_servers)
+    # noinspection PyBroadException
     try:
         for config_server in configs_servers:
             server = DB.Server(**config_server)
@@ -363,24 +362,26 @@ if configs_servers:
             if connect_to_db(server):
                 full_number_rows = 0
                 full_number_files = 0
-                broken_files =[]
+                broken_files = []
 
                 start_time = time.time()
 
                 # upload dynamic data
-                dyn_data = Logger.read_json_file(data_path + dyn_data_name)
+                dyn_data = Logger.read_json_file(Config.DYN_DATA_PATH)
                 if dyn_data:
-                    current_number_files, current_number_rows = upload_data(prepare_dyn_data(dyn_data), [data_path + dyn_data_name], table_in_db.get('dyn_data'))
+                    current_number_files, current_number_rows = upload_data(prepare_dyn_data(dyn_data), [Config.DYN_DATA_PATH], table_in_db.get('dyn_data'))
                     full_number_files += current_number_files
                     full_number_rows += current_number_rows
                 else:
-                    broken_files.append(dyn_data_name)
+                    broken_files.append(Config.DYN_DATA_NAME)
 
                 # Upload data in other tables.
                 for table in data_names:
                     path, files_type = get_path_and_type_for_name(table)
 
-                    last_date = get_last_date(server, table_in_db.get(table).split('(')[0])
+                    last_date = Logger.get_last_date(server, get_table_name(table))
+                    if last_date is None:
+                        last_date = get_last_date_from_server(server, get_table_name(table))
                     last_data_from_files, filenames, list_unread_files = read_files_by_type(path, files_type, last_date)
 
                     first_broken_read_file = None
@@ -405,22 +406,27 @@ if configs_servers:
                     if first_broken_read_file:
                         last_date_file = min(first_broken_read_file, last_date_file)
 
-                    last_date_file = last_date_file.split('.')[0]
-                    Logger.save_last_upload_dates(server.config.get('host'), table_in_db.get(table).split('(')[0], last_date_file)
+                    last_date_file = get_filename_without_extension(last_date_file)
+                    Logger.save_last_upload_dates(server.config.get('host'), server.config.get('database'), get_table_name(table), last_date_file)
 
                 Logger.write(server.config.get('host') + ' -> %d rows in %d files in %4.1fs' %
                              (full_number_rows, full_number_files, time.time() - start_time))
 
                 if len(broken_files):
-                    Logger.write("Can't read files  -->  %s" % broken_files, Logger.LogType.ALARM)
-
-        # Save statistics
-        Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", "))
+                    logger_str = "Can't read "
+                    logger_str += 'dyndata' if len(broken_files) == 1 and broken_files[0] == Config.DYN_DATA_NAME else ("files  -->  %s" % broken_files)
+                    Logger.write(logger_str, Logger.LogType.ALARM)
 
     except:
         Logger.write(str(sys.exc_info()[1]), Logger.LogType.ERROR)
 
     finally:
+        # Save statistics
+        # noinspection PyBroadException
+        try:
+            Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", "))
+        except:
+            Logger.write(str(sys.exc_info()[1]), Logger.LogType.ERROR)
         # Delete files
         clean()
 else:

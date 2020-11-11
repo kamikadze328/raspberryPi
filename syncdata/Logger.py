@@ -2,14 +2,9 @@ import csv
 import json
 import os
 from datetime import datetime as d
-
 from enum import Enum
 
-current_path = os.path.dirname(os.path.abspath(__file__)) + '/'
-tmp_path = '/var/www/html/RAMdisk/syncdata/'
-current_path = tmp_path
-last_upload_path = current_path + 'last_upload_date.json'
-statistics_path = current_path + 'statistics.json'
+import Config
 
 pattern_last_data = [{
     'data': '2000-01-01 0000',
@@ -46,14 +41,16 @@ def write(message, log_type=None, file_path=None):
     :type file_path: str
     """
     message = __make_message(message, log_type)
-    if file_path is None:
-        file_path = __get_logs_filepath()
-    if not os.path.exists(file_path):
-        with open(file_path, 'w') as f:
-            f.write(message)
-    else:
-        with open(file_path, 'a') as f:
-            f.write(message)
+    print message
+    if log_type is not None:
+        if file_path is None:
+            file_path = __get_logs_filepath()
+        if not os.path.exists(file_path):
+            with open(file_path, 'w') as f:
+                f.write(message)
+        else:
+            with open(file_path, 'a') as f:
+                f.write(message)
 
 
 def __get_logs_filepath():
@@ -62,9 +59,9 @@ def __get_logs_filepath():
     :return: default filepath to logs.
     :rtype: str
     """
-    if not os.path.exists(current_path + 'logs/'):
-        os.mkdir(current_path + 'logs/')
-    return current_path + 'logs/' + d.now().strftime("%Y-%m-%d %H%M") + '.log'
+    if not os.path.exists(Config.MY_LOGS_PATH):
+        os.mkdir(Config.MY_LOGS_PATH)
+    return Config.MY_LOGS_PATH + d.now().strftime("%Y-%m-%d %H%M") + '.log'
 
 def __get_stat_filepath():
     """
@@ -72,9 +69,9 @@ def __get_stat_filepath():
     :return: default filepath to statistics files.
     :rtype: str
     """
-    if not os.path.exists(current_path + 'stats/'):
-        os.mkdir(current_path + 'stats/')
-    return current_path + 'stats/' + d.now().strftime("%Y-%m-%d %H%M") + '.stat'
+    if not os.path.exists(Config.MY_STATS_PATH):
+        os.mkdir(Config.MY_STATS_PATH)
+    return Config.MY_STATS_PATH + d.now().strftime("%Y-%m-%d %H%M") + '.stat'
 
 
 def __make_message(message, log_type=None, time=None):
@@ -97,6 +94,7 @@ def __make_message(message, log_type=None, time=None):
     return unicode(time + '  ' + log_type + ' ' + message + '\n')
 
 
+# noinspection PyBroadException
 def read_json_file(file_path, do_check_file=False):
     """
     Read json data from file
@@ -159,78 +157,101 @@ def read_csv_file(file_path):
         data_from_dat = list(csv.reader(f, delimiter=','))
     return data_from_dat
 
-
 def init_last_upload_date(servers):
-    if not os.path.exists(last_upload_path):
-        with open(last_upload_path, 'w') as f:
+    if not os.path.exists(Config.LAST_UPLOAD_PATH):
+        with open(Config.LAST_UPLOAD_PATH, 'w') as f:
             for server in servers:
                 last_dates = list(pattern_last_data)
-                last_dates[0]['host'] = server.get('host')
+                last_dates[0]['host'] = server.get('host') + '@' + server.get('database')
                 json.dump(last_dates, f, indent=4)
 
     else:
-        with open(last_upload_path, 'r') as f:
+        with open(Config.LAST_UPLOAD_PATH, 'r') as f:
             servers_last_dates = json.load(f)
 
         for server in servers:
-            host = server.get('host')
+            host_and_db = server.get('host') + '@' + server.get('database')
             is_saved = False
             for server_last_date in servers_last_dates:
-                if host == server_last_date.get('host'):
+                if host_and_db == server_last_date.get('host'):
                     is_saved = True
                     break
             if not is_saved:
                 last_dates = pattern_last_data[0]
-                last_dates['host'] = host
+                last_dates['host'] = host_and_db
                 servers_last_dates.append(last_dates)
 
-        with open(last_upload_path, 'w') as f:
+        with open(Config.LAST_UPLOAD_PATH, 'w') as f:
             json.dump(servers_last_dates, f, indent=4)
 
-def save_last_upload_dates(host_name, tablename, last_upload_date):
+
+# noinspection PyBroadException
+def save_last_upload_dates(host_name, database_name, table_name, last_upload_date):
     """
     Save last upload dates. It is necessary for uploading not all files and deleting already uploaded files.
+    :param database_name: Name of database.
+    :type database_name: str
     :param host_name: Name of host.
     :type host_name: str
-    :param tablename: name of table in db
-    :type tablename: str
+    :param table_name: name of table in db
+    :type table_name: str
     :param last_upload_date: Date in format 'Y-m-d HM'
     :type last_upload_date: str
     """
 
     last_dates_current = list(pattern_last_data)
+    host_name = host_name + '@' + database_name
     last_dates_current[0]['host'] = host_name
-    last_dates_current[0][tablename] = last_upload_date
+    last_dates_current[0][table_name] = last_upload_date
 
     try:
-        if not os.path.exists(last_upload_path):
-            with open(last_upload_path, 'w') as f:
+        if not os.path.exists(Config.LAST_UPLOAD_PATH):
+            with open(Config.LAST_UPLOAD_PATH, 'w') as f:
                 json.dump(last_dates_current, f, indent=4)
 
         else:
-            with open(last_upload_path, 'r') as f:
+            with open(Config.LAST_UPLOAD_PATH, 'r') as f:
                 new_upload_data = json.load(f)
 
             if len([host for host in new_upload_data if host.get('host') == host_name]) > 0:
                 for host in new_upload_data:
                     if host.get('host') == host_name:
-                        counter = host.get(tablename + '_counter')
+                        counter = host.get(table_name + '_counter')
                         if counter is not None:
-                            if last_upload_date == host.get(tablename):
+                            if last_upload_date == host.get(table_name):
                                 counter = int(counter) + 1
-                                host[tablename + '_counter'] = counter
+                                host[table_name + '_counter'] = counter
                             else:
-                                host[tablename + '_counter'] = 0
-                        host[tablename] = last_upload_date
+                                host[table_name + '_counter'] = 0
+                        host[table_name] = last_upload_date
             else:
                 new_upload_data.append(last_dates_current[0])
 
-            with open(last_upload_path, 'w') as f:
+            with open(Config.LAST_UPLOAD_PATH, 'w') as f:
                 json.dump(new_upload_data, f, indent=4)
     except:
-        os.remove(last_upload_path)
-        with open(last_upload_path, 'w') as f:
+        os.remove(Config.LAST_UPLOAD_PATH)
+        with open(Config.LAST_UPLOAD_PATH, 'w') as f:
             json.dump(last_dates_current, f, indent=4)
+
+def get_last_date(db_server, table_name):
+    """
+    Get last date of upload data.
+    It gets from file or if file broken(?) from server
+    :param db_server: The server
+    :type db_server: DB.Server
+    :param table_name: The name of table from 'table_in_db'
+    :type table_name: str
+    :return: Last date of data format (Y-m-d HM) or None if file broken and server not available
+    :rtype: str
+    """
+    last_upload_data = read_json_file(Config.LAST_UPLOAD_PATH, True)
+    if last_upload_data and len(last_upload_data) > 0:
+        for host in last_upload_data:
+            if host.get('host') == db_server.config.get('host') + '@' + db_server.config.get('database'):
+                return str(host.get(table_name))
+    else:
+        return None
 
 def save_stat(statistics, headers):
     """
