@@ -7,7 +7,6 @@ import time
 from datetime import datetime
 from datetime import timedelta
 import errno
-from enum import Enum
 import Config
 import DB
 import Logger
@@ -46,10 +45,6 @@ data_names = ['data', 'logs', 'logs_syncdata', 'statistics_syncdata']
 
 MAX_DATE = datetime(9000, 12, 31, 23, 59)
 MIN_DATE = datetime(2000, 1, 1, 0, 0)
-
-class ErrorCommonCode(Enum):
-    CANT_READ_DYN_DATA = 1
-    NETWORK_ERROR = 2
 
 
 def get_table_name(table_in_db_key):
@@ -129,7 +124,7 @@ def connect_to_db(server_to_connect):
     try:
         connect_time = server_to_connect.connect()
     except:
-        Logger.write('Connect --> ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
+        Logger.write('Connect - ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
         add_row_statistics(time_connection=-1, with_error=True)
         return False
     else:
@@ -156,7 +151,7 @@ def get_last_date_from_server(db_server, tablename):
         else:
             return datetime(1900, 01, 01, 00, 00).strftime("%Y-%m-%d %H%M")
     except:
-        Logger.write('Can`t check server data -->  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
+        Logger.write('Can`t check server data -  ' + str(sys.exc_info()[1]), Logger.LogType.ERROR)
         return datetime(2000, 01, 01, 00, 00).strftime("%Y-%m-%d %H%M")
 
 
@@ -201,7 +196,7 @@ def upload_data(list_data, list_filenames, table_with_params):
 
         except:
             with_error = True
-            Logger.write('Upload %s to %s --> %s' % (list_filenames[index], table_name, str(sys.exc_info()[1])), Logger.LogType.ERROR)
+            Logger.write('Upload %s to %s - %s' % (list_filenames[index], table_name, str(sys.exc_info()[1])), Logger.LogType.ERROR)
 
         # Save statistics
         if number_rows > 0:
@@ -315,7 +310,7 @@ def clean():
     except IOError, e:
         if e.errno == errno.ENOSPC:
             number_deleted_files += clean_no_space()
-        Logger.write(('Deleted %d files.' % number_deleted_files if number_deleted_files else '') + 'Can`t delete files --> '+ str(sys.exc_info()[1]), Logger.LogType.ERROR)
+        Logger.write(('Deleted %d files.' % number_deleted_files if number_deleted_files else '') + 'Can`t delete files - '+ str(sys.exc_info()[1]), Logger.LogType.ERROR)
 
 def clean_no_space():
     number_deleted_files = 0
@@ -374,7 +369,7 @@ if configs_servers:
                     full_number_rows += current_number_rows
                 else:
                     broken_files.append(Config.DYN_DATA_NAME)
-
+                dyn_data = None
                 # Upload data in other tables.
                 for table in data_names:
                     path, files_type = get_path_and_type_for_name(table)
@@ -414,7 +409,7 @@ if configs_servers:
 
                 if len(broken_files):
                     logger_str = "Can't read "
-                    logger_str += 'dyndata' if len(broken_files) == 1 and broken_files[0] == Config.DYN_DATA_NAME else ("files  -->  %s" % broken_files)
+                    logger_str += 'dyndata' if len(broken_files) == 1 and broken_files[0] == Config.DYN_DATA_NAME else ("files  -  %s" % broken_files)
                     Logger.write(logger_str, Logger.LogType.ALARM)
 
     except:
@@ -424,7 +419,7 @@ if configs_servers:
         # Save statistics
         # noinspection PyBroadException
         try:
-            Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", "))
+            Logger.save_stat(statistics_rows, table_in_db.get('statistics_syncdata').split('(')[1][:-1].split(", ")[:-1])
         except:
             Logger.write(str(sys.exc_info()[1]), Logger.LogType.ERROR)
         # Delete files
