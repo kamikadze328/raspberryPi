@@ -1,5 +1,5 @@
 from jproperties import Properties
-import os
+
 def read_config_file(file_path):
     configs = Properties()
 
@@ -15,7 +15,6 @@ def read_config_file(file_path):
 
 NEW_CONFIG_FILE = '/var/www/html/config/configs.properties'
 CURRENT_CONFIGS = read_config_file(NEW_CONFIG_FILE)
-
 #Paths to my files
 SERVERS_CONFIG_PATH = CURRENT_CONFIGS.get('SERVERS_CONFIGS_FILE')
 WORKING_DIR = CURRENT_CONFIGS.get('SYNCDATA_DATA_DIR') + '/'
@@ -33,3 +32,8 @@ DYN_DATA_NAME = DYN_DATA_PATH.split('/')[-1]
 
 
 FACTORY_ID=CURRENT_CONFIGS.get('FACTORY_ID')
+
+
+#files for sync tags and device
+CONF_DEVICE_PATH=CURRENT_CONFIGS.get('CONF_DEVICE_FILE')
+CONF_TAG_PATH=CURRENT_CONFIGS.get('CONF_TAG_FILE')
