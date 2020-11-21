@@ -220,7 +220,6 @@ class SecurityManager
 
     function get_permission_level_for_request($request, $token, $refer = null)
     {
-        $request = parse_path($request);
         $is_for_read = substr($request, -1) === '/';
         $refer = parse_current_path($refer);
         $permissions = $this->get_permissions_from_token($token);

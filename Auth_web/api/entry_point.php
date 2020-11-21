@@ -15,6 +15,8 @@ function pass_to_uri()
     global $permission_level;
     if (file_exists($_SERVER['DOCUMENT_ROOT'] . $uri))
         include $_SERVER['DOCUMENT_ROOT'] . $uri;
+    else if (file_exists($_SERVER['DOCUMENT_ROOT'] . parse_path($uri)))
+        include $_SERVER['DOCUMENT_ROOT'] . parse_path($uri);
     else
         header('HTTP/1.0 404 Not Found');
 }
@@ -54,7 +56,7 @@ try {
                 if (is_stats($uri))
                     pass_to_uri();
                 else {
-                    $permission_level = $sec_man->get_permission_level_for_request($_SERVER['REQUEST_URI'], $token, $_SERVER['HTTP_REFERER']);
+                    $permission_level = $sec_man->get_permission_level_for_request($uri, $token, $_SERVER['HTTP_REFERER']);
                     if ($permission_level < 0)
                         throw new PageNotFoundException();
                     if (substr($uri, -4) === '.php') {

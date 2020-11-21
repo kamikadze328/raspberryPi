@@ -56,5 +56,18 @@ function parse_current_path($refer)
 function parse_path($url){
     if (substr($url, 0, 6) === '/admin')
         $url = '/admin';
-    return $url;
+    return explode('?', $url)[0];
+}
+
+function parse_get_params($url){
+    $params = explode('?', $url);
+    $return_params = array();
+    if(count($params) > 1){
+        $params = array_slice($params,1);
+        foreach ($params as $p_str){
+            $p = explode('=', $p_str);
+            $return_params[$p[0]] = $p[1];
+        }
+    }
+    return $return_params;
 }
