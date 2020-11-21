@@ -416,7 +416,6 @@ export default {
         }).then(response => {
           if (response.data.error) throw response.data.error
           else {
-            this.$mydata.data.users = response.data.data ? response.data.data : []
             if (response.data.data) {
               this.$mydata.data.roles = response.data.data.roles ? response.data.data.roles : []
               this.$mydata.data.urls = response.data.data.urls ? response.data.data.urls : []

@@ -310,7 +310,9 @@ export default {
       }
     },
     loginRequest() {
+      this.isLoading = true
       this.request().then(result => {
+        this.isLoading = false
         if (result) {
           this.$emit('successful-login', this.firstInput)
           this.$router.push({name: 'profile'})
@@ -322,7 +324,9 @@ export default {
       this.defaultRequest()
     },
     defaultRequest() {
+      this.isLoading = true
       this.request().then(result => {
+        this.isLoading = false
         if (result)
           this.setMessage('Успешно!', true)
       })
@@ -457,7 +461,7 @@ export default {
         } else this.secondInputValid = true;
       else this.secondInputValid = true
 
-      if (this.isWithThreeTextInputs)
+      if (this.isWithThreeTextInputs && !this.isUserCreated)
         if (!this.thirdInput) {
           this.thirdInputValid = false
           this.errors.thirdInput = emptyText

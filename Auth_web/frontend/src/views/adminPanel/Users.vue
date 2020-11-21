@@ -176,10 +176,12 @@ export default {
           let row = e.target
           while (row && row.tagName.toLowerCase() !== 'tr')
             row = row.parentElement
-          this.$refs['mobileClickable'].forEach(clickable => {
-            if (clickable !== row && clickable.firstElementChild.firstElementChild.firstElementChild.style.visibility === 'visible')
-              this.toggleMenuVisibility(clickable.firstElementChild.firstElementChild.firstElementChild)
-          })
+          if(this.$refs['mobileClickable']) {
+            this.$refs['mobileClickable'].forEach(clickable => {
+              if (clickable !== row && clickable.firstElementChild.firstElementChild.firstElementChild.style.visibility === 'visible')
+                this.toggleMenuVisibility(clickable.firstElementChild.firstElementChild.firstElementChild)
+            })
+          }
         } else {
           this.$refs['clickable'].forEach(clickable => {
             if (clickable !== e.target && clickable.firstElementChild.style.visibility === 'visible')
@@ -225,6 +227,7 @@ export default {
           if (response.data.error) throw response.data.error
           else {
             this.$mydata.data.users = response.data.data ? response.data.data : []
+            console.log(response.data.data)
             this.updateLocalUsersData(this.$mydata.data.users)
             return response.data.data
           }
@@ -245,9 +248,6 @@ export default {
   },
   mounted() {
     document.addEventListener('click', this.closeAll)
-    console.log('mounted')
-    console.log(this.$mydata.data.users.length === 0)
-    console.log(!this.isLoading)
     if (this.$mydata.data.users.length === 0 && !this.isLoading)
       this.updateUsers()
     else this.updateLocalUsersData(this.$mydata.data.users)
