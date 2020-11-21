@@ -1,0 +1,9 @@
+.popup_content {
+  margin: 10px;
+  padding: 0 10px;
+  border: 2px solid #444;
+  background: white;
+}
+body{
+  background: gainsboro;
+}

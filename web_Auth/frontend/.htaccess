@@ -1,0 +1,19 @@
+DirectoryIndex index.html index.php
+Options  -Indexes
+
+ErrorDocument 401 /
+ErrorDocument 403 /
+ErrorDocument 404 /
+ErrorDocument 500 /
+
+RewriteCond %{REQUEST_URI} \.(css|jpg|gif|png|zip|rar|doc|xls|js|tif|tiff|ttf|TTF|ic)
+RewriteRule ^(.*)$ $1 [L,QSA]
+
+RewriteCond %{REQUEST_URI} !^/
+RewriteCond %{REQUEST_URI} !^/api/entry_point.php
+RewriteRule .* /api/entry_point.php [L]
+
+
+RewriteCond %{REQUEST_URI} ^/(unp|syncdata|graphs)/
+RewriteCond %{REQUEST_URI} ^/api/auth.php
+RewriteRule .* /api/entry_point.php [L]

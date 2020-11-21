@@ -1,0 +1,976 @@
+﻿<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml"  lang="ru">
+
+
+<style>
+ @font-face {
+  font-family: DIGITAL-7;           /* Гарнитура шрифта */
+  src: url(fonts/DIGITAL-7M.TTF);   /* Путь к файлу со шрифтом */
+ }
+ @font-face {
+  font-family: GOST;                /* Гарнитура шрифта */
+  src: url(fonts/GOST.TTF);         /* Путь к файлу со шрифтом */
+ }
+ @font-face {
+  font-family: PT-Mono;             /* Гарнитура шрифта */
+  src: url(fonts/PTM75F.ttf);       /* Путь к файлу со шрифтом */
+}
+
+.radio_buttons {
+    font: 14px Tahoma;
+}
+
+.radio_buttons input {
+    position: absolute;
+    left: -9999px;
+}
+.radio_buttons label {
+    display: block;
+    margin: 4px;
+    padding: 8px 10px;
+    border: 1px solid #BBBBBB;
+    background: linear-gradient(to bottom,  rgba(255,255,255,1) 0%,rgba(229,229,229,1) 100%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, .12);
+    cursor: pointer;
+    border-radius: 4px;
+}
+.radio_buttons input:checked + label {
+    border: 3px solid Red;
+    background: white;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, .2);
+
+}
+
+</style>
+
+
+<head>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" name="viewport">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>НПО КАРБОН терминал системы управления УНП-300.</title>
+    <link rel="stylesheet" href="CSS/carbon.css">
+    <script src="js/jquery.js"></script>
+    <script src="js/moment.min.js"></script>
+    <script src="js/jquery.popupoverlay.js"></script>
+    <script type="text/javascript">
+        let isLocalhost
+        $.ajax({
+            url: "php/is_localhost.php", timeout: 500, async: false,
+            success: (msg)  => isLocalhost = (msg === 'true')
+        });
+
+        let arr_device   = [];					       // объявляем  массив
+        let arr_tegs     = [];					       // объявляем  массив
+        let arr_data_dyn = [];					       // объявляем  массив обновляем его каждые 5-10 сек
+        let arr_Alert    = [];					       // объявляем  массив обновляем его каждые 5-10 сек
+        let arr_ClientIP = [];					       // объявляем  массив
+
+        let iTimeGetAjaxStaticData  = -1;		   // Время получения статических данных через Ajax запрос
+        let iTimeGetAjaxDynamicData = -1;	     // Время получения динамических данных через Ajax запрос
+        let iConnectStatus = -1;	             // статус соединения с сервером
+
+        var sUsername = "";                    // код для верификации пользователя
+        var sPassword = "";                    // код для верификации пользователя
+        var sUser     = "Гость";               // код для верификации пользователя
+        var sIPadress = "";                    // код для верификации пользователя
+
+        let iTimeWork = 0;
+        var iСonnectPLKerror  = 0;
+        var iTimeConnectPLK   = 0;
+        var dtStartConnectPLK = Date.now();						// Засекаем время
+
+
+        const ArrMRS  = {"0": "STOP", "1": "FWD", "2": "REV"};                      // Состояние привода  привод остановлен-STOP      прямое вращение-FWD        обратное вращение-REV
+        const ArrUser = {"0": "Гость", "1": "Оператор", "2": "Администратор"};      //
+        const ArrErrCom  = {"1000000100" : "ERROR_Sock", "1000000101" : "ERROR_Sock", "1000000200" : "ERROR_CRC", "1000000201" : "ERROR_resiv", "1000000300" : "ERROR_termp", "1000000600" : "ERROR_unknown"}
+        // Oшибка привода (см. таблицу ошибок)     ERROR
+        const ArrErrDF   = {"1": "Перегрузка по току (oc)",   "2": "Перегрузка по напряжению (ov)",        "3": "Перегрев IGBT-модуля (oH1)",          "5": "Перегрузка (oL)",        "6": "Перегрузка 1 (oL1)",
+                "7": "Перегрузка 2 (oL2)",        "8": "Внешнее аварийное отключение (EF)",        "9": "Двукратное превышение тока при разгоне (ocA)",        "10": "Двукратное превышение тока при торможении (ocd)",
+                "11": "Двукратное превышение тока в установившемся режиме (ocn)",        "12": "Замыкание на землю (GFF)",        "14": "PHL (Отсутствие фазы)",        "16": "Сбой при автоматическом разгоне/замедлении (cFA)",
+                "17": "Разрешение программной защиты (codE)",        "18": "Сбой при записи CPU силовой платы (CF1.0)",        "19": "Сбой при чтении CPU силовой платы (CF2.0)",        "20": "Аппаратная защита CC, OC (HPF1)",
+                "21": "Аппаратная защита OV (HPF2)",        "22": "Аппаратная защита GFF (HPF3)",        "23": "Аппаратная защита OC(HPF4)",        "24": "Ошибка в фазе U (cF3.0)",        "25": "Ошибка в фазе V (cF3.1)",
+                "26": "Ошибка в фазе W (cF3.2)",        "27": "Ошибка в DCBUS(cF3.3)",        "28": "Перегрев IGBT (cF3.4)",        "32": "Ошибка сигнала ACI (AErr)",        "34": "PTC-защита перегрева двигателя (PtC1)"};
+
+
+        document.addEventListener("DOMContentLoaded", onload);
+
+        function onload(){
+          //Скрывает кнопку авторизации
+          document.getElementById('authorize-button').style.display = isLocalhost ? 'block' : 'none';
+
+          //Настраивает размер страницы под экран
+          const div = document.getElementById('windUNP')
+          const maxDiv = document.getElementById('maxDiv')
+          let zoom = 200
+          document.body.style.zoom = zoom + '%'
+          while((div.getBoundingClientRect().bottom > maxDiv.getBoundingClientRect().bottom - 20)
+            || (div.getBoundingClientRect().right > maxDiv.getBoundingClientRect().right - 20)){
+            zoom--
+            document.body.style.zoom = zoom + '%'
+          }
+
+        }
+        $(function(){      // действия, которые необходимо выполнить после загрузки документа...  эквивалентно $(document).ready(function(){
+
+        $('body').css('background', 'gainsboro' );					// Заливка экрана серым цветом  gainsboro Lime black  'gainsboro' "#404000"
+        DrawMain(100, 100);
+
+        $.ajax({type: "POST", url: "php/get_ip.php", timeout: 500, async: false,              // делаем ajax синхронный запрос т.е. здесь идет ожидание выполнения запроса
+                success: function (msg) { sIPadress = msg; }  });                            // узнаем свой IP адрес
+
+        $('#btnAllTeg').click(function() {
+          window.open('info_teg.html');
+        });
+
+        $('#btnRightPanel').click(function() {
+          document.getElementById('selMessage').scrollTop  = 0                  // устанавливаем скролинг в верхнею позицию
+          $('#rightPanel').toggle('slow');
+        });
+
+        $('#btnNETWKPanel').click(function() {                                  // показываем панель с IP адресами
+          if ( $('#rightPanelDown').is(':hidden') ) { chekClientIP(); }         // если  $element не виден
+          $('#rightPanelDown').toggle('slow');
+        });
+
+        $('#btnDEBUGPanel').click(function() {                                  // показываем панель с IP адресами
+          if ( $('#DEBUGPanel').is(':hidden') ) {                               // если  $element не виден
+            $.ajax({
+                type: "POST", url: "php/get_file.php", timeout: 500, async: false,              // делаем ajax синхронный запрос т.е. здесь идет ожидание выполнения запроса
+                data: {sContentName: 'logAutomation'}, success: function (msg) {
+                    $('#editAvtm').val(msg);
+                }
+            });
+          }
+          $('#DEBUGPanel').toggle('slow');
+        });
+
+        $('#btnSETINGanel').click(function() {
+          $('#leftPanel').toggle('slow');                                       // .hide();  show();
+        });
+
+
+        $('#btnSTexit').click(function() {
+          $('#popupST').popup('hide');        // выход из настроек через отмену
+        });
+
+        $('#btnPassword').click(function() {                      // нажата кнопки авторизация ВОЙТИ
+          sUsername = $('#txtUsername').val();
+          sPassword = $('#txtPassword').val();
+          SetComand("Authorization", sUsername+sPassword, "");   // послать команду авторизации
+          $('#popupPassword').popup('hide');
+        });
+
+
+
+        $('#btnSTsave').click(function() {    // выход из настроек через запись
+          var sTextEditST = $('#editST').val();
+          //alert(sTextEditST);
+          $.ajax({type: "POST", url: "php/set_file.php", timeout: 500, async: false, // делаем ajax запрос
+              data: {  sContentName: 'settings', sFileData: sTextEditST}
+          });
+          $('#popupST').popup('hide');
+          SetComand("UNPsetting", "Update", "", "");              // послать команду перечитать настройки
+        });
+
+        $('.divDO').click(function() {
+          $('#popupDO').popup('show');
+          });
+
+        $('.popupST2_open').click(function() {
+          alert( 'ХХХХХХХХХХХХХХХХХХХХХХХХХХ' );
+          document.getElementById('TegTemper_10102').value = "Err";
+          alert( document.getElementById('TegTemper_10102').value );
+        });
+
+
+        $('.popupST_open').click(function() {
+            //alert( 'ХХХХХХХХХХХХХХХХХХХХХХХХХХ' );
+            $.ajax({
+                type: "POST", url: "php/get_file.php", timeout: 500, async: false,              // делаем ajax синхронный запрос т.е. здесь идет ожидание выполнения запроса
+                data: {sContentName: 'settings'}, success: function (msg) {
+                    $('#editST').val(msg);
+                }
+            });
+        });
+
+        function fadeInFadeOut(){
+
+        }
+
+        function getDyndData() {
+            var dtStartAJAX = Date.now();						// Засекаем время
+            chekClientIP();
+            //console.log('begin0' + new Date )
+            $.ajax({
+                type: "POST", url: "php/get_file.php", timeout: isLocalhost ? 500 : 4000, async: true,                // делаем ajax синхронный запрос т.е. здесь идет ожидание выполнения запроса false true
+                data: {sContentName: 'dynData'},
+                success: function (msg) {	                                                      //arr_data_dyn  = jQuery.parseJSON(msg);
+                    iTimeGetAjaxDynamicData = Date.now() - dtStartAJAX;
+                    $('#connectUNP').html(' &nbsp; Связь с УНП = OK (' + iTimeGetAjaxDynamicData.toString() + 'мс.)&nbsp;' );
+                    $('#connectUNP').css({'color': 'green', 'background-color': 'transparent'});
+                    $('#connectPLK').show();                                                    // .hide();  show();
+
+                    // проверка нормальные ли данные
+                    try {
+                        arr_data_ajax = jQuery.parseJSON(msg);
+                        for (let i in arr_data_ajax){                                                 // для совместимости версий файла [.DynDATA.json]
+                          arr_data_dyn[i] = {"iTegAddr": arr_data_ajax[i][0], "iTegValue": arr_data_ajax[i][1], "iStateLong": arr_data_ajax[i][2] };
+                        }
+                    } catch (e) { return;}
+
+                    $('#connectIMT').hide();
+                    if (arr_data_dyn[GetIndexArr_data_dyn(1300)].iTegValue > 0) {                     // Режим отладки Режим имитации данных ST.FuckinImitator
+                      $('#connectIMT').show().fadeOut().fadeIn().fadeOut().fadeIn().fadeOut().fadeIn();
+                    }
+
+                    if (iTimeWork == arr_data_dyn[0].iTegValue) {                                     // проверка обновлялся ли файл если нет то плохо )):  выход
+                      iСonnectPLKerror += 1;
+                      if (iСonnectPLKerror > 2) {
+                        $('#connectPLK').html(' &nbsp; Связь с ПЛК = Error &nbsp;');
+                        $('#connectPLK').css({'color': 'Red', 'background-color': 'yellow'});
+                        $('#connectPLK').fadeOut().fadeIn().fadeOut().fadeIn();
+                      }
+                      // return;
+                    }
+                    else {
+                      iСonnectPLKerror = 0;
+                      iTimeConnectPLK = Math.trunc((Date.now() - dtStartConnectPLK)/1000);                       // вычисляем время в мс.  +  переводим в с.
+                      $('#connectPLK').html(' &nbsp; Связь с ПЛК = OK (' + iTimeConnectPLK.toString() + 'сек.)&nbsp;' );
+                      $('#connectPLK').css({'color': 'green', 'background-color': 'transparent'});
+                      dtStartConnectPLK = Date.now();						                                                 // Засекаем время
+                    }
+                    iTimeWork = arr_data_dyn[0].iTegValue;                                                    //
+                    refreshDynData();
+                },
+                error: (e) => {
+                  // console.log('error0' + new Date)     // при ошибке ajax запроса думаем что отвалился сервер
+                  $('#connectUNP').html(' &nbsp; Связь с УНП = Error &nbsp;');
+                  $('#connectUNP').css({'color': 'Red', 'background-color': 'yellow'});
+                  $('#connectUNP').fadeOut().fadeIn().fadeOut().fadeIn();
+                  $('#connectPLK').hide();                                                    // .hide();  show();
+
+                }
+            });
+
+            // читаем и визуализируем алармы в правой выдвигающ панели  каждые 4 сек.
+            // console.log('begin1' + new Date)
+            if(isLocalhost) {
+                $.ajax({
+                    type: "POST", url: "php/get_file.php", timeout: 500, async: true,                // делаем ajax синхронный запрос т.е. здесь идет ожидание выполнения запроса
+                    data: {sContentName: 'alarms'},
+                    success: function (msg) {
+                        arr_Alert = jQuery.parseJSON(msg);
+                        $('#selMessage').empty();
+                        for (var i in arr_Alert) {
+                            var sLineAlert = arr_Alert[i].substring(11, 19) + '--' + arr_Alert[i].substring(30);
+                            var sTypeAlert = arr_Alert[i].substring(21, 29);
+                            var sStyle = "";
+                            if (sTypeAlert == "[Alarm ]") {
+                                sStyle = 'color: #000000; background-color: #e4e04a; ';
+                            } //color: #000000; background-color: #e4e04a
+                            if (sTypeAlert == "[Error ]") {
+                                sStyle = 'color: #fff; background-color: #A44A64; ';
+                            }//color: #fa0707; background-color: #e0c646
+                            $('#selMessage').append(`<div style="${sStyle}; text-overflow: ellipsis; white-space: nowrap; overflow-x: hidden; line-height: 19px"> ${sLineAlert}</div>`);
+                        }
+                    }, error: (e) => {
+                        //console.log('error1' + new Date )
+                    }
+                });
+            }
+        }
+        // Каждые 60 секунд обновляем инф авторизации
+        setInterval(function() {
+          if ($('#popupPassword').is(':hidden') && (iСonnectPLKerror == 0)  ) {         // Проверка закрыт ли диалог ввода пароля? и нет ошибки соединения с ПЛК
+              $('#btnPassword').click();}                                               // $element не виден
+        }, 60000);
+
+        // Каждые 5 секунд обновляем данные с сервера
+      	setInterval(getDyndData, isLocalhost ? 4000 : 60000);
+        getDyndData()
+
+        function refreshDynData() {
+          UpdateFanMR();
+          UpdateTemper();
+          UpdateDL();
+          UpdateDO();
+
+          for (var i in arr_data_dyn) {
+              $('#checkbox_' + arr_data_dyn[i].iTegAddr).prop('checked', arr_data_dyn[i].iTegValue);                                      // обновляем значения тегов checkbox -ов   true false arr_data_dyn[i].iTegValue
+              if (arr_data_dyn[i].iTegValue > 1000000000) {$('#' + arr_data_dyn[i].iTegAddr + '_inpTeg').val('ERR com');}                 // обновляем значения тегов в остальных полях
+              else                                        {$('#' + arr_data_dyn[i].iTegAddr + '_inpTeg').val(arr_data_dyn[i].iTegValue);} //
+          }
+
+          // системные теги
+          $('input[name="contact"][value="'+arr_data_dyn[4].iTegValue+'"]').prop('checked', true);   // Отметить режим работы
+          var dtTimeDev = moment.unix(arr_data_dyn[1].iTegValue);                 //        [      1002]      Системное Время, в секундах (для контроля)
+          var dtTimeWork = moment.unix(arr_data_dyn[0].iTegValue).utc();          //        [      1001]      Время прошедшее от старта программы, в секундах (для контроля зависания)
+          var iDayFromWork = Math.trunc(arr_data_dyn[0].iTegValue / 86400);       //        вычисляем кол-во дней прошедших  от старта программы
+          var sDayFromWork = '       ';
+          if (iDayFromWork > 0) { sDayFromWork = iDayFromWork.toString() + ' дней ';}
+          var sTop = 'Системное время:\n' + dtTimeDev.format("DD.MM.YYYY HH:mm:ss") + '\n-----------------\n';
+          sTop    += 'В работе:\n' + sDayFromWork + dtTimeWork.format("       HH:mm:ss") + '\n-----------------\n';
+          sTop    += 'Опрос= ' + Math.trunc(arr_data_dyn[2].iTegValue / 1000).toString() + " сек.  \n";
+          sTop    += 'Ajax  = ' + iTimeGetAjaxDynamicData.toString() + ' ms.' + '\n-----------------\n';
+          sTop    += 'Авторизация: \n  ' + sUser;
+          $('#TimeDevise').val(sTop);
+          $('#topPanel').html( '&nbsp; Режим работы: ' +  $('input[name="contact"]:checked + label').text()  );     // $('input[name="contact"]:checked').closest('label').text()    arr_data_dyn[4].iTegValue
+        }
+
+
+        function chekClientIP() {   // Cчитываем .ClientsIP.json
+          if (isLocalhost) {
+            $.ajax({
+              type: "POST", url: "php/get_file.php", timeout: 500, async: false, // делаем ajax запрос
+              data: {sContentName: 'clientsIP'},
+              success: function (msg4) {
+                arr_ClientIP = jQuery.parseJSON(msg4);
+                  var sHTML_CIP = '';
+                  sHTML_CIP += '<table border="1" cellpadding="7" style="width: 100%; border-collapse: collapse;">';                         //  width: 100%;  Ширина таблицы    border-collapse: collapse; Убираем двойные линии между ячейками    style="width: 100%;"
+                  sHTML_CIP += '  <tr> <th width="35%">IP адрес</th> <th width="35%">Пользователь</th> <th width="30%">В работе</th> </tr>';
+                  for (var i in arr_ClientIP) {
+                    var sStyle = '';
+                    if (sIPadress == arr_ClientIP[i].sIPadress)                                 // находим свой IP и выделяем желтым цветом
+                    {
+                      sStyle = 'style="background:Yellow;"';
+                      sUser = arr_ClientIP[i].sUser;
+                    }
+
+                    var dtTimeWork = moment.unix(arr_ClientIP[i].iTimeConnect).utc();          //  Приводим к удобному формату кол-во секунд arr_ClientIP[i].iTimeConnect   Время соединения
+                    var iDayFromWork = Math.trunc(arr_ClientIP[i].iTimeConnect / 86400);       //  вычисляем кол-во прошедших дней
+                    var sDayFromWork = '';
+                    if (iDayFromWork > 0) {
+                      sDayFromWork = iDayFromWork.toString() + ' дней  ';
+                    }
+                    var sTimeConnect = sDayFromWork + dtTimeWork.format(" HH:mm:ss");
+                    sHTML_CIP += '<tr ' + sStyle + '><td>' + arr_ClientIP[i].sIPadress + '</td><td>' + arr_ClientIP[i].sUser + '</td><td>' + sTimeConnect + '</td></tr>'
+                  }
+                  sHTML_CIP += '</table>';
+                  $('#RDownMessage').html(sHTML_CIP);
+
+                  if (arr_data_dyn[GetIndexArr_data_dyn(1300)].iTegValue > 0) {   // Если включен режим имитации
+                    sUser == "Администратор";                                     //alert( "или включен режим имитации" );
+                  }
+
+                  if (sUser == "Гость") {
+                    $('.popupPassword_open').html('Авторизация: Гость');
+                    $('#btnSETINGanel, #btnDEBUGPanel, #btnRightPanel, #btnNETWKPanel').hide();
+                    $('#rightPanel, #rightPanelDown, #DEBUGPanel, #leftPanel').hide();
+                  }
+
+                  if (sUser == "Оператор") {
+                    $('#btnSETINGanel').show();
+                    $('.popupPassword_open').html('Оператор');
+                  }
+                  if (sUser == "Администратор") {
+                    $('#btnSETINGanel, #btnDEBUGPanel, #btnRightPanel, #btnNETWKPanel').show();
+                    $('.popupPassword_open').html('Администратор');
+                  }
+              }
+            });
+          }
+        }
+
+
+        function refreshTable() {
+          // Cчитываем таблицы тегов и устройств
+          $.ajax({type: "POST", url: "php/get_file.php", timeout: isLocalhost ? 500 : 4000, async: false, // делаем ajax запрос
+              data: {  sContentName: 'devices' },
+              success: function(msg3){ arr_device    = jQuery.parseJSON(msg3); }
+          });
+          $.ajax({type: "POST", url: "php/get_file.php", timeout: isLocalhost ? 500 : 4000, async: false, // делаем ajax запрос
+              data: {  sContentName: 'tags'},
+              success: function(msg4){	arr_tegs    = jQuery.parseJSON(msg4); }
+          });
+          //createTable();
+
+          // дискретные входы
+          var sHTML_DI    = '<div style="float:left; width: 500px; padding: 4px; font-weight: bold;">';  //  style="font-weight: bold;
+          for (var ii in arr_tegs) {
+              if(arr_tegs[ii].sTegType == "DI") {
+                  var sTeg = arr_tegs[ii].iTegAddr;
+                  sHTML_DI+='<div style="float:left; padding: 2px 10px;">';
+                  sHTML_DI+=   '<input type="text" id="'+sTeg+'_inpTeg" style="float:left; width:60px; text-align: right;  padding: 1px 2px;">';
+                  sHTML_DI+=   '<div style="float:left; text-align: left;  padding: 1px 10px;">'+arr_tegs[ii].sTegInfo+'</div>';   // border: 1px solid #000;  width: 650px;
+                  sHTML_DI+='</div>';
+              }
+          }
+          sHTML_DI+='</div>';
+          $('#popupDI').append(sHTML_DI);  // body  #Container
+
+          // аналоговые входы
+          var sHTML_AI    = '<div style="float:left; width: 550px; padding: 4px; font-weight: bold;">';  //  style="font-weight: bold;   width: 100%;
+          for (var ii in arr_tegs) {
+              if(arr_tegs[ii].sTegType == "AI") {
+                  var sTeg = arr_tegs[ii].iTegAddr;
+                  sHTML_AI+='<div style="float:left; padding: 2px 10px;">';
+                  //sHTML_AI+=   '<div style="float:left; width:  80px; text-align: right; padding: 1px 10px;">'+sTeg+'</div>';
+                  sHTML_AI+=   '<input type="text" id="TegTemperAI_'+sTeg+'" style="float:left; width:70px; text-align: right;  padding: 1px 2px;">';
+                  sHTML_AI+=   '<div style="float:left; text-align: left;  padding: 1px 10px;">'+arr_tegs[ii].sTegInfo+'</div>';   // border: 1px solid #000;  width: 650px;
+                  sHTML_AI+='</div>';
+              }
+          }
+          sHTML_AI+='</div>';
+          $('#popupAI').append(sHTML_AI);  // body  #Container
+
+          // дискретные выходы
+          var iNomerDO = 0;
+          var sHTML_DO    = '<div style="float:left; width: 500px; padding: 4px; font-weight: bold;">';  //  style="font-weight: bold;   width: 100%;
+          for (var ii in arr_tegs) {
+              if(arr_tegs[ii].sTegType == "DO") {
+                  iNomerDO += 1;
+                  var sTeg     = arr_tegs[ii].iTegAddr;
+                  var sNomerDO = iNomerDO.toString();
+                  sHTML_DO+='<div style="float:left; padding: 2px 10px;">';
+                  sHTML_DO+=   '<input type="checkbox" name="'+sNomerDO+'" id="checkbox_'+sTeg+'"  class="checkboxDO"  style="float:left; width:30px;" />';
+                  sHTML_DO+=   '<input type="text" id="'+sTeg+'_inpTeg" style="float:left; width:60px; text-align: right;  padding: 1px 2px;">';
+                  sHTML_DO+=   '<div style="float:left; text-align: left;  padding: 1px 10px;">'+arr_tegs[ii].sTegInfo+'</div>';   // border: 1px solid #000;  width: 650px;
+                  sHTML_DO+='</div>';
+              }
+          }
+          sHTML_DO+='</div>';
+          $('#popupDO').append(sHTML_DO);  // body  #Container
+        };
+
+
+        $( document ).on( "change", ".checkboxDO", function() {         // нажат один из checkbox  вкладки DO
+          var	sComand = "ON"
+          if(this.checked!=true)  { sComand = "OFF"}
+          SetComand("DOset", sComand, this.name);
+          });
+
+        $( document ).on( "click", ".btnMR", function() {           // нажата кнопка управления м-редуктором  alert( "Goodbye!" );  // jQuery 1.7+
+          //SetComand("MRset", $(this).text(), this.name, document.getElementById('Speed_'+this.name).value);
+          SetComand("MRset", $(this).text(), this.name, document.getElementById('volumeGZ').value);
+          });
+
+        $('input[name="contact"]').click(function(){
+          //alert( this.id + "   ---  " + this.name + "   ---  " + this.value);
+          SetComand("MODEset", this.value, "", "");
+        });
+
+        $( document ).on( "input", "#volumeGZ", function() {        // двигаем бегунок Гц
+          //alert( this.id + "   input ---  " + this.name + "   ---  " + this.value);
+          $('#GZ_text').html('Частота привода, Гц. = ' + this.value);
+          });
+
+        $('.divMR').click(function() {                              // нажата область с м-редуктором           // мотор редуктор
+          for (var ii in arr_device) {                              // ищем номер элемента в массиве по базовому тегу            //alert( this.id.substring(6) );
+              if( this.id.substring(6) == arr_device[ii].iBaseAddrTeg) {
+                var sHTML_MRO     = '<div style=" width: 360px; padding: 4px;"><hr>';  //  style="font-weight: bold;   width: 100%;  border: 1px solid #000;  float:left;
+                        sHTML_MRO+='<div >';  // width: 892px; height:250px;            style="float:left;   padding: 1px;  border-bottom: 1px solid #000;  margin: 4px;"
+                        sHTML_MRO+=     '<div style=" font-weight: bold;">'+arr_device[ii].sModuleInfo +'</div><br><hr>';  // padding-left:10px;   border: 1px solid #000;  float:left; padding:0px;
+
+                        sHTML_MRO+=     '<div style="">';  // border: 1px solid Red;  width:600px; padding-left:20px;
+                        sHTML_MRO+=      '<div style="display: flex;">';  // border: 1px solid Red;  width:600px; padding-left:20px;
+                        sHTML_MRO+=          '<div style="padding:4px;"> Статус: </div>';
+                        sHTML_MRO+=          '<input type="text" id="'+(arr_device[ii].iBaseAddrTeg + 101)+'_MRSTeg" style="width:300px; text-align: center;">';    // состояние привода
+                        sHTML_MRO+=      '</div><br>';
+                        sHTML_MRO+=      '<div style="display: flex;">';  // border: 1px solid Red;  width:600px; padding-left:20px;
+                        sHTML_MRO+=          '<input type="text" id="'+(arr_device[ii].iBaseAddrTeg + 102)+'_MRinpTeg" style="width:20px; text-align: right; ">';     // Выходная частота  margin-left:30px;
+                        sHTML_MRO+=          '<div style="padding: 4px 32px 6px 1px;">Гц.</div>';
+                        sHTML_MRO+=          '<input type="text" id="'+(arr_device[ii].iBaseAddrTeg + 103)+'_MRinpTeg" style="width:40px; text-align: right;">';      // Выходной ток
+                        sHTML_MRO+=          '<div style="padding: 4px 32px 6px 1px;">мA.</div>';
+                        sHTML_MRO+=          '<input type="text" id="'+(arr_device[ii].iBaseAddrTeg + 104)+'_MRinpTeg" style="width:40px; text-align: right;">';      // Мощность двигателя: %d Вт
+                        sHTML_MRO+=          '<div style="padding: 4px 32px 6px 1px;">Вт.</div>';
+                        sHTML_MRO+=          '<input type="text" id="'+(arr_device[ii].iBaseAddrTeg + 105)+'_MRinpTeg" style="width:30px; text-align: right;">';      // Мощность двигателя
+                        sHTML_MRO+=          '<div style="padding: 4px 32px 6px 1px;">%</div>';
+                        sHTML_MRO+=      '</div><br>';
+                        sHTML_MRO+=     '</div><hr><br>';
+
+                        sHTML_MRO+=     '<div style=" height: 90px;">';;   // float:right; width:340px; style=" padding: 8px;"
+                        sHTML_MRO+=        '<button style="width:46%; height:40px; float: left;"  name="' + arr_device[ii].iBaseAddrTeg + '" class="btnMR">Fwd</button>';
+                        sHTML_MRO+=        '<button style="width:46%; height:40px; float: right;" name="' + arr_device[ii].iBaseAddrTeg + '" class="btnMR">Rev</button><br><br><br>';
+                        sHTML_MRO+=        '<button style="width:46%; height:40px; float: left;"  name="' + arr_device[ii].iBaseAddrTeg + '" class="btnMR">Stop</button>';
+                        sHTML_MRO+=        '<button style="width:46%; height:40px; float: right;" name="' + arr_device[ii].iBaseAddrTeg + '" class="btnMR">Reset</button>';
+                        sHTML_MRO+=     '</div><br><hr>';
+
+                        sHTML_MRO+=     '<div style="">';;   // float:right; width:340px; style=" padding: 8px;"
+                        sHTML_MRO+=        '<div id="GZ_text"> Частота привода, Гц. = 25</div>';
+                        sHTML_MRO+=        '<input type="range" id="volumeGZ" name="volume" min="0" max="50" list="tickmarks" style="width:100%; height:40px;">';
+                        sHTML_MRO+=        '<datalist id="tickmarks">'
+                        sHTML_MRO+=        '<option value="0"">'
+                        sHTML_MRO+=        '<option value="10">'
+                        sHTML_MRO+=        '<option value="20">'
+                        sHTML_MRO+=        '<option value="30">'
+                        sHTML_MRO+=        '<option value="40">'
+                        sHTML_MRO+=        '<option value="50">'
+                        sHTML_MRO+=        '</datalist>'
+                        sHTML_MRO+=     '</div><hr>';
+                        sHTML_MRO+='</div>';
+
+                sHTML_MRO+='</div>';
+                $('#popupOMR').html('');
+                $('#popupOMR').append(sHTML_MRO);  // body  #Container
+                $('#popupOMR').popup('show');
+                refreshDynData();
+              }
+            }
+          });
+
+
+
+
+
+
+
+//   font-family: Verdana, Arial, Helvetica, sans-serif;   font-family: Arial Narrow   font-size: 11pt; /* Размер шрифта в пунктах */  padding: 6px;
+
+        // отправка команды на контроллер
+        function SetComand(sDevise, sComand, sAdress, sValue="") {
+          if(isLocalhost) {
+            // формируем содержимое командного файла
+            var dtDataNow = moment();
+            var sDataNow = dtDataNow.format("YYYY-MM-DD HH:mm:ss");
+            var arr_ComandFile = {};					                        // объявляем Ассоциативный  массив
+
+            arr_ComandFile["sDevise"] = sDevise;                      // MRset MRrate  DTset  DOset
+            arr_ComandFile["sComand"] = sComand;                      // используется для управления мотор редукторов    Stop Reset Fwd Rev
+            arr_ComandFile["sAdress"] = sAdress;                      // номер устройства для DO 1..24  или базовый адрес устройства для моторредукторов .......
+            arr_ComandFile["sValue"] = sValue;                       // какое либо значение, например частота для ПЧ
+            arr_ComandFile["sDTnow"] = sDataNow;                     // "2020-05-02 23:46:00"   //formatDate('yy/mm/dd', new Date());
+            arr_ComandFile["sIPadress"] = sIPadress;                 //
+            sJsonStr = JSON.stringify(arr_ComandFile);                // конвертируем в JSON            alert( sJsonStr );
+            // alert(sJsonStr);
+
+            $.ajax({
+              type: "POST", url: "php/set_file.php", timeout: 500, async: false, // делаем ajax запрос
+              data: {sContentName: 'command', sFileData: sJsonStr}
+            });
+          }
+        }
+
+
+        function DrawMain(iLeft, iTop) {
+          var	iXcenter = 250;
+          var	iXL      = iXcenter - 120/2 - 20 - 120;
+          var	iXC      = iXcenter - 120/2;
+          var	iXR      = iXcenter + 120/2 + 20;
+          var	iY       = 70;
+          var	sHTMLmain= '';
+
+          sHTMLmain+= DrawFan(20000,iXL,iY,   'Дымосос ЛБ');      // teg 20000   Мотор редуктор Дымосос ЛБ
+          sHTMLmain+= DrawDO(12102,iXC,iY-25, 'Бунк. сырья');     // teg 39000   Мотор редуктор  Бунк. сырья
+          sHTMLmain+= DrawMR(41000,iXC,iY+25, 'Тр-р. сырья');     // teg 41000   Мотор редуктор Тр-р. сырья
+          sHTMLmain+= DrawFan(22000,iXR,iY,   'Дымосос ПБ');      // teg 21000   Мотор редуктор Дымосос ПБ
+          iY += 50;
+          sHTMLmain+= DrawFan(21000,iXL,iY, 'Дымосос ЛД');        // teg 10102   Мотор редуктор
+          sHTMLmain+= DrawFan(23000,iXR,iY, 'Дымосос ПД');        // teg 10102   Мотор редуктор
+          sHTMLmain+= DrawDL(11201, iXC+35, iY+6+28, 1200);       // teg 11201   Датчик уровня входной бункер  GetIndexArr_data_dyn(iAddrTeg)
+          iY += 50+0;
+
+          sHTMLmain+= DrawTemper(10102,iXL,iY);                   // teg 10102   Датчик температуры Сушилка левая
+          sHTMLmain+= DrawTemper(10104,iXR,iY);                   // teg 10104   Датчик температуры Сушилка правая
+          sHTMLmain+= DrawMR(25000,iXC,iY-8+25, 'Ворошитель');    // teg 25000   Мотор редуктор Ворошитель
+
+          iY += 100+6;
+          sHTMLmain+= DrawMR(26000,iXL,iY, 'Сушилка Л');          // teg 10102   Мотор редуктор 20000 Ворошитель
+          sHTMLmain+= DrawMR(27000,iXR,iY, 'Сушилка П');          // teg 10102   Мотор редуктор 20000 Ворошитель
+          sHTMLmain+= DrawTemper(10101,iXC,iY+10);                // teg 10101   Вх. №1 -> Датчик температуры Топка
+          iY += 50+6;
+          sHTMLmain+= DrawTemper(10105,iXL+70,iY);                // teg 10105   Вх. №5 -> Датчик температуры Реактор левый
+          sHTMLmain+= DrawTemper(10107,iXR-70,iY);                // teg 10107   Вх. №7 -> Датчик температуры Реактор правый
+
+          sHTMLmain+= DrawDL(11202, iXL   , iY+6, 1201);          // teg 11202   Датчик уровня пересыпка сушилки левый
+          sHTMLmain+= DrawDL(11203, iXR+65, iY+6, 1201);          // teg 11203   Датчик уровня пересыпка сушилки правый
+
+          iY += 40+6;
+          sHTMLmain+= DrawTemper(10103,iXC,iY+0);                 // teg 10103   Вх. №3 -> Датчик температуры Дым газы
+          sHTMLmain+= DrawMR(28000,iXL,iY, 'Реактор Л');          // teg 10102   Мотор редуктор 20000 Ворошитель
+          sHTMLmain+= DrawMR(29000,iXR,iY, 'Реактор П');          // teg 10102   Мотор редуктор 20000 Ворошитель
+          iY += 100+6;
+                                                                  // iY += 40+6;
+          sHTMLmain+= DrawTemper(10106,iXL+70,iY);                // teg 10106   Датчик температуры Выгрузка углерода левая
+          sHTMLmain+= DrawTemper(10108,iXR-70,iY);                // teg 10108   Датчик температуры Выгрузка углерода правая
+
+          sHTMLmain+= DrawDL(11204, iXL   , iY+6, 1202);          // teg 11204   ДДатчик уровня выход углерода левый
+          sHTMLmain+= DrawDL(11205, iXR+65, iY+6, 1202);          // teg 11205   Датчик уровня выход углерода правый
+
+          iY += 40+6;
+          sHTMLmain+= DrawMR(30000, iXcenter - 120 - 120-2, iY, 'Охл. Л-Л');                  //
+          sHTMLmain+= DrawMR(31000, iXcenter - 120      -1, iY, 'Охл. Л-П');                  //
+          sHTMLmain+= DrawMR(32000, iXcenter            +1, iY, 'Охл. П-Л');                  //
+          sHTMLmain+= DrawMR(33000, iXcenter + 120      +2, iY, 'Охл. П-П');                  //
+          iY += 60+6;                                                                         //
+          sHTMLmain+= DrawFan(34000, iXcenter - 120 - 120-2, iY, 'Охл. топки Л');             // teg 10102   Мотор редуктор Охл. топки Л
+          sHTMLmain+= DrawMR( 36000, iXcenter - 120      -1, iY, 'Гор. топливо');             // teg 36000   Мотор редуктор Горелка топливо
+          sHTMLmain+= DrawFan(24000, iXcenter            +1, iY, 'Гор. воздух');              // teg 10102   Мотор редуктор
+          sHTMLmain+= DrawFan(35000, iXcenter + 120      +2, iY, 'Охл. топки П');             // teg 10102   Мотор редуктор Охл. топки П
+
+          iY += 100+6;                                                                        //
+          sHTMLmain+= DrawDO( 12105, iXL, iY-6, 'Выгр. резев.');                              // teg 12105   Выгр. резев.
+          sHTMLmain+= DrawDL(11206, iXC+115, iY+6, 1203);                                     // teg 11206   Датчик уровня колонна стабилизации
+          iY += 40+6;                                                                         //
+          sHTMLmain+= DrawDO( 12103, iXL, iY, 'Выгр. главн.');                                // teg 12103
+          sHTMLmain+= DrawDO( 12103, iXC, iY, 'Выгрузка№2');                                  // teg 12103
+          sHTMLmain+= DrawDO( 12104, iXR, iY, 'Выгрузка№3');                                  // teg 12104   Мотор редуктор
+
+          $('#windUNP').append(sHTMLmain);                                                    //
+        }
+
+
+        function DrawTemper(iTeg, iLeft, iTop) {
+          var	sHTML  = '<div  style="position:absolute; top:'+iTop+'px; left:'+iLeft+'px; width: 120px;  height: 40px; background-color: #e4e04a; border: 1px solid #000;">';
+          sHTML     +=    '<img src="images/thermom.png" style="position:absolute; top:6px; left:0px; width: 32px;  height: 32px; "/>';
+          sHTML     +=    '<div class="TegTemperMR_'+iTeg+'" style="position:absolute; top:4px; left:34px; width: 73px; height: 27px; text-align: center; font: bold 20pt Digital-7; color: #000000;">---</div>';
+          sHTML     += '</div>';
+          return sHTML;
+        }
+
+        // рисуем датчик уровня
+        function DrawDL(iTeg, iLeft, iTop, iMaxTime=999999) {
+          iTop  += 8;
+          iLeft += 5;
+          var	sHTML = '<div style="position:absolute; top:'+iTop+'px; left:'+iLeft+'px; width: 45px;  height: 18px; border-radius: 12px; background-color: transparent; border: 2px solid #000; z-index:8993;">';
+          sHTML     += '<div class="LevelRed" style="position:absolute; top:-11px; left: -0px; width: 20px; height: 4px; background-color: Red;  z-index:8992;"></div>';
+          sHTML     += '<div class="LevelRed" style="position:absolute; top: -6px; left: -0px; width: 20px; height: 4px; background-color: Red;  z-index:8992;"></div>';
+          sHTML     += '<div class="LevelRed" style="position:absolute; top: -1px; left: -0px; width: 20px; height: 4px; background-color: Red;  z-index:8992;"></div>';
+          sHTML     += '<div class="LevelRed" style="position:absolute; top:  4px; left: -0px; width: 20px; height: 4px; background-color: Red;  z-index:8992;"></div>';
+          sHTML     += '<div class="LevGreen" style="position:absolute; top:  9px; left: -0px; width: 20px; height: 4px; background-color: DarkGreen;  z-index:8992;"></div>';
+          sHTML     += '<div class="LevGreen" style="position:absolute; top: 14px; left: -0px; width: 20px; height: 4px; background-color: DarkGreen;  z-index:8992;"></div>';
+          sHTML     += '<div class="LevelTank" style="position:absolute; top:-20px; left: -7px; width: 30px; height: 40px;  border-radius: 12px; background-color: White; border: 2px solid #000;  z-index:8990;"></div>';
+          sHTML     += '<div style="position:absolute; top: -4px; left: 6px; width: 43px; height: 26px;  border-radius: 12px; background-color: White; z-index:8993;"></div>';
+          sHTML     += '<div   id="'+iMaxTime+'" class="TegTemperDL_'+iTeg+'" style="position:absolute; top: -2px; left: 8px; width: 35px; height: 18px;  border-radius: 10px; text-align: center; font: bold 9pt GOST; background-color: transparent; border: 2px solid #000; z-index:8997; line-height:17px !important;">---с.</div>';
+          sHTML     += '</div>';
+          return sHTML;
+        }
+
+        // рисуем мотор - редуктор
+        function DrawMR(iTeg, iLeft, iTop, sHeder) {
+          var	sHTML  = '<div id="divMR_' + iTeg + '"  class="divMR divMR_' + iTeg + '" style="position:absolute; top:'+iTop+'px; left:'+iLeft+'px; width: 120px;  height: 47px; border: 1px solid #000; text-align: center; font: bold 9pt GOST;">';
+          sHTML     +=    '<img src="images/GearSTOP.gif" class="DFanStopTegS" style="position:absolute; top:0px; left:0px; width: 35px;  height: 35px; display: inline;"/>';
+          sHTML     +=    '<img src="images/GearRUN.gif"  class="DFanRun_TegS" style="position:absolute; top:0px; left:0px; width: 35px;  height: 35px; display: none;"/>';
+          sHTML     +=    `<div style="line-height: 20px; padding-left: 44px;">${sHeder}</div>`
+          sHTML     +=    '<div class="DFanTegS" style="position:absolute; top:20px; left:47px; width: 73px; height: 27px; text-align: left; font: bold 20pt Digital-7; color: #000000;">---</div>';
+          sHTML     +=    '<div class="DFanTegF FPL" style="position:absolute; top:20px; left:76px;  width: 40px;   height: 20px; text-align: right; font: 12pt Digital-7; ">F</div>';
+          sHTML     +=    '<div class="DFanTegP FPL" style="position:absolute; top:32px; left:76px;  width: 40px;   height: 20px; text-align: right; font: 12pt Digital-7; ">%</div>';
+          sHTML     +=    '<div class="DFanTegL" style="position:absolute; top:24px; left:5px;  width: 35px;   height: 16px; text-align: center; font: bold 9pt GOST;  border-radius: 3px; background-color: White; line-height:17px !important;">----с.</div>';
+          sHTML     += '</div>';
+          return sHTML;
+        }
+
+        // рисуем DO
+        function DrawDO(iTeg, iLeft, iTop, sHeder) {
+          var	sHTML  = '<div id="divDO_' + iTeg + '"  class="divDO divDO_' + iTeg + '" style="position:absolute; top:'+iTop+'px; left:'+iLeft+'px; width: 120px;  height: 47px; border: 1px solid #000; text-align: center; font: bold 9pt GOST;">';
+          sHTML     +=    `<div class="divDO_Heder" style="line-height: 20px; padding-left: 1px;">${sHeder}</div>`
+          sHTML     +=    `<div class="divDO_State" style="line-height: 20px; padding-left: 1px; text-align: center; font: bold 12pt GOST;"> ------ </div>`
+          sHTML     += '</div>';
+          return sHTML;
+        }
+
+        // рисуем вентилятор-дымосос
+        function DrawFan(iTeg, iLeft, iTop, sHeder) {
+          var	sHTML  = '<div id="divMR_' + iTeg + '"  class="divMR divMR_' + iTeg + '" style="position:absolute; top:'+iTop+'px; left:'+iLeft+'px; width: 120px;  height: 47px; border: 1px solid #000; text-align: center; font: bold 9pt GOST;">';
+          sHTML     +=    '<img src="images/FanSTOP.gif" class="DFanStopTegS" style="position:absolute; top:0px; left:0px; width: 45px;  height: 45px; display: inline;"/>';
+          sHTML     +=    '<img src="images/FanRUN.gif"  class="DFanRun_TegS" style="position:absolute; top:0px; left:0px; width: 45px;  height: 45px; display: none;"/>';
+          sHTML     +=    `<div style="line-height: 20px; padding-left: 44px;">${sHeder}</div>`
+          sHTML     +=    '<div class="DFanTegS" style="position:absolute; top:20px; left:47px; width: 73px; height: 27px; text-align: left; font: bold 20pt Digital-7; color: #000000;">---</div>';
+          sHTML     +=    '<div class="DFanTegF FPL" style="position:absolute; top:20px; left:76px;  width: 40px;   height: 20px; text-align: right; font: 12pt Digital-7; ">F</div>';
+          sHTML     +=    '<div class="DFanTegP FPL" style="position:absolute; top:32px; left:76px;  width: 40px;   height: 20px; text-align: right; font: 12pt Digital-7; ">%</div>';
+          sHTML     += '</div>';
+          return sHTML;
+        }
+
+        function UpdateDO() {                                                                 // Обновление значений дискретных выходов
+          for (var i in arr_data_dyn) {
+            if (! $('.divDO_' + arr_data_dyn[i].iTegAddr).length) { continue; }               // проверка наличия элемента
+            var	divDO     = $('.divDO_' + arr_data_dyn[i].iTegAddr);
+
+            if ((arr_data_dyn[i].iTegValue > 1) || (arr_data_dyn[i].iTegValue < 0)) {                           //...... обновляем значения тегов в дискретных выходов
+                divDO.css({"background-color": "LightGray", "color": "grey", "border": "2px solid grey"});                 //...
+                divDO.children('.divDO_State').text('Err com');
+            }                                                                                                   //...
+            if (arr_data_dyn[i].iTegValue == 0) {                                                               //...
+              divDO.css({"background-color": "PowderBlue", "color": "Black", "border": "2px solid Black"});                 //...
+              divDO.children('.divDO_State').text('Выключен');
+            }                                                                                                   //...
+            if (arr_data_dyn[i].iTegValue == 1) {                                                               //...
+              divDO.css({"background-color": "DarkRed", "color": "Yellow", "border": "2px solid Black"});                 //...
+              divDO.children('.divDO_State').text('ВКЛЮЧЕН');
+            }                                                                                                   //...... обновляем значения тегов в дискретных входов (датчики уровня)
+          }
+        }
+
+
+        function UpdateDL() {                                                                 // Обновление значений датчиков уровня
+          for (var i in arr_data_dyn) {
+            if (! $('.TegTemperDL_' + arr_data_dyn[i].iTegAddr).length) { continue; }         // проверка наличия элемента
+            var	divDL     = $('.TegTemperDL_' + arr_data_dyn[i].iTegAddr);
+
+            if ((arr_data_dyn[i].iTegValue > 1) || (arr_data_dyn[i].iTegValue < 0)) {                           //...... обновляем значения тегов в дискретных входов (датчики уровня)
+                divDL.text('Err').css({"background-color": "LightGray", "color": "grey", "border": "2px solid grey"});                 //...
+                divDL.parent().children('.LevelRed').css({"background-color": "grey"});
+                divDL.parent().children('.LevGreen').css({"background-color": "grey"});
+                divDL.parent().children('.LevelTank').css({"background-color": "LightGray", "border": "2px solid grey"});
+            }                                                                                                   //...
+            if (arr_data_dyn[i].iTegValue == 0) {                                                               //...
+                divDL.text(arr_data_dyn[i].iStateLong + 'с.').css({"background-color": "PowderBlue", "color": "Black", "border": "2px solid Black"});
+                divDL.parent().children('.LevelRed').css({"background-color": "grey"});
+                divDL.parent().children('.LevGreen').css({"background-color": "DarkGreen"});
+                divDL.parent().children('.LevelTank').css({"background-color": "PowderBlue", "border": "2px solid Black"});
+            }                                                                                                   //...
+            if (arr_data_dyn[i].iTegValue == 1) {                                                               //...
+                divDL.text(arr_data_dyn[i].iStateLong + 'с.').css({"background-color": "Yellow", "color": "Black", "border": "2px solid Black"});   // MediumVioletRed     Yellow DarkRed
+                divDL.children('.LevelRed').css({"background-color": "Red"});
+                divDL.parent().children('.LevGreen').css({"background-color": "DarkGreen"});
+                divDL.parent().children('.LevelTank').css({"background-color": "DarkRed", "border": "2px solid Black"});    // здесь менять цвет включенного датчика уровня
+            }                                                                                                   //...... обновляем значения тегов в дискретных входов (датчики уровня)
+            var	iMaxTime   = arr_data_dyn[GetIndexArr_data_dyn(divDL.prop('id'))].iTegValue;                    //   Если время неизменного состояния превышает настроечные то мигаем красным
+            if (((arr_data_dyn[i].iTegValue == 1) || (arr_data_dyn[i].iTegValue == 0)) && (iMaxTime < arr_data_dyn[i].iStateLong))  {    //...
+                divDL.css({"color": "Red"}).fadeOut().fadeIn().fadeOut().fadeIn().fadeOut().fadeIn().fadeOut().fadeIn();                 //...
+            }                                                                                                   //...
+          }
+        }
+
+
+        function UpdateTemper() {                                                             // Обновление температур
+          for (var i in arr_data_dyn) {
+            if (! $('.TegTemperMR_' + arr_data_dyn[i].iTegAddr).length) { continue; }         // проверка наличия элемента
+
+            var	iTegValue = arr_data_dyn[i].iTegValue;
+            var	iTegAddr  = arr_data_dyn[i].iTegAddr;
+            var	iTegValueMax = 0;
+
+            for (var ii in arr_tegs) {   // поиск максимальной температуры
+                if(arr_tegs[ii].iTegAddr == iTegAddr) {iTegValueMax = arr_tegs[ii].iMaxValue;}
+            }
+
+            if ((iTegValue > 1000000000) && (iTegValue < 1000000300)) {                       // Если ошибка коммуникации
+              $('.TegTemperMR_' + iTegAddr).text('ERR com');                                  //
+              $('.TegTemperMR_' + iTegAddr).css({'color' : 'Salmon', 'font': 'bold 16pt Digital-7'}).fadeOut(1200).fadeIn(1200);
+              $('#TegTemperAI_' + iTegAddr).val('ERR com');                                   //...... обновляем значения тегов AI
+              continue;
+            }
+
+            if ((iTegValue > 1000000299) && (iTegValue < 1000000699)) {                       // Если ошибка термопары "ERROR_termp", "1000000300"
+              $('.TegTemperMR_' + iTegAddr).text('ERR term');                                 //
+              $('.TegTemperMR_' + iTegAddr).css({'color' : 'Red', 'font': 'bold 14pt Digital-7'}).fadeOut(600).fadeIn(600).fadeOut(600).fadeIn(600);
+              $('#TegTemperAI_' + iTegAddr).val('ERR term');                                  //...... обновляем значения тегов AI
+              continue;
+            }
+
+            $('.TegTemperMR_' + iTegAddr).text(iTegValue + '°');                              //
+            $('.TegTemperMR_' + iTegAddr).css({'color' : 'black', 'font': 'bold 24pt Digital-7'});
+            $('#TegTemperAI_' + iTegAddr).val(iTegValue + '°');                               //...... обновляем значения тегов AI
+
+            if (iTegValue >= iTegValueMax) {
+              $('.TegTemperMR_' + iTegAddr).css({'color' : 'red'}).fadeOut().fadeIn().fadeOut().fadeIn().fadeOut().fadeIn().fadeOut().fadeIn();
+            }
+
+          }
+        }
+
+        function GetIndexArr_data_dyn(iAddrTeg) {
+          var	iIndex  = 1;
+          for (var i in arr_data_dyn) {  if (arr_data_dyn[i].iTegAddr == iAddrTeg) {iIndex=i;} }
+          return iIndex;
+        }
+
+        function UpdateFanMR() {
+          for (var ii in arr_device) {                                      // перебор устройств
+            var	iBaseAddrTeg  = arr_device[ii].iBaseAddrTeg;
+            if (! $('.divMR_' + iBaseAddrTeg).length) { continue; }         // проверка наличия элемента
+            var	divMR     = $('.divMR_' + iBaseAddrTeg);
+            var	iDFanTegS = arr_data_dyn[GetIndexArr_data_dyn(iBaseAddrTeg + 101)].iTegValue;
+            var	iDFanTegL = arr_data_dyn[GetIndexArr_data_dyn(iBaseAddrTeg + 101)].iStateLong;
+            var	iDFanTegF = arr_data_dyn[GetIndexArr_data_dyn(iBaseAddrTeg + 102)].iTegValue;
+            var	iDFanTegP = arr_data_dyn[GetIndexArr_data_dyn(iBaseAddrTeg + 105)].iTegValue;
+            var	iDFanTegA = arr_data_dyn[GetIndexArr_data_dyn(iBaseAddrTeg + 103)].iTegValue;   //  мА
+            var	iDFanTegW = arr_data_dyn[GetIndexArr_data_dyn(iBaseAddrTeg + 104)].iTegValue;   //  мВт
+
+            divMR.children('.DFanTegL').text(iDFanTegL+'с.').css({'color' : 'black'});                                 // прописываем длительность
+
+            if (iDFanTegS < 0) {                                                              // Если ошибка ошибка привода
+                divMR.children('.FPL').hide();                                                // скрываем поля тегов MR частота - процент мощности
+
+                //divMR.children('.DFanTegS').text('ERR' + iDFanTegS);                          //
+                divMR.children('.DFanTegS').css({'color': 'yellow','font': 'bold 18pt Digital-7'}).text('ERR' + iDFanTegS);
+                divMR.children('.DFanStopTegS').show();
+                divMR.children('.DFanRun_TegS').hide();
+                divMR.css({'color': 'yellow', 'background-color': 'red'}).fadeOut().fadeIn().fadeOut().fadeIn().fadeOut().fadeIn().fadeOut().fadeIn();
+
+                if (ArrErrDF.hasOwnProperty(-1*iDFanTegS)) {                                    //
+                  $('#' + String(iBaseAddrTeg + 101)+'_MRSTeg').val('ERROR['+String(-1*iDFanTegS)+ '] ==> ' + ArrErrDF[-1*iDFanTegS]);
+                }
+                $('#' + String(iBaseAddrTeg + 102)+'_MRinpTeg').val('---');
+                $('#' + String(iBaseAddrTeg + 103)+'_MRinpTeg').val('---');
+                $('#' + String(iBaseAddrTeg + 104)+'_MRinpTeg').val('---');
+                $('#' + String(iBaseAddrTeg + 105)+'_MRinpTeg').val('---');
+                continue;
+            }
+
+            if (iDFanTegS > 1000000000) {                                                     // Если ошибка коммуникации
+                divMR.children('.FPL').hide();                                                // скрываем поля тегов MR частота - процент мощности
+
+                divMR.css({'color' : 'black', 'background': 'LightGreen'});
+                divMR.children('.DFanTegS').text('ERR com');                                  //
+                divMR.children('.DFanTegS').css({'color' : 'DarkRed', 'background': 'transparent', 'font': 'bold 16pt Digital-7'}).fadeOut(1200).fadeIn(1200);  //divMR.children('.DFanTegS').css({'color' : 'Salmon', 'background': 'transparent', 'font': 'bold 16pt Digital-7'}).fadeOut(1200).fadeIn(1200);
+
+                divMR.children('.DFanStopTegS').show();
+                divMR.children('.DFanRun_TegS').hide();
+
+                $('#' + String(iBaseAddrTeg + 101)+'_MRSTeg').val('ERR com');
+                $('#' + String(iBaseAddrTeg + 102)+'_MRinpTeg').val('---');
+                $('#' + String(iBaseAddrTeg + 103)+'_MRinpTeg').val('---');
+                $('#' + String(iBaseAddrTeg + 104)+'_MRinpTeg').val('---');
+                $('#' + String(iBaseAddrTeg + 105)+'_MRinpTeg').val('---');
+                continue;
+            }
+
+            $('#' + String(iBaseAddrTeg + 102)+'_MRinpTeg').val(iDFanTegF);
+            $('#' + String(iBaseAddrTeg + 103)+'_MRinpTeg').val(iDFanTegA);
+            $('#' + String(iBaseAddrTeg + 104)+'_MRinpTeg').val(iDFanTegW);
+            $('#' + String(iBaseAddrTeg + 105)+'_MRinpTeg').val(iDFanTegP);
+
+            if (ArrMRS.hasOwnProperty(iDFanTegS)) {                                           //
+                divMR.children('.DFanTegS').text(ArrMRS[iDFanTegS]);                          //
+                $('#' + String(iBaseAddrTeg + 101)+'_MRSTeg').val(ArrMRS[iDFanTegS]);
+            }
+            else {                                                                            //
+                divMR.children('.DFanTegS').text('---');                                      //
+                $('#' + String(iBaseAddrTeg + 101)+'_MRSTeg').val('---');
+            }
+
+            divMR.css({'color' : 'black', 'background': 'LightGreen'});                       // LightGreen  transparent
+            divMR.children('.DFanTegS').css({'color' : 'black', 'background': 'transparent', 'font': 'bold 18pt Digital-7'});
+
+            if (iDFanTegP >= 0 && iDFanTegP < 1000) {                                                                   // Если процент мощности более 99% пишем красным с миганием
+              divMR.children('.DFanTegP').text(iDFanTegP  + ' %');                                                      // обновляем значения тегов MR процент мощности
+              if (iDFanTegP > 99) {divMR.children('.DFanTegP').css({'color' : 'Red'}).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200).fadeOut(200).fadeIn(200);}}
+            else {divMR.children('.DFanTegP').text('%');}                                                               // обновляем значения тегов MR процент мощности
+
+            if (iDFanTegF >= 0 && iDFanTegF < 1000) {divMR.children('.DFanTegF').text(iDFanTegF  + ' F');}              // обновляем значения тегов MR частота
+            else                                    {divMR.children('.DFanTegF').text('F');}
+
+            if ((iDFanTegS == 1) || (iDFanTegS == 2)) {
+              divMR.children('.DFanStopTegS').hide();
+              divMR.children('.DFanRun_TegS').show();
+              divMR.children('.FPL').css({'color' : 'black'}).show();}                                                      // показываем поля тегов MR частота - процент мощности
+            else {
+              divMR.children('.DFanStopTegS').show();
+              divMR.children('.DFanRun_TegS').hide();
+              divMR.children('.FPL').css({'color' : 'black'}).hide();                                                       // НЕ показываем поля тегов MR частота - процент мощности
+            }
+
+          }
+        }
+
+
+        refreshTable();
+
+
+
+        $('#popupAI').popup();
+
+        $('#popupDI').popup({
+          //pagecontainer: '#page',
+          //escape: false,
+          //closebutton: true
+        });
+
+        $('#popupDO').popup();
+
+        $('#popupOMR').popup();
+        $('#popupST').popup();
+
+        $('#popupPassword').popup();
+
+
+
+    });
+    </script>
+
+</head>
+<body  style="font-size: 10pt; font-family: sans-serif; position: relative;">
+  <div style="opacity: 0; visibility: hidden; position: fixed; overflow: auto; z-index: 100001; width: 100%; height: 100%;
+    top: 0px; left: 0px; text-align: center" id="maxDiv"></div>
+  <div id="windUNP" style="position:absolute; left:10px; width: 500px;  height: 800px;  border: 2px solid #000;">
+    <button id="authorize-button" style="width:  140px; height: 30px; margin: 4px;" class="popupPassword_open btnMW">Авторизация: Гость</button>
+    <div id="topPanel" style="position:absolute; top:4px; left:146px;  width: 354px;  height: 28px; font: bold 14pt GOST;"> &nbsp; Режим работы: </div>
+    <div id="connectUNP" style="position:absolute; top: 46px; left:480px;  font: bold 14pt GOST; writing-mode: tb-rl;"> &nbsp; Связь с УНП = </div>
+    <div id="connectPLK" style="position:absolute; top: 46px; left:460px;  font: bold 14pt GOST; writing-mode: tb-rl;"> &nbsp; Связь с ПЛК = </div>
+    <div id="connectIMT" style="position:absolute; top: 46px; left: 10px;  font: bold 14pt GOST; writing-mode: tb-rl; display: none; color: red; background-color: yellow;"> &nbsp;&nbsp; Режим имитации = ВКЛ &nbsp;&nbsp;</div>
+
+    <div id="rightPanel" style="display: none; z-index:9990; position:absolute; width: 460px; height: 776px; left:30px;  font: bold 10pt GOST; border-radius: 10px 0px 0px 10px; box-shadow:  0.4em 0.4em 5px rgba(80,80,80,0.5);   border: 1px solid #000; background: #9eb04f;">
+      <div style="position:absolute; top:3px; left:10px; line-height: 18px;"> Сообщения: </div>
+      <div style="position:absolute; top:3px; left:160px; color: #000000; background-color: #e4e04a; border-radius: 3px; box-shadow: 0 0 3px rgba(0,0,0,.3); line-height: 18px;">&nbsp;&nbsp; Предупреждения: &nbsp;&nbsp;</div>
+      <div style="position:absolute; top:3px; left:350px; color: #fff; background-color: #A44A64; border-radius: 3px; box-shadow: 0 0 3px rgba(0,0,0,.3); line-height: 18px;">&nbsp;&nbsp; Тревоги: &nbsp;&nbsp;</div> <!--color: #fa0707; background-color: #e0c646;-->
+      <div id="selMessage" size="40" style="position:absolute; top:24px; left:6px; height: 736px; width: 450px; overflow-y: auto; background: white;"> </div>
+    </div>
+
+    <div id="rightPanelDown" style="display: none; z-index:9990; position:absolute; width: 270px; height: 316px; top:400px; left:230px;  font: bold 10pt GOST; border-radius: 10px 0px 0px 10px; box-shadow:  0.4em 0.4em 5px rgba(80,80,80,0.5);   border: 1px solid #000; background: #9eb04f;">
+      <div style="position:absolute; top:3px; left:10px; line-height: 18px;"> Внешние терминалы: </div>
+      <div id="RDownMessage" size="40" style="position:absolute; top:24px; left:6px; height: 276px; width: 260px; overflow-y: auto; background: white;"> </div>
+    </div>
+
+    <div id="DEBUGPanel" style="display: none; padding: 8px; z-index:9996; position:absolute; width: 990px; height: 776px; left:30px; border-radius: 0px 10px 10px 0px; box-shadow:  0.4em 0.4em 5px rgba(80,80,80,0.5);   border: 1px solid #000; background: #9eb04f;">
+      <textarea id="editAvtm" style="width: 970px; height: 756px; padding: 8px; font: 9pt PT-Mono; resize: none;"></textarea><br>
+    </div>
+
+    <div id="leftPanel" style="display: none; z-index:9990; position:absolute; width: 176px; height: 650px; left:-4px;  border-radius: 0px 10px 10px 0px; box-shadow:  0.4em 0.4em 5px rgba(80,80,80,0.5);   border: 1px solid #000; background: #4fb0a7;">
+      <textarea readonly id="TimeDevise" style="position:absolute; width: 150px; height: 230px; left:4px; top:14px; padding: 4px; font: bold 11pt GOST; resize: none;"></textarea>
+
+      <div id="page" style="position:absolute; top:290px; left:0px;  width: 170px;  height: 210px; font: bold 14pt GOST;"> &nbsp;&nbsp; Режим работы: <br>
+
+          <div class="radio_buttons" style="font: bold 10pt GOST;">
+             <div><input type="radio" id="rbSTOP"  name="contact"  style="width:  160px; height: 30px; margin: 4px;" value="0" checked>  <label for="rbSTOP">СТОП (ручн. управл.)</label></div>
+             <div><input type="radio" id="rbWORK"  name="contact"  style="width:  160px; height: 30px; margin: 4px;" value="1">          <label for="rbWORK" >РАБОТА (автоматика)</label></div>
+             <div><input type="radio" id="rbHEAT"  name="contact"  style="width:  160px; height: 30px; margin: 4px;" value="2">          <label for="rbHEAT" >Разогрев           </label></div>
+             <div><input type="radio" id="rbCOLL"  name="contact"  style="width:  160px; height: 30px; margin: 4px;" value="3">          <label for="rbCOLL" >Охлаждение         </label></div>
+          </div> <br><br>
+
+          <button style="width:  45px; height: 30px; margin: 4px;" class="popupAI_open btnMW">AI</button>
+          <button style="width:  45px; height: 30px; margin: 4px;" class="popupDI_open btnMW">DI</button>
+          <button style="width:  45px; height: 30px; margin: 4px;" class="popupDO_open btnMW">DO</button>
+          <button id="btnAllTeg"  style="width:  160px; height: 30px; margin: 4px;">All teg</button> <br>
+          <button id="btnSetting" style="width:  160px; height: 30px; margin: 4px;" class="popupST_open btnMW">Настройки</button> <br>
+      </div>
+    </div>
+
+    <button id="btnSETINGanel"  style="display: none;  position:absolute; z-index:9992; top:254px; left:-16px; width: 36px; height: 60px; border-radius: 4px;"><img src="images/iconsSETNG.png" style="position:absolute; left:0px; top:10px;"></button>
+    <button id="btnDEBUGPanel"  style="display: none;  position:absolute; z-index:9992; top:360px; left:-16px; width: 36px; height: 60px; border-radius: 4px;"><img src="images/iconsDEBUG.png" style="position:absolute; left:0px; top:10px;"></button>
+    <button id="btnRightPanel"  style="display: none;  position:absolute; z-index:9992; top:254px; left:480px; width: 36px; height: 60px; border-radius: 4px;"><img src="images/iconsMSG.png"   style="position:absolute; left:0px; top:10px;"></button>
+    <button id="btnNETWKPanel"  style="display: none;  position:absolute; z-index:9992; top:360px; left:480px; width: 36px; height: 60px; border-radius: 4px;"><img src="images/iconsNET.png"   style="position:absolute; left:0px; top:10px;"></button>
+
+  </div>
+
+<!--     <div id="Container"  style="width: 100%; height: auto; border: 1px solid black;"></div> -->
+<!--     <table  id="report"></table> -->
+<!--    <table id="report" style="width: 100%; border-collapse: collapse;"></table> -->
+</body>
+
+
+
+
+</html>
+
+<section id="popupAI" style="visibility: hidden;">
+  <h2>Аналоговые входы:</h2>
+</section>
+
+<section id="popupDI" style="visibility: hidden;">
+  <h2>Дискретные входы:</h2>
+</section>
+
+<section id="popupDO" style="visibility: hidden;">
+  <h2>Дискретные(релейные) выходы:</h2>
+</section>
+
+<section id="popupOMR" style="visibility: hidden;">
+  <h2>Мотор редуктор (один):</h2>
+</section>
+
+
+<section id="popupST" style="visibility: hidden;">
+  <h2>Настройки:</h2>
+  <textarea id="editST" style="width: 500px; height: 500px; padding: 8px; font: bold 11pt GOST; resize: none;"></textarea><br>
+  <button   id="btnSTexit" style="width:  117px; height: 30px; margin: 4px;" >Выход    </button>
+  <button   id="btnSTsave" style="width:  117px; height: 30px; margin: 4px; float: right" >Сохранить</button>
+</section>
+
+
+<section id="popupPassword" style="visibility: hidden; padding: 8px; margin: 8px;">
+    <input type="text"     id="txtUsername" placeholder="Введите логин" style="padding: 8px; margin: 8px; width:  140px; height: 30px;"><br>
+  	<input type="password" id="txtPassword" placeholder="Введите пароль"style="padding: 8px; margin: 8px; width:  140px; height: 30px;"><br>
+    <button id="btnPassword" style="width: 158px; height: 30px; padding: 8px; margin: 8px;" >ВОЙТИ</button>
+</section>

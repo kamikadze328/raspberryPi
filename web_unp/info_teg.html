@@ -1,0 +1,168 @@
+<!doctype html>
+
+<html xmlns="http://www.w3.org/1999/xhtml"  lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ООО КАРБОН-ДВ все теги системы.</title>
+    <script type="text/javascript" src="/api/js/sendStats.js"></script>
+    <script type="text/javascript" src="js/choosingFactory.js"></script>
+
+    <script src="js/jquery.js"></script>
+    <script src="js/moment.min.js"></script>
+    <script type="text/javascript">
+        let arr_device = [];					    // объявляем  массив
+        let arr_tegs = [];					      // объявляем  массив
+        let arr_data_dyn = [];				    // объявляем  массив обновляем его каждые 5-10 сек
+        var	sPathDATAFile = '/var/RAMdisk/DATA_UNP300/';
+
+
+    $(function(){      // действия, которые необходимо выполнить после загрузки документа...  эквивалентно $(document).ready(function(){
+
+        $('body').css('background', 'gainsboro' );					// Заливка экрана серым цветом  gainsboro Lime black  'gainsboro' "#404000"
+
+
+        $('#bytExit').click(function() {
+          history.back();
+        });
+
+        // Каждые 6 секунд обновляем данные с сервера
+      	setInterval(function(){
+          $.ajax({type: "POST", url: "/api/unp/get_file.php", timeout: 500, async: false,              // делаем ajax синхронный запрос т.е. здесь идет ожидание выполнения запроса
+              data: {  sContentName: 'dynData' },success: function(msg)
+                {	arr_data_ajax  = jQuery.parseJSON(msg);
+                  for (let i in arr_data_ajax){                                                 // для совместимости версий файла [.DynDATA.json]
+                    arr_data_dyn[i] = {"iTegAddr": arr_data_ajax[i][0], "iTegValue": arr_data_ajax[i][1], "iStateLong": arr_data_ajax[i][2] };
+                  }
+                  for (let i in arr_data_dyn)
+                    if (arr_data_dyn[i].iTegValue > 1000000000){
+                      $('#'+arr_data_dyn[i].iTegAddr+'_inpTeg').val("Error");
+                    }
+                    else{
+                      $('#'+arr_data_dyn[i].iTegAddr+'_inpTeg').val(arr_data_dyn[i].iTegValue);
+                    }
+                }});
+        // системные теги
+            const dtTimeDev = moment.unix(arr_data_dyn[1].iTegValue);                //        [      1002]      Системное Время, в секундах (для контроля)
+            const dtTimeWork = moment.unix(arr_data_dyn[0].iTegValue).utc();          //        [      1001]      Время прошедшее от старта программы, в секундах (для контроля зависания)
+            const iDayFromWork = Math.trunc(arr_data_dyn[0].iTegValue / 86400);       //        вычисляем кол-во дней прошедших  от старта программы
+            let sDayFromWork = '-- В работе: ';
+            if (iDayFromWork > 0 ) {sDayFromWork += iDayFromWork.toString() + ' дней ' ;}
+            const sTop = 'Системное время: ' + dtTimeDev.format("DD.MM.YYYY HH:mm:ss ") + sDayFromWork + dtTimeWork.format("HH:mm:ss") + ' -- Опрос устройств: ' + Math.trunc(arr_data_dyn[2].iTegValue / 1000).toString() + ' сек.';
+            $('#TimeDevise').text(sTop );
+      	}, 6000);
+
+        function refreshTable() {
+            // Cчитываем таблицы тегов и устройств
+            $.ajax({
+                type: "POST", url: "/api/unp/get_file.php", timeout: 500, async: false, // делаем ajax запрос
+                data: {sContentName: 'devices'},
+                success: function (msg3) {
+                    arr_device = jQuery.parseJSON(msg3);
+                }
+            });
+            $.ajax({
+                type: "POST", url: "/api/unp/get_file.php", timeout: 500, async: false, // делаем ajax запрос
+                data: {sContentName: 'tags'},
+                success: function (msg4) {
+                    arr_tegs = jQuery.parseJSON(msg4);
+                }
+            });
+            createTable();
+
+            //All inputs
+            let inputs = document.querySelectorAll("input[name=checkbox]")
+
+            //Добавление eventListener к общему input
+            inputs.item(0).addEventListener('change', (e)=>{
+                const inputs = document.querySelectorAll("input[name=checkbox]")
+                const newType = e.target.checked
+                for (let i = 1; i < inputs.length; ++i) {
+                    inputs[i].checked = newType
+                    document.getElementById("info-" + inputs[i].id.split('base-addr-')[1]).style.display = newType ? 'inline-block' : 'none'
+                }
+            })
+            //Добавление eventListener ко всем остальным input
+            for (let i = 1; i < inputs.length; ++i) {
+                const input = inputs[i];
+                input.addEventListener('change', (e) => {
+                    const elem = e.target
+                    document.getElementById("info-" + elem.id.split('base-addr-')[1]).style.display = elem.checked ? 'inline-block' : 'none'
+                })
+            }
+
+        }
+
+        function createTable() {
+          var sHTML_R    = '';                              //alert(JSON.stringify(arrBdevice,  null, '\t'));
+          var sHTML_L    = '';
+
+          //input Для одной общей галочки
+          sHTML_L +='<div style="width: 100%;"><input type="checkbox" name="checkbox" checked style="margin: 0; width: 20px; height: 20px;"/><span style="padding-left: 10px;">Все</span></div><hr>'
+          for (var i in arr_device) {
+            sHTML_L+='<div style="float:left; width: 100%;">'; //  style="font-weight: bold;
+            sHTML_L+=   '<div style=" min-width:450px">';
+            sHTML_L+=     `<input id="base-addr-${arr_device[i].iBaseAddrTeg}" type="checkbox" checked name="checkbox" style="float: left; margin: 0; width: 20px; height: 20px;"/>`;
+            sHTML_L+=     '<div style="float:left; padding-left: 10px; width: 91px;">'+arr_device[i].iBaseAddrTeg +'</div>';
+            sHTML_L+=     '<div style="float:left; ">'+arr_device[i].sModelName +'</div>';
+            sHTML_L+=     '<div style="float:right; width:200px; padding-right:20px; text-align: right;">'+arr_device[i].ip_adress+' : '+arr_device[i].ip_port+' [ '+arr_device[i].iAdrMODBUS +' ]</div>';
+            sHTML_L+=   '</div><br>';
+            sHTML_L+=   '<div>';
+            sHTML_L+=     '<div style="float:left; padding-left:90px;">'+arr_device[i].sModuleInfo +'</div>';
+            sHTML_L+=   '</div>';
+            sHTML_L+='</div>';
+            sHTML_L+='<hr>';
+
+              const sBackground = ((parseInt(i)) % 2 === 0) ? "#e4f2fb" : "#f8f8f8";
+              sHTML_R+=`<div id="info-${arr_device[i].iBaseAddrTeg}" style=" display: inline-block; width: 100%; height: auto; background: ${sBackground};">`;  // border: 1px solid red;
+             sHTML_R+=  '<div style="float:left; width: 100%; padding: 12px 10px; font-weight: bold;">';  //  style="font-weight: bold; "
+             sHTML_R+=    '<div style="float:left; width: 91px; text-align: right; padding-right: 10px;">'+arr_device[i].iBaseAddrTeg +'</div>';
+             sHTML_R+=    '<div style="float:left; width:135px;">'+arr_device[i].sModelName +'</div>';
+             sHTML_R+=    '<div style="float:left; width:500px;">'+arr_device[i].sModuleInfo +'</div>';
+             sHTML_R+=    '<div style="float:right; width:300px; padding-right:20px; text-align: right;">'+arr_device[i].ip_adress+' : '+arr_device[i].ip_port+' [ '+arr_device[i].iAdrMODBUS +' ]</div>';
+             sHTML_R+='</div><br></br><hr>';
+
+             for (let ii in arr_tegs) {
+                 if(arr_device[i].iBaseAddrTeg === arr_tegs[ii].iBaseAddrTeg) {
+                     var sTeg = arr_tegs[ii].iTegAddr;
+                     sHTML_R+='<div style="float:left; padding: 2px 10px;">';
+                     sHTML_R+=   '<div style="float:left; width:  80px; text-align: right; padding: 1px 10px;">'+sTeg+'</div>';
+                     sHTML_R+=   '<input type="text" id="'+sTeg+'_inpTeg" style="float:left; width:50px; text-align: right;  padding: 1px 2px;">';
+                     sHTML_R+=   '<div style="float:left; width: 500px; text-align: left;  padding: 1px 10px;">'+arr_tegs[ii].sTegInfo+'</div>';   // border: 1px solid #000;  width: 650px;
+                     sHTML_R+='</div>';
+                 }
+             }
+             sHTML_R+='</div>';
+          }
+          $('#Panel_R').append(sHTML_R);  // body  #Container
+          $('#Panel_L').append(sHTML_L);  // body  #Container
+        }
+
+//   font-family: Verdana, Arial, Helvetica, sans-serif;   font-family: Arial Narrow   font-size: 11pt; /* Размер шрифта в пунктах */  padding: 6px;
+
+
+        refreshTable();
+    });
+    </script>
+
+</head>
+<body  style="font-size: 10pt; font-family: sans-serif">
+
+<div style="display: inline-block; width: 100%; padding: 10px 20px; font-family: sans-serif; font-weight: bold;">
+<!--   <div style="float:left; font-size: 16pt; padding: 2px 20px;"> Параметры управляющего контроллера: </div>   -->
+  <div id="TimeDevise" style="float:left; font-size: 12pt; padding: 8px 20px 2px;">  </div>
+  <input type="button" id="bytExit" value="Выход" style="width: 80px; height: 30px; float: right; margin-right: 50px;"/>
+</div><hr>
+<!--     <input type="button" id="bytTest" value="Нажми меня" /> -->
+
+<div id="Container"  style="display: inline-block; padding: 8px; width: 99%; height: auto;">
+  <div id="Panel_L"  style="float:left; width: 30%; overflow-x: auto; margin-right: 3px; font-weight: bold;"></div>
+  <div id="Panel_R"  style="float:left; width: 69%;  border-left:2px solid black;"></div>
+
+</div>
+
+<!--     <div id="Container"  style="width: 100%; height: auto; border: 1px solid black;"></div> -->
+<!--     <table  id="report"></table> -->
+<!--    <table id="report" style="width: 100%; border-collapse: collapse;"></table> -->
+</body>
+</html>

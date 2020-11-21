@@ -1,0 +1,338 @@
+<!doctype html>
+
+<html lang="ru" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <title>ООО КАРБОН-ДВ все теги системы.</title>
+    <script type="text/javascript" src="/api/js/sendStats.js"></script>
+    <script type="text/javascript" src="js/choosingFactory.js"></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/moment.min.js"></script>
+    <style type="text/css">
+        body, html {
+            margin: 0;
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 40px;
+            padding: 10px 5px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: gainsboro;
+            box-shadow: 0 0 16px rgba(0, 0, 0, .2);
+        }
+
+        #time-device {
+            margin-left: 30px;
+        }
+
+        #exit-button {
+            width: 80px;
+            height: 30px;
+            margin-right: 30px;
+        }
+
+        #content-wrapper {
+            padding: 85px 10px 10px 10px;
+            font-size: .8rem;
+        }
+
+        body {
+            font-family: sans-serif;
+            background: gainsboro;
+        }
+
+        .device-row-header, .device-status-and-time, .device-extended-tags {
+            text-align: center;
+        }
+
+        .device-status-and-time > *, .device-extended-tags > * {
+            display: flex;
+        }
+
+        .device-row-header {
+            font-weight: bold;
+        }
+
+        .device-status-and-time > * > *, .device-extended-tags > * > * {
+            margin: auto;
+            padding: 2px;
+        }
+
+        .border-left-bold {
+            border-left: 2px solid black;
+        }
+
+        .border-left {
+            border-left: 1px solid black;
+        }
+
+        .border-right-bold {
+            border-right: 2px solid black;
+        }
+
+        .border-right {
+            border-right: 1px solid black;
+        }
+
+        .border-top-bold {
+            border-top: 2px solid black;
+        }
+
+        .border-bottom-bold {
+            border-bottom: 2px solid black;
+        }
+
+        .border-bottom {
+            border-bottom: 1px solid black;
+        }
+
+        .device-row-header > .device-main-info > * {
+            margin: auto;
+        }
+
+        .device-row-header .device-main-info {
+            display: flex;
+        }
+
+        .device-row > * {
+            padding: 10px 0;
+        }
+
+        .device-row {
+            display: grid;
+            grid-template-columns: 5fr 2fr 5fr;
+            border-bottom: 1px solid black;
+            border-right: 2px solid black;
+        }
+
+        .device-row-header {
+            display: grid;
+            grid-template-columns: 5fr 2fr 5fr;
+        }
+
+        .device-status-and-time {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .device-extended-tags {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
+
+        .device-main-info-first-row {
+            display: grid;
+            grid-template-columns: 1fr 4fr 4fr;
+        }
+
+        .device-main-info-first-row > div, .device-status-and-time > *, .device-extended-tags > * {
+            padding: 0 1px;
+        }
+
+        .device-main-info-second-row {
+            margin-top: 5px;
+            display: grid;
+            grid-template-columns: 1fr 8fr;
+        }
+
+        .device-main-info {
+            padding-left: 5px;
+        }
+
+        @media (max-width: 850px) {
+            .device-main-info-first-row {
+                display: block;
+            }
+
+            .device-main-info-second-row {
+                display: block;
+            }
+        }
+    </style>
+    <script type="text/javascript">
+        let arr_device = [];					    // объявляем  массив
+        let arr_tags = [];					      // объявляем  массив
+        let arr_data_dyn = [];				    // объявляем  массив обновляем его каждые 5-10 сек
+        const idHTMLStatus = (id) => 'status-' + id
+        const idHTMLLastConTime = (id) => 'last-con-time-' + id
+        const idHTMLNumberRequests = (id) => 'number-requests-' + id
+        const idHTMLNumberErrCon = (id) => 'number-err-con-' + id
+        const idHTMLNumberErrSum = (id) => 'number-err-sum-' + id
+        const idHTMLAvgTimeRequest = (id) => 'avg-time-request-' + id
+        const setInnerTextById = (id, text) => document.getElementById(id).innerText = text
+
+        document.addEventListener('DOMContentLoaded',
+            () => {      // действия, которые необходимо выполнить после загрузки документа...  эквивалентно $(document).ready(function(){
+
+                document.getElementById('exit-button').addEventListener('click', () => {
+                    history.back();
+                })
+                setInterval(updateDynData, 6000);
+                refreshTable();
+                updateDynData()
+            });
+
+        function updateDynData() {
+            $.ajax({
+                type: "POST", url: "/api/unp/get_file.php", timeout: 500, async: false,              // делаем ajax синхронный запрос т.е. здесь идет ожидание выполнения запроса
+                data: {sContentName: 'dynData'}, success: function (msg) {
+                    arr_data_dyn = JSON.parse(msg);
+                    arr_data_dyn.forEach((one_data, i) => {
+                        one_data = {
+                            "iTegAddr": one_data[0],
+                            "iTegValue": one_data[1],
+                            "iStateLong": one_data[2]
+                        }
+                        arr_data_dyn[i] = one_data
+                        const tagId = one_data.iTegAddr
+                        const deviceId = tagId - tagId % 1000
+                        if (document.getElementById(idHTMLStatus(deviceId)) !== null) {
+                            const value = one_data.iTegValue > 1000000000 ? 'Error' : one_data.iTegValue
+                            switch (tagId % deviceId) {
+                                case 1:
+                                    setInnerTextById(idHTMLStatus(deviceId), value)
+                                    break
+                                case 2:
+                                    setInnerTextById(idHTMLLastConTime(deviceId), value)
+                                    break
+                                case 3:
+                                    setInnerTextById(idHTMLNumberRequests(deviceId), value)
+                                    break
+                                case 4:
+                                    setInnerTextById(idHTMLNumberErrCon(deviceId), value)
+                                    break
+                                case 5:
+                                    setInnerTextById(idHTMLNumberErrSum(deviceId), value)
+                                    break
+                                case 6:
+                                    setInnerTextById(idHTMLAvgTimeRequest(deviceId), value)
+                                    break
+                            }
+                        }
+                    })
+                }
+            });
+            // системные теги
+            const dtTimeDev = moment.unix(arr_data_dyn[1].iTegValue);                //        [      1002]      Системное Время, в секундах (для контроля)
+            const dtTimeWork = moment.unix(arr_data_dyn[0].iTegValue).utc();          //        [      1001]      Время прошедшее от старта программы, в секундах (для контроля зависания)
+            const iDayFromWork = Math.trunc(arr_data_dyn[0].iTegValue / 86400);       //        вычисляем кол-во дней прошедших  от старта программы
+            let sDayFromWork = '-- В работе: ';
+            if (iDayFromWork > 0) {
+                sDayFromWork += iDayFromWork.toString() + ' дней ';
+            }
+            const sTop = 'Системное время: ' + dtTimeDev.format("DD.MM.YYYY HH:mm:ss ") + sDayFromWork + dtTimeWork.format("HH:mm:ss") + ' -- Опрос устройств: ' + Math.trunc(arr_data_dyn[2].iTegValue / 1000).toString() + ' сек.';
+            document.getElementById('time-device').innerText = sTop;
+        }
+
+        function refreshTable() {
+            // Cчитываем таблицы тегов и устройств
+            $.ajax({
+                type: "POST", url: "/api/unp/get_file.php", timeout: 500, async: false, // делаем ajax запрос
+                data: {sContentName: 'devices'},
+                success: function (msg3) {
+                    arr_device = jQuery.parseJSON(msg3);
+                }
+            });
+            $.ajax({
+                type: "POST", url: "/api/unp/get_file.php", timeout: 500, async: false, // делаем ajax запрос
+                data: {sContentName: 'tags'},
+                success: function (msg4) {
+                    arr_tags = jQuery.parseJSON(msg4);
+                }
+            });
+            createTable();
+        }
+
+        function createTable() {
+            let sHTML_R = '';
+
+            arr_device.forEach((device, i) => {
+                if (device.iBaseAddrTeg === 1000) return
+                const sBackground = (i % 2 === 0) ? "#e4f2fb" : "#f8f8f8";
+                const id = device.iBaseAddrTeg
+                sHTML_R += `<div class="device-row" style="background-color: ${sBackground}">
+                                <div class="device-main-info border-right border-left-bold">
+                                    <div class="device-main-info-first-row">
+                                        <div>${id}</div>
+                                        <div>${device.sModelName}</div>
+                                        <div>${device.ip_adress}:${device.ip_port} [${device.iAdrMODBUS}]</div>
+                                    </div>
+                                    <div class="device-main-info-second-row">
+                                        <div></div>
+                                        <div>${device.sModuleInfo}</div>
+                                    </div>
+                                </div>
+                                <div class="device-status-and-time ">
+                                   <div><div id="${idHTMLStatus(id)}"></div></div>
+                                   <div><div id="${idHTMLLastConTime(id)}"></div></div>
+                                </div>
+                                <div class="device-extended-tags border-left    ">
+                                    <div><div id="${idHTMLNumberRequests(id)}"></div></div>
+                                    <div><div id="${idHTMLNumberErrCon(id)}"></div></div>
+                                    <div><div id="${idHTMLNumberErrSum(id)}"></div></div>
+                                    <div><div id="${idHTMLAvgTimeRequest(id)}"></div></div>
+                                </div>
+                            </div>`
+            })
+            document.getElementById('table-content').innerHTML = sHTML_R
+        }
+    </script>
+
+</head>
+<body>
+
+<header>
+    <div id="time-device"> Системное время: xx.xx.xxxx
+        xx:xx:xx -- В работе: xx:xx:xx -- Опрос устройств: x сек.
+    </div>
+    <button id="exit-button">Выход</button>
+</header>
+
+<div class="border-bottom" id="content-wrapper">
+    <div class="device-row-header border-right-bold border-top-bold border-bottom-bold border-left-bold"
+         id="table-header">
+        <div class="device-main-info">
+            <div>Устройство</div>
+        </div>
+        <div class="device-status-and-time border-left-bold">
+            <div class="border-right">
+                <div>Статус устройства</div>
+            </div>
+            <div class="border-right-bold">
+                <div>Время с последнего опроса</div>
+            </div>
+        </div>
+        <div class="device-extended-tags-wrapper ">
+            <div class="device-extended-tags-header border-bottom">Опрос устройства</div>
+            <div class="device-extended-tags">
+                <div class="border-right">
+                    <div>Опросов всего</div>
+                </div>
+                <div class="border-right">
+                    <div>С ошибкой подключения</div>
+                </div>
+                <div class="border-right">
+                    <div>С ошибкой контрольной суммы</div>
+                </div>
+                <div>
+                    <div>Среднее время опроса</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="table-content"></div>
+
+</div>
+
+<!--     <div id="Container"  style="width: 100%; height: auto; border: 1px solid black;"></div> -->
+<!--     <table  id="report"></table> -->
+<!--    <table id="report" style="width: 100%; border-collapse: collapse;"></table> -->
+</body>
+</html>
