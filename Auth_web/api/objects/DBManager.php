@@ -65,7 +65,7 @@ class DBManager
             if ($stmt->execute([
                 'login' => $user->login,
                 'description' => $user->description,
-                'password' => $user->passowrd_secure,
+                'password' => $user->password_secure,
                 'role_id' => $user->role_id
             ])) {
 
