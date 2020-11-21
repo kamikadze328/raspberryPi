@@ -90,27 +90,24 @@ class Server(object):
         sql = sql[:-1] + ';'
         cursor.execute(sql)
 
-    def __delete_by_factory_id_withou_commit(self, table_name, factory_id, cursor):
+    def __delete_by_factory_id_without_commit(self, table_name, factory_id, cursor):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):
             raise connector.Error('table %s doesn`t exist' % table_name.upper())
 
         sql = 'DELETE from %s where id_factory = %s;' % (table_name.split('(')[0], _mysql.escape_string(factory_id))
         cursor.execute(sql)
-        pass
-
 
     def delete_by_factory_id_and_replace(self, data, table_name_with_params, factory_id):
         self.__con.autocommit = False
         cursor = self.__get_cursor()
         try:
-            self.__delete_by_factory_id_withou_commit(table_name_with_params, factory_id, cursor)
+            self.__delete_by_factory_id_without_commit(table_name_with_params, factory_id, cursor)
             self.__replace_many_rows_without_commit(data, table_name_with_params, cursor)
             self.__con.commit()
             cursor.close()
         except connector.Error as e:
             self.__con.rollback()
             raise e
-        pass
 
     def delete_between_dates(self, date1, date2, table_name, data_column):
         cursor = self.__get_cursor()
@@ -118,12 +115,12 @@ class Server(object):
         self.__con.commit()
         cursor.close()
 
-    def __delete_between_dates_without_commit(self, date1, date2, table_name, data_column, cursor):
+    def __delete_between_dates_without_commit(self, date1, date2, table_name, data_column, factory_id, cursor):
         if not self.__is_in_table_whitelist(table_name.split('(')[0]):
             raise connector.Error('table %s doesn`t exist' % table_name.upper())
         date1 = '\'' + date1.strftime('%Y-%m-%d %H:%M:%S') + '\''
         date2 = '\'' + date2.strftime('%Y-%m-%d %H:%M:%S') + '\''
-        sql = 'DELETE from %s where %s between %s and %s;' % (table_name, data_column, date1, date2)
+        sql = 'DELETE from %s where %s between %s and %s and id_factory=%s;' % (table_name, data_column, date1, date2, factory_id)
         cursor.execute(sql)
 
     def delete_and_replace(self, date1, date2, table_name, data_column, data, table_name_with_params, factory_id=None):
@@ -131,7 +128,7 @@ class Server(object):
         self.__con.autocommit = False
         cursor = self.__get_cursor()
         try:
-            self.__delete_between_dates_without_commit(date1, date2, table_name, data_column, cursor)
+            self.__delete_between_dates_without_commit(date1, date2, table_name, data_column, factory_id, cursor)
             self.__replace_many_rows_without_commit(data, table_name_with_params, cursor, factory_id)
             self.__con.commit()
             cursor.close()
