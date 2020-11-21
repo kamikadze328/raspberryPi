@@ -196,7 +196,7 @@ def upload_data(list_data, list_filenames, table_with_params):
 
         except:
             with_error = True
-            Logger.write('Upload %s to %s - %s' % (list_filenames[index], table_name, str(sys.exc_info()[1])), Logger.LogType.ERROR)
+            Logger.write('Upload(%s) %s to %s - %s' % (server.config.get('host') + '@' + server.config.get('database'), list_filenames[index], table_name, str(sys.exc_info()[1])), Logger.LogType.ERROR)
 
         # Save statistics
         if number_rows > 0:
