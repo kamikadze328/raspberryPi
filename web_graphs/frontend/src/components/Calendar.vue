@@ -60,8 +60,13 @@
                 return `${YYYY}-${MM}-${DD} ${HH}:${mm}`
             },
             onChange: function (dates) {
-                if (dates.length > 1) {
-                    this.$store.commit('updateDate', {min: dates[0], max: dates[1]})
+                const isAllDates = dates.length > 1
+                const min = dates[0]
+                const max = isAllDates ? dates[1] : undefined
+                if (isAllDates &&
+                    (this.minDate.getTime() !== min.getTime()
+                        || this.maxDate.getTime() !== max.getTime())) {
+                    this.$store.commit('updateDate', {min, max})
                     this.$emit('update-date')
                 }
             },
