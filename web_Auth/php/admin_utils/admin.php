@@ -1,5 +1,6 @@
 <?php
 /** @noinspection PhpUndefinedVariableInspection */
+/** @noinspection PhpIncludeInspection */
 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/config/core.php';
 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/config/CodesAndMessages.php';

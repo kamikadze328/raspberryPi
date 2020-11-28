@@ -21,30 +21,31 @@ function pass_to_uri()
         header('HTTP/1.0 404 Not Found');
 }
 
-function check_whitelist($uri)
+function check_whitelist($uri): bool
 {
-    return is_path_in_whitelist($uri)
-        || (isset($_SERVER['HTTP_REFERER']) && is_path_in_whitelist($_SERVER['HTTP_REFERER']));
+    return is_path_in_whitelist($uri);
 }
 
-function is_path_in_whitelist($path)
+function is_path_in_whitelist($path): bool
 {
     return (substr($path, -18) === '/info_dev_err.html'
         || substr($path, -14) === '/info_teg.html'
     );
 }
 
-function is_stats ($path){
+function is_stats ($path): bool
+{
     return (substr($path, -25) === '/api/statistics/stats.php');
 }
 
 $sec_man = new SecurityManager();
 
 $uri = parse_path($_SERVER['REQUEST_URI']);
+$refer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null;
 $db = new DBManager();
 $permission_level = -1;
 try {
-    if (check_whitelist($uri)) {
+    if (check_whitelist($uri) || (!is_null($refer) && check_whitelist($refer))) {
         $permission_level = 0;
         pass_to_uri();
     } else if ($sec_man->isset_token() && $sec_man->isset_user_meta()) {
@@ -56,7 +57,7 @@ try {
                 if (is_stats($uri))
                     pass_to_uri();
                 else {
-                    $permission_level = $sec_man->get_permission_level_for_request($uri, $token, $_SERVER['HTTP_REFERER']);
+                    $permission_level = $sec_man->get_permission_level_for_request($uri, $token, $refer);
                     if ($permission_level < 0)
                         throw new PageNotFoundException();
                     if (substr($uri, -4) === '.php') {

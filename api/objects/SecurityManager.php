@@ -213,12 +213,12 @@ class SecurityManager
 
 
 
-    function generate_password()
+    function generate_password(): string
     {
         return $this->generate_random_str($this->RANDOM_PASSWORD_LENGTH);
     }
 
-    function get_permission_level_for_request($request, $token, $refer = null)
+    function get_permission_level_for_request($request, $token, $refer = null): int
     {
         $is_for_read = substr($request, -1) === '/';
         $refer = parse_current_path($refer);
@@ -231,17 +231,17 @@ class SecurityManager
         return -1;
     }
 
-    function can_read_resource($permission_level)
+    function can_read_resource($permission_level): bool
     {
         return $permission_level >= 0 && $permission_level <= 1;
     }
 
-    function can_write_resource($permission_level)
+    function can_write_resource($permission_level): bool
     {
         return $permission_level == 0;
     }
 
-    function is_admin($token)
+    function is_admin($token): bool
     {
         $permissions = $this->get_permissions_from_token($token);
         foreach ($permissions as $p) {

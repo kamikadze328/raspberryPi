@@ -19,6 +19,9 @@ class DBManager
     private string $USER_ROLE_TO_PERMISSION_TABLE = 'user_roleToPermissions';
     private string $URL_PERMISSIONS_TABLE = 'URL_PERMISSIONS';
     private string $USER_ROLES_TABLE = 'user_roles';
+    private string $DATA_TABLE = 'data';
+    private string $DATA_DYN_TABLE = 'data_dyn';
+
 
 
     public array $error_msg = array(); //TODO
@@ -35,7 +38,7 @@ class DBManager
         }
     }
 
-    function connect()
+    function connect(): bool
     {
         $this->error_msg = array();
         try {
@@ -50,11 +53,12 @@ class DBManager
         }
     }
 
-    function is_connected(){
+    function is_connected(): bool
+    {
         return !is_null($this->conn);
     }
 
-    function create_user($user)
+    function create_user($user): bool
     {
         try {
             $query = "INSERT INTO {$this->USERS_TABLE} 
@@ -82,7 +86,7 @@ class DBManager
         }
     }
 
-    function user_exists($user)
+    function user_exists($user): bool
     {
         try {
             $query = "SELECT id, password, role_id
@@ -111,7 +115,8 @@ class DBManager
             return false;
         }
     }
-    function user_exists_by_id($user)
+
+    function user_exists_by_id($user): bool
     {
         try {
             $query = "SELECT login, password, role_id
@@ -141,7 +146,7 @@ class DBManager
         }
     }
 
-    function save_user_token($user, $token, $expires)
+    function save_user_token($user, $token, $expires): bool
     {
         try {
             $this->conn->beginTransaction();
@@ -189,7 +194,7 @@ class DBManager
         }
     }
 
-    private function get_count_tokens_of_user($user_id)
+    private function get_count_tokens_of_user($user_id): int
     {
         $query = "SELECT COUNT(*) as count FROM {$this->USER_TOKENS_TABLE} 
                             WHERE user_id = :user_id;";
@@ -497,7 +502,7 @@ class DBManager
             $stmt = $this->conn->prepare($query);
             if ($stmt->execute(['date_min' => $date_min, 'date_max' => $date_max])) {
                 $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                foreach($result_set as &$r) {
+                foreach ($result_set as &$r) {
                     if (intval($r['last_session']) === 0) {
                         $last_session = $this->get_last_user_activity(intval($r['id']));
                         $r['last_session'] = intval($last_session);
@@ -516,7 +521,8 @@ class DBManager
         }
     }
 
-    private function get_last_user_activity($user_id){
+    private function get_last_user_activity($user_id)
+    {
         $query = "SELECT IF(max(start_time) is null, 0, max(start_time)) as last_activity
                         FROM {$this->USER_STATS_TABLE} 
                         WHERE session_id = (
@@ -559,7 +565,8 @@ class DBManager
         }
     }
 
-    function get_roles(){
+    function get_roles()
+    {
         try {
             $query = "SELECT id, name 
                         FROM {$this->USER_ROLES_TABLE};";
@@ -579,7 +586,9 @@ class DBManager
             return false;
         }
     }
-    function get_urls(){
+
+    function get_urls()
+    {
         try {
             $query = "SELECT id, name, path
                         FROM {$this->URLs_TABLE}";
@@ -709,8 +718,8 @@ class DBManager
         if ($len === 0) return false;
         $str = "";
         foreach ($permission as $p) {
-            $p['w'] = is_bool($p['w']) ? (int) $p['w'] : $p['w'];
-            $p['r'] = is_bool($p['r']) ? (int) $p['r'] : $p['r'];
+            $p['w'] = is_bool($p['w']) ? (int)$p['w'] : $p['w'];
+            $p['r'] = is_bool($p['r']) ? (int)$p['r'] : $p['r'];
 
             if (isset($p['url_id']) && is_numeric($p['url_id']) && ((int)$p['url_id'] == $p['url_id'])
                 && isset($p['w']) && is_numeric($p['w']) && ((int)$p['w'] == $p['w']) && ((int)$p['w'] === 0 || (int)$p['w'] === 1)
@@ -828,7 +837,7 @@ class DBManager
         $result = $stmt->execute([
             'role_id' => $role_id,
             'name' => $name,
-            'description' =>$description
+            'description' => $description
         ]);
         if (!$result)
             $this->error_msg = $stmt->errorInfo();
@@ -927,6 +936,180 @@ class DBManager
             $this->error_msg[0] = -1;
             $this->error_msg[1] = $e->getMessage();
             return false;
+        }
+    }
+
+    //the same numbers contain on the client.
+    private function data_group_by($min_date, $max_date): int
+    {
+        $DAY = 86400;
+        $TWO_DAYS = 172800;
+        $WEEK = 604800;
+        $MONTH = 2592000;
+        $THREE_MONTHS = 7776000;
+        $YEAR = 2592000;
+
+        $diff_ms = $max_date - $min_date;
+        return ($diff_ms < $WEEK) ? 1
+            : (($diff_ms < $MONTH) ? 10
+                : (($diff_ms < $THREE_MONTHS) ? 30 : 360));
+
+    }
+
+    private function array_to_pdo_params($array): array
+    {
+        $in = "";
+        $in_params = array();
+        foreach (range(0, count($array) - 1) as $i) {
+            $key = "tag" . $i;
+            $in .= ":$key,";
+            $in_params[] = $key;
+        }
+        $in = substr($in, 0, -1);
+        return array($in, $in_params);
+    }
+
+    function get_dyn_data($tags){
+        try {
+
+            list($in, $in_params) = $this->array_to_pdo_params($tags);
+
+            $query = "SELECT ID as id, 
+                            UNIX_TIMESTAMP(ID_DATETIME)*1000 as date, 
+                            IF(ID_VALUE > 10000000, null, ID_VALUE) as value
+                        FROM {$this->DATA_DYN_TABLE}
+                        WHERE id in ({$in})";
+            $stmt = $this->conn->prepare($query);
+
+            foreach (range(0, count($tags) - 1) as $i)
+                $stmt->bindParam($in_params[$i], $tags[$i], PDO::PARAM_INT);
+
+            $result = null;
+            if ($stmt->execute()) {
+                $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($result as &$r) {
+                    $r['id'] = intval($r['id']);
+                    $r['value'] = is_null($r['value']) ? null : intval($r['value']);
+                    $r['date'] = intval($r['date']);
+                }
+                $stmt->closeCursor();
+            } else {
+                $this->error_msg = $stmt->errorInfo();
+                $stmt->closeCursor();
+                $result = null;
+            }
+            return $result;
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return false;
+        }
+    }
+
+    private function get_data_execute($tags, $min_date, $max_date, $in_params, $minutes, $stmt){
+        $stmt->bindParam('min_date', $min_date, PDO::PARAM_INT);
+        $stmt->bindParam('max_date', $max_date, PDO::PARAM_INT);
+        $stmt->bindParam('minutes', $minutes, PDO::PARAM_INT);
+        foreach (range(0, count($tags) - 1) as $i)
+            $stmt->bindParam($in_params[$i], $tags[$i], PDO::PARAM_INT);
+
+        return $stmt->execute();
+    }
+
+    function get_data($tags, $min_date, $max_date): ?array
+    {
+        try {
+            list($in, $in_params) = $this->array_to_pdo_params($tags);
+            $minutes = $this->data_group_by($min_date, $max_date);
+
+            $query = "SELECT
+                    ID as id,
+                    UNIX_TIMESTAMP(ID_DATETIME)*1000 AS date,
+                    round(avg(IF(ID_VALUE > 10000000, null, ID_VALUE)),0) as value
+                FROM {$this->DATA_TABLE}
+                WHERE ID_DATETIME between from_unixtime(:min_date) and from_unixtime(:max_date)
+                    and ID in (${in})
+                GROUP BY FLOOR(UNIX_TIMESTAMP(ID_DATETIME)/(:minutes * 60)), ID
+                ORDER BY ID, date;";
+
+            $stmt = $this->conn->prepare($query);
+
+            if ($this->get_data_execute($tags, $min_date, $max_date, $in_params, $minutes, $stmt)) {
+                $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+                $returned_array = array();
+
+                if (count($result_set) > 0) {
+                    $data = array();
+                    $prev_tag = null;
+                    $first_tag_in_result = intval($result_set[0]['id']);
+                    foreach ($tags as $t) {
+                        if($first_tag_in_result == $t) {
+                            $prev_tag = $t;
+                            break;
+                        }
+                    }
+                    foreach ($result_set as $row) {
+                        if ($prev_tag != intval($row['id'])) {
+                            $returned_array[] = array('id' => $prev_tag, 'data' => $data);
+                            $data = array();
+                            $prev_tag = intval($row['id']);
+                        }
+                        $data[] = array(
+                            'value' => is_null($row['value']) ? null : intval($row['value']),
+                            'date' => intval($row['date']),
+                        );
+                    }
+                    $returned_array[] = array('id' => $prev_tag, 'data' => $data);
+
+                    return $returned_array;
+                } else return array();
+            } else {
+                $this->error_msg = $stmt->errorInfo()[1] ? $stmt->errorInfo()[1] : $this->conn->errorInfo();
+                $stmt->closeCursor();
+                return null;
+            }
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return null;
+        }
+    }
+
+    function get_data_avg($tags, $min_date, $max_date): ?array
+    {
+        try {
+            list($in, $in_params) = $this->array_to_pdo_params($tags);
+            $minutes = $this->data_group_by($min_date, $max_date);
+
+            $query = "SELECT
+                    UNIX_TIMESTAMP(ID_DATETIME)*1000 AS date,
+                    round(avg(IF(ID_VALUE > 10000000, null, ID_VALUE)),0) as value
+                FROM {$this->DATA_TABLE}
+                WHERE ID_DATETIME between from_unixtime(:min_date) and from_unixtime(:max_date)
+                    and ID in (${in})
+                GROUP BY FLOOR(UNIX_TIMESTAMP(ID_DATETIME)/(:minutes * 60))
+                ORDER BY date;";
+            $stmt = $this->conn->prepare($query);
+
+            if ($this->get_data_execute($tags, $min_date, $max_date, $in_params, $minutes, $stmt)) {
+                $result_set = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $stmt->closeCursor();
+
+                foreach ($result_set as &$r) {
+                    $r['date'] = intval($r['date']);
+                    $r['value'] = is_null($r['value']) ? null : intval($r['value']);
+                }
+                return $result_set;
+            } else {
+                $this->error_msg = $stmt->errorInfo()[1] ? $stmt->errorInfo()[1] : $this->conn->errorInfo();
+                $stmt->closeCursor();
+                return null;
+            }
+        } catch (PDOException $e) {
+            $this->error_msg[0] = -1;
+            $this->error_msg[1] = $e->getMessage();
+            return null;
         }
     }
 }
