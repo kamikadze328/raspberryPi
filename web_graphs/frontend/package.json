@@ -9,22 +9,22 @@
   },
   "dependencies": {
     "axios": "^0.20.0",
-    "core-js": "^3.6.5",
+    "core-js": "^3.8.0",
     "d3": "^5.16.0",
     "d3-svg-legend": "^2.25.6",
-    "flatpickr": "^4.6.3",
-    "vue": "^2.6.11",
-    "vue-flatpickr-component": "^8.1.5"
+    "flatpickr": "^4.6.6",
+    "vue": "^2.6.12",
+    "vue-flatpickr-component": "^8.1.6"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.4.0",
-    "@vue/cli-plugin-eslint": "~4.4.0",
-    "@vue/cli-service": "~4.4.0",
+    "@vue/cli-plugin-babel": "^4.4.6",
+    "@vue/cli-plugin-eslint": "^4.4.6",
+    "@vue/cli-service": "^4.4.6",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
-    "vue-template-compiler": "^2.6.11",
-    "vuex": "^3.4.0"
+    "vue-template-compiler": "^2.6.12",
+    "vuex": "^3.6.0"
   },
   "eslintConfig": {
     "root": true,
