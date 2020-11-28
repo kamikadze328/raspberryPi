@@ -30,7 +30,7 @@ function get_graph_from_server($server, $duration, $min_date, $list_of_servers)
                     elseif ($duration == 'week') $format_date = '%Y-%m-%d %H';
                     else $format_date = '%Y-%m-%d %H:%i:%S';
                     $sql = "select date_format(ID_DATETIME, '{$format_date}') as date, ROUND(avg(TIME_UPLOAD_MS), 3) as value from statistics_syncdata
-                            where HOST_NAME='{$server["host"]}' and database_name = '{$one_server["database"]}'
+                            where HOST_NAME='{$server["host"]}' and database_name = '{$server["database"]}'
                             and ID_DATETIME between '{$min_date}' and now() 
                             and (TIME_CONNECTION_MS < 0 or TIME_CONNECTION_MS is null)
                             group by date";

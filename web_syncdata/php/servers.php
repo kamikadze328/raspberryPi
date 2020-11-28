@@ -3,7 +3,6 @@
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/config/core.php';
 $CUR_DIR = $_SERVER['DOCUMENT_ROOT'] . '/syncdata/php/';
-$servers = [];
 include_once $_SERVER['DOCUMENT_ROOT'] . '/api/objects/SecurityManager.php';
 $sec_mng = new SecurityManager();
 $can_write = $sec_mng->can_write_resource($permission_level);
@@ -35,7 +34,7 @@ function prepareResponseJSON($info, $current_dir)
 
 function get_info_from_server($server, $duration, $list_of_servers, $is_html)
 {
-    if (isset($server['host']) && isset($server['user']) && isset($server['password']) && isset($server['database']))
+    if (isset($server['host']) && isset($server['user']) && isset($server['password']) && isset($server['database']) && strlen($server['user']) > 0 && strlen($server['password']) > 0)
         try {
             if ($duration == null)
                 $duration = "day";
@@ -72,7 +71,7 @@ function get_info_from_server($server, $duration, $list_of_servers, $is_html)
                     $result->close();
 
                     $sql = "SELECT count(*) from statistics_syncdata where HOST_NAME='{$one_server["host"]}' and database_name = '{$one_server["database"]}'
-                                  and IS_ERROR = 1 
+                                  and WAS_ERROR = 1 
                                   and ID_DATETIME between now() - interval 1 {$duration} and now()";
                     $result = $mysqli->query($sql);
                     $row = mysqli_fetch_array($result);
