@@ -135,7 +135,16 @@ const store = new Vuex.Store({
                 k: 1
             },
         },
-        DATA_MAX_LENGTH_GAP: 120000//mc
+        DATA_MAX_LENGTH_GAP: (minDate, maxDate) => {
+            const WEEK = 604800,
+                MONTH = 2592000,
+                THREE_MONTHS = 7776000,
+                diff = (maxDate - minDate)/1000;
+            return (diff < WEEK) ? 2 * 60000 //ms
+                : ((diff < MONTH) ? 10 * 2 * 60000
+                    : ((diff < THREE_MONTHS) ? 30 * 2 * 60000
+                        : 360 * 2 * 60000 ))
+        }
     },
     mutations: {
         setTooltipCurrentDate(state, date){
@@ -173,18 +182,19 @@ const store = new Vuex.Store({
                 maxValue = Number.MIN_VALUE
             let isThereData = false
             let dataLength = newTag.data.length
-            const id = Number(newTag.id)
+            const id = newTag.id
+            const MAX_GAP = state.DATA_MAX_LENGTH_GAP(state.settings.date.min, state.settings.date.max)
             let isPrevNull = false
             for (let i = 0; i < dataLength; i++) {
                 const d = newTag.data[i],
-                    value = d.value ? Number(d.value) : undefined,
+                    value = d.value ? d.value : undefined,
                     date = new Date(d.date)
 
                 if (d && value > maxValue) maxValue = value
                 if (d && value < minValue) minValue = value
                 newTag.data[i] = {date, value}
 
-                if(i && !isPrevNull && date - newTag.data[i - 1].date > state.DATA_MAX_LENGTH_GAP){
+                if(i && !isPrevNull && date - newTag.data[i - 1].date > MAX_GAP){
                     newTag.data.splice(i, 0, {data: new Date(date.getTime() + 1), value: undefined})
                     dataLength++
                     i++

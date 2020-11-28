@@ -126,9 +126,6 @@ export default {
                 graph.closeAll(e.target)
         },
         getServerData: function (tags, minDate, maxDate) {
-            const loc = window.location.pathname
-            const dir = loc.substring(0, loc.lastIndexOf('/'))
-
             if (!minDate) minDate = this.$store.getters.minDate.getTime()
             if (!maxDate) maxDate = this.$store.getters.maxDate.getTime()
             console.log(new Date(minDate))
@@ -137,15 +134,26 @@ export default {
             return axios({
                 timeout: 50000,
                 method: 'post',
-                url: dir + '/php/get_data.php',
+                url: '/api/data/data.php',
                 data: {
                     minDate,
                     maxDate,
-                    tags
+                    tags,
+                    purpose: 'data'
                 }
             }).then(response => {
-                if (response.data.error) throw response.data.error
-                else return response.data
+              if (response.data) {
+                if (response.data.error) {
+                  throw response.data.error
+                } else if (response.data.code !== 200 || !response.data.data) {
+                  this.setErrorMessage('Ошибка: ' + response.data.message)
+                  this.setErrorTags(tags)
+                  return false
+                } else {
+                  console.log(response.data.data)
+                  return response.data.data ? response.data.data : true
+                }
+              } else throw response
             }).catch(error => {
                 console.log(error.response)
                 console.log(error)
