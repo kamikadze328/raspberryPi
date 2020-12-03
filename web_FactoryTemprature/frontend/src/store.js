@@ -127,7 +127,7 @@ export const store = createStore({
             const WEEK = 604800,
                 MONTH = 2592000,
                 THREE_MONTHS = 7776000,
-                diff = (maxDate - minDate) / 1000;
+            diff = Math.floor(maxDate/1000) - Math.floor(minDate/1000);
             return (diff < WEEK) ? 2 * 60000 //ms
                 : ((diff < MONTH) ? 10 * 2 * 60000
                     : ((diff < THREE_MONTHS) ? 30 * 2 * 60000
@@ -148,6 +148,12 @@ export const store = createStore({
         config: (state, getters) => (configId) => {
             configId = Number(configId)
             return getters.configs.find(c => c.id === configId)
+        },
+        currentConfigs: (state, getters) => {
+          return getters.configs.filter(c => getters.isOnlyHighValues === c.isHighValue)
+        },
+        isOnlyHighValues: (state) => {
+          return state.isOnlyHighValues
         },
         temperatureAvgById: (state, getters) => (id) => {
             id = Number(id)
@@ -204,6 +210,23 @@ export const store = createStore({
             getters.configs.forEach(device => tags = [...device.tags, ...tags])
             return tags.sort()
         },
+        currentTags: (state, getters) => {
+            let tags = []
+            getters.currentConfigs.forEach(device => tags = [...device.tags, ...tags])
+            return tags.sort()
+        },
+        temperatureAvgMinMax: (state, getters) => {
+            let max = -Infinity, min = +Infinity
+            getters.currentConfigs.forEach(config => {
+                const minMax = getters.temperatureAvgMinMaxById(config.id)
+                if (minMax) {
+                    if (minMax.min < min) min = minMax.min
+                    if (minMax.max > max) max = minMax.max
+                }
+            })
+            console.log(min, max)
+            return {min, max}
+        },
         getClearConfig: (state, getters) => {
             let configs = []
             getters.configs.forEach(c => configs.push({id: c.id, tags: c.tags}))
@@ -212,7 +235,6 @@ export const store = createStore({
         configByTagId: (state, getters) => (tagId) => {
             return getters.configs.find(c => c.tags.includes(tagId))
         },
-
     },
     mutations: {
         updateCurrentDuration(state, {duration}) {
@@ -232,17 +254,18 @@ export const store = createStore({
         addData(state, {id, date, value}) {
             state.temperaturesAvg[id].data.shift()
             state.temperaturesAvg[id].data.push({date, value})
+            if(value > state.temperaturesAvg[id].max) state.temperaturesAvg[id].max = value
+            if(value < state.temperaturesAvg[id].min) state.temperaturesAvg[id].min = value
         },
         setDynData(state, {id, value, date}) {
             state.temperaturesDyn[id] = {date, value}
         },
-
     },
     actions: {
         initData: ({commit, getters}, {newData}) => {
             for (const tag of newData) {
-                let minValue = Number.MAX_VALUE,
-                    maxValue = Number.MIN_VALUE,
+                let minValue = +Infinity,
+                    maxValue = -Infinity,
                     isPrevNull = true,
                     dataLength = tag.data.length,
                     data = [],
@@ -268,7 +291,6 @@ export const store = createStore({
                     prevDate = date
                     i++
                 }
-
                 commit('setData', {id: tag.id, data, min: minValue, max: maxValue})
             }
         },

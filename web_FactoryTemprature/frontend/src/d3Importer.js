@@ -1,4 +1,4 @@
-import {line,} from "d3-shape";
+import {line} from "d3-shape";
 import {scaleTime, scaleLinear} from "d3-scale";
 import {axisBottom, axisLeft} from 'd3-axis';
 import {timeFormatLocale} from "d3-time-format";

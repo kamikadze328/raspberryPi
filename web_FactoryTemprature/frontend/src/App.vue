@@ -126,6 +126,7 @@ body, html, #app {
   text-align: center;
   color: #2c3e50;
   background-color: #dee2e6;
+  overflow-y: auto;
 }
 
 header {
@@ -135,7 +136,6 @@ header {
 .container-temperatures-main > * {
   grid-area: temper-main;
   overflow-y: auto;
-  margin-left: 10px;
 }
 
 .container-temperatures-main > *:not(:last-child) {
@@ -152,12 +152,13 @@ header {
 
 .container-graph {
   grid-area: graph;
-  margin: 0 10px;
 }
 
 .container {
+  margin: 10px;
   display: grid;
-  grid-template-rows: 60px auto;
+  column-gap: 10px;
+  grid-template-rows: 0 auto;
   grid-template-columns: 180px auto;
   grid-template-areas:
       'header header'

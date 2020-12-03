@@ -23,8 +23,6 @@ export default {
           }
         }).catch(() => {
         }).then(this.localLogout)
-
-        // eslint-disable-next-line no-empty
       } catch {
         this.localLogout()
       }

@@ -1081,7 +1081,6 @@ class DBManager
         try {
             list($in, $in_params) = $this->array_to_pdo_params($tags);
             $minutes = $this->data_group_by($min_date, $max_date);
-
             $query = "SELECT
                     UNIX_TIMESTAMP(ID_DATETIME)*1000 AS date,
                     round(avg(IF(ID_VALUE > 10000000, null, ID_VALUE)),0) as value

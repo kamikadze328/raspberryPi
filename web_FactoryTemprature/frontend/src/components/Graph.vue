@@ -1,15 +1,16 @@
 <template>
   <div ref="graph-wrapper" class="disable-selection-text graph-wrapper">
     <svg :id="htmlID.svg" class="svg-content">
-      <clipPath :id="htmlID.clip">
+<!--      <clipPath :id="htmlID.clip">
         <rect/>
-      </clipPath>
+      </clipPath>-->
       <g :clip-path="'url(#' + htmlID.clip + ')'" class="x axis axisWhite"/>
       <g class="y axis axisWhite"/>
       <g :clip-path="'url(#' + htmlID.clip + ')'" class="lines">
-        <path v-for="d in configs"
-              :id="'line-' + d.id"
+        <path v-for="d in currentConfigs"
+              :id="htmlID.line(d.id)"
               :key="d.id"
+              :stroke="d.color"
               d=""
         />
       </g>
@@ -23,12 +24,18 @@ import {mapGetters} from "vuex";
 export default {
   name: "Graph",
   computed: {
+    ...mapGetters({
+      minMaxData: 'temperatureAvgMinMax',
+      dataById: 'temperatureAvgDataById',
+      data: 'temperaturesAvg',
+      getMinMaxById: 'temperatureAvgMinMaxById'
+    }),
     ...mapGetters([
-      'allTags',
-      'temperatureAvgMinMaxById',
       'minDate',
       'maxDate',
-      'configs'
+      'currentConfigs',
+      'currentDuration',
+      'currentTags'
     ]),
     format() {
       return {
@@ -42,18 +49,7 @@ export default {
         year: this.ruLocale.format("%Y"),
       }
     },
-    minMaxData() {
-      let max = -Infinity, min = +Infinity
-      for (const tag of this.allTags) {
-        const minMax = this.temperatureAvgMinMaxById(tag)
-        if (minMax) {
-          if (minMax.min < min) min = minMax.min
-          if (minMax.max > max) max = minMax.max
-        }
-      }
-      return {min, max}
-    },
-    margin: function () {
+    margin() {
       const right = 0
       return {
         top: 15,
@@ -68,7 +64,8 @@ export default {
     return {
       htmlID: {
         svg: 'svg',
-        clip: 'clip'
+        clip: 'clip',
+        line: (id) => 'line-' + id
       },
       ruLocale: this.d3.timeFormatLocale({
         "dateTime": "%A, %e %B %Y г. %X",
@@ -77,9 +74,13 @@ export default {
         "periods": ["AM", "PM"],
         "days": ["Воскресенье", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"],
         "shortDays": ["Вс", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"],
-        "months": ["Января", "Февраля", "Марта", "Апреля", "Мая", "Июня", "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря"],
+        "months": ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"],
         "shortMonths": ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
       }),
+      ticks: {
+        minimumHorizontal: 5,
+        vertical: 7
+      },
       xScale: null,
       yScale: null,
       xAxis: null,
@@ -87,7 +88,23 @@ export default {
       svgD3: null
     }
   },
+  watch: {
+    currentConfigs() {
+      this.updateGraph()
+    },
+    data: {
+      handler() {
+        console.log('update')
+        this.updateGraph()
+      },
+      deep: true
+    }
+  },
   methods: {
+    /*minMaxData(){
+      console.log(this.minMaxDataStore)
+      return this.minMaxDataStore
+    },*/
     initGraph() {
       this.xScale = this.d3.scaleTime()
           .domain([this.minDate, this.maxDate])
@@ -99,7 +116,28 @@ export default {
           .scale(this.yScale)
 
       this.svgD3 = this.d3.select('#' + this.htmlID.svg)
+      this.updateGraph()
+    },
+    drawLines() {
+      for (const config of this.currentConfigs) {
+        const data = this.dataById(config.id)
+        if (data) {
+          const idHTML = this.htmlID.line(config.id)
+              , line = this.d3.line()
+              .defined(d => !isNaN(d.value))
+              .x(d => this.xScale(d.date))
+              .y(d => this.yScale(d.value))
+
+          this.svgD3.select('#' + idHTML)
+              .datum(data)
+              .attr("d", line)
+        }
+      }
+    },
+    updateGraph() {
+      this.reArrangeChart()
       this.resize()
+      this.drawLines()
     },
     getWrapperWidth() {
       return this.$refs['graph-wrapper'].clientWidth - this.margin.right - this.margin.left
@@ -120,8 +158,8 @@ export default {
       return `translate(${this.margin.left},0)`
     },
     getWidthTickNumber: function () {
-      const mbNumber = this.getWrapperWidth() / 100
-      return (mbNumber >= 5) ? mbNumber : 5
+      const mbNumber = this.getWrapperWidth() / 130
+      return (mbNumber < this.ticks.minimumHorizontal) ? this.ticks.minimumHorizontal : mbNumber
     },
     multiFormat(date) {
       return (this.d3.timeSecond(date) < date ? this.format.millisecond
@@ -144,22 +182,32 @@ export default {
       this.svgD3.select(".y.axis")
           .attr("transform", this.getTransformY())
           .call(this.yAxis
-              .ticks(5)
+              .ticks(this.ticks.vertical)
               .tickSize(this.margin.left + this.margin.right - this.getWrapperWidth()))
 
       this.svgD3.selectAll(".x.axis .tick text")
           .attr("y", 5)
 
-      this.svgD3.select('#' + this.htmlID.clip + '>rect')
+      /*this.svgD3.select('#' + this.htmlID.clip + '>rect')
           .attr("y", -this.getWrapperHeight())
           .attr("x", this.margin.left)
           .attr("width", this.getWrapperWidth() - this.margin.forClipPath)
-          .attr("height", this.getWrapperHeight() + this.margin.bottom + this.margin.top)
+          .attr("height", this.getWrapperHeight() + this.margin.bottom + this.margin.top)*/
+    },
+    reArrangeChart() {
+      this.xScale = this.d3.scaleTime()
+          .domain([this.minDate, this.maxDate])
+      this.yScale = this.d3.scaleLinear()
+          .domain([this.minMaxData.min, this.minMaxData.max])
+      this.xAxis = this.d3.axisBottom()
+          .scale(this.xScale)
+      this.yAxis = this.d3.axisLeft()
+          .scale(this.yScale)
     },
   },
   mounted() {
     this.initGraph()
-    window.addEventListener("resize", this.resize)
+    window.addEventListener("resize", this.updateGraph)
   }
 }
 </script>

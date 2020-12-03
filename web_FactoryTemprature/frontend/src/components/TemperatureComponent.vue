@@ -8,7 +8,7 @@
     </div>
     <div class="_temperature-list-tempers">
       <div v-for="tagId in config.tags" v-show="config.tags.length > 1" :key="tagId">
-        {{ prettyNumberFormatStr(dynDataById(tagId)) }}
+        {{ prettyNumberFormatStr(currentTemperature(tagId)) }}
       </div>
     </div>
   </div>
@@ -30,8 +30,11 @@ export default {
     }
   },
   computed: {
+    ...mapGetters({
+      currentTemperature: 'dynDataById'
+    }),
     ...mapGetters([
-      'configById', 'currentTemperature', 'dynDataById', 'currentAvgValue'
+      'currentAvgValue'
     ]),
     ...mapState(['isOnlyHighValues']),
     style() {
