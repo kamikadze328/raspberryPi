@@ -54,7 +54,6 @@ export default {
       value = Number(value)
       if(value !== this.currentDuration.value) {
         this.updateCurrentDuration({value})
-        this.updateDates({min: this.getCurrentDateDurationAgo(), max: new Date(new Date + 3600000)})
         this.emitter.emit('changed-duration')
       }
     },

@@ -29,13 +29,12 @@ export default {
       'SERVER',
     ]),
     ...mapGetters([
+        'dates',
       'configs',
       'allTags',
-      'minDate',
-      'maxDate',
-      'getClearConfig',
+      'clearConfigs',
       'currentDuration',
-      'updateInterval'
+      'updateInterval',
     ])
   },
   data() {
@@ -48,7 +47,11 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['initData', 'tryUpdateData', 'initDynData']),
+    ...mapActions([
+      'initData',
+      'tryUpdateData',
+      'initDynData'
+    ]),
     requestDynData() {
       return this.axios.request({
         method: 'POST',
@@ -78,9 +81,9 @@ export default {
         url: this.SERVER.URL.DATA,
         data: {
           purpose: this.SERVER.PURPOSE.GET_AVG_DATA,
-          configs: this.getClearConfig,
-          minDate: this.minDate.getTime(),
-          maxDate: this.maxDate.getTime()
+          configs: this.clearConfigs,
+          minDate: this.dates().min.getTime(),
+          maxDate: this.dates().max.getTime()
         }
       }).then(response => {
         if (response.data.data) {

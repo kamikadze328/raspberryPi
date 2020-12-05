@@ -1,4 +1,4 @@
-import {createStore} from 'vuex'
+import {createStore} from 'vuex';
 
 const COLORS = {
     RED: 'rgba(255, 91, 87, 1)',
@@ -79,7 +79,7 @@ export const store = createStore({
             {
                 id: 213000,
                 name: 'Отопление ЦЕХ',
-                tags: [1, 0],
+                tags: [210102, 210103],
                 color: COLORS.RED,
                 backgroundColor: COLORS.RED_LIGHT,
                 isHighValue: true
@@ -117,17 +117,17 @@ export const store = createStore({
             if (curr === state.DURATIONS.MONTH) return 1800000
             if (curr === state.DURATIONS.YEAR) return 21600000
         },
-        minDate: (state) => {
-            return state.dates.min
+        minDate: (state, getters) => {
+            return getters.dates().min
         },
-        maxDate: (state) => {
-            return state.dates.max
+        maxDate: (state, getters) => {
+            return getters.dates().max
         },
         DATA_MAX_LENGTH_GAP: () => (minDate, maxDate) => {
             const WEEK = 604800,
                 MONTH = 2592000,
                 THREE_MONTHS = 7776000,
-            diff = Math.floor(maxDate/1000) - Math.floor(minDate/1000);
+                diff = Math.floor(maxDate / 1000) - Math.floor(minDate / 1000);
             return (diff < WEEK) ? 2 * 60000 //ms
                 : ((diff < MONTH) ? 10 * 2 * 60000
                     : ((diff < THREE_MONTHS) ? 30 * 2 * 60000
@@ -150,10 +150,10 @@ export const store = createStore({
             return getters.configs.find(c => c.id === configId)
         },
         currentConfigs: (state, getters) => {
-          return getters.configs.filter(c => getters.isOnlyHighValues === c.isHighValue)
+            return getters.configs.filter(c => getters.isOnlyHighValues === c.isHighValue)
         },
         isOnlyHighValues: (state) => {
-          return state.isOnlyHighValues
+            return state.isOnlyHighValues
         },
         temperatureAvgById: (state, getters) => (id) => {
             id = Number(id)
@@ -227,13 +227,20 @@ export const store = createStore({
             console.log(min, max)
             return {min, max}
         },
-        getClearConfig: (state, getters) => {
+        clearConfigs: (state, getters) => {
             let configs = []
             getters.configs.forEach(c => configs.push({id: c.id, tags: c.tags}))
             return configs
         },
         configByTagId: (state, getters) => (tagId) => {
             return getters.configs.find(c => c.tags.includes(tagId))
+        },
+        dates: (state, getters) => {
+            return () => {
+                const max = new Date
+                const min = new Date(max - getters.currentDuration.duration_ms)
+                return {min, max}
+            }
         },
     },
     mutations: {
@@ -254,8 +261,8 @@ export const store = createStore({
         addData(state, {id, date, value}) {
             state.temperaturesAvg[id].data.shift()
             state.temperaturesAvg[id].data.push({date, value})
-            if(value > state.temperaturesAvg[id].max) state.temperaturesAvg[id].max = value
-            if(value < state.temperaturesAvg[id].min) state.temperaturesAvg[id].min = value
+            if (value > state.temperaturesAvg[id].max) state.temperaturesAvg[id].max = value
+            if (value < state.temperaturesAvg[id].min) state.temperaturesAvg[id].min = value
         },
         setDynData(state, {id, value, date}) {
             state.temperaturesDyn[id] = {date, value}
@@ -263,6 +270,7 @@ export const store = createStore({
     },
     actions: {
         initData: ({commit, getters}, {newData}) => {
+            console.log(getters.DATA_MAX_LENGTH_GAP_CURRENT)
             for (const tag of newData) {
                 let minValue = +Infinity,
                     maxValue = -Infinity,
@@ -281,12 +289,12 @@ export const store = createStore({
                     if (value > maxValue) maxValue = value
                     if (value < minValue) minValue = value
 
-                    data.push({date, value})
-
                     if (!isPrevNull && !isCurrNull && date - prevDate > getters.DATA_MAX_LENGTH_GAP_CURRENT) {
-                        data.push({date: new Date(date.getTime() + 1), value: undefined})
+                        data.push({date: new Date(date.getTime() - 1), value: undefined})
                         isPrevNull = true
                     } else isPrevNull = isCurrNull
+
+                    data.push({date, value})
 
                     prevDate = date
                     i++
@@ -312,6 +320,6 @@ export const store = createStore({
             const duration = getters.duration(value)
             if (duration)
                 commit('updateCurrentDuration', {duration})
-        }
+        },
     }
 })

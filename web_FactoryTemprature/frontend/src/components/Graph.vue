@@ -31,11 +31,11 @@ export default {
       getMinMaxById: 'temperatureAvgMinMaxById'
     }),
     ...mapGetters([
-      'minDate',
-      'maxDate',
       'currentConfigs',
       'currentDuration',
-      'currentTags'
+      'currentTags',
+      'isOnlyHighValues',
+        'dates'
     ]),
     format() {
       return {
@@ -55,7 +55,7 @@ export default {
         top: 15,
         right: right,
         bottom: 10,
-        left: 25,
+        left: 35,
         forClipPath: 0,
       }
     }
@@ -90,11 +90,12 @@ export default {
   },
   watch: {
     currentConfigs() {
-      this.updateGraph()
+      console.log('update graph (watch currentConfigs)')
+      this.$nextTick(this.updateGraph)
     },
     data: {
       handler() {
-        console.log('update')
+        console.log('update graph (watch data)')
         this.updateGraph()
       },
       deep: true
@@ -107,7 +108,7 @@ export default {
     },*/
     initGraph() {
       this.xScale = this.d3.scaleTime()
-          .domain([this.minDate, this.maxDate])
+          .domain([this.dates().min, this.dates().max])
       this.yScale = this.d3.scaleLinear()
           .domain([this.minMaxData.min, this.minMaxData.max])
       this.xAxis = this.d3.axisBottom()
@@ -196,7 +197,7 @@ export default {
     },
     reArrangeChart() {
       this.xScale = this.d3.scaleTime()
-          .domain([this.minDate, this.maxDate])
+          .domain([this.dates().min, this.dates().max])
       this.yScale = this.d3.scaleLinear()
           .domain([this.minMaxData.min, this.minMaxData.max])
       this.xAxis = this.d3.axisBottom()
