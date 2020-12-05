@@ -2,14 +2,14 @@
   <div class="button-box-wrapper">
     <label>Температуры:</label>
     <div class="button-box">
-    <button :class="{'button-focus': isOnlyHighValues}" @click="updateTypeValues"
-            class="pretty-input my-button clickable" :value="TYPES_VALUES.HIGH.value">
-      {{TYPES_VALUES.HIGH.name}}
-    </button>
-    <button :class="{'button-focus': !isOnlyHighValues}" @click="updateTypeValues"
-            class="pretty-input my-button clickable" :value="TYPES_VALUES.LOW.value">
-      {{TYPES_VALUES.LOW.name}}
-    </button>
+      <button :class="{'button-focus': !isOnlyHighValues}" :value="TYPES_VALUES.LOW.value"
+              class="pretty-input my-button clickable" @click="updateTypeValues">
+        {{ TYPES_VALUES.LOW.name }}
+      </button>
+      <button :class="{'button-focus': isOnlyHighValues}" :value="TYPES_VALUES.HIGH.value"
+              class="pretty-input my-button clickable" @click="updateTypeValues">
+        {{ TYPES_VALUES.HIGH.name }}
+      </button>
     </div>
   </div>
 </template>
@@ -24,8 +24,8 @@ export default {
   computed: {
     ...mapState(['isOnlyHighValues'])
   },
-  data(){
-    return{
+  data() {
+    return {
       TYPES_VALUES: {
         HIGH: {
           name: 'Высокие',
@@ -38,9 +38,9 @@ export default {
       }
     }
   },
-  methods:{
+  methods: {
     ...mapMutations(['updateIsOnlyHighValues']),
-    updateTypeValues(e){
+    updateTypeValues(e) {
       const newVal = !!Number(e.target.value)
       this.updateIsOnlyHighValues({newVal})
     }
@@ -49,18 +49,21 @@ export default {
 </script>
 
 <style scoped>
-.button-box{
+.button-box {
   align-items: center;
 }
-button{
+
+button {
   min-width: 80px;
 }
-.button-box-wrapper{
+
+.button-box-wrapper {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
-.button-box-wrapper > label{
+
+.button-box-wrapper > label {
   margin-right: 5px;
   font-weight: bold;
 }
