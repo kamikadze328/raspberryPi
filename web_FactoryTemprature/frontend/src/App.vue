@@ -19,12 +19,6 @@ export default {
   name: 'App',
   components: {GraphContainer, TemperatureComponent},
   computed: {
-    data() {
-      return {
-        serverUpdater: null,
-        localUpdater: null
-      }
-    },
     ...mapState([
       'SERVER',
     ]),
@@ -38,7 +32,10 @@ export default {
     ])
   },
   data() {
-    return {}
+    return {
+      serverUpdater: null,
+      localUpdater: null
+    }
   },
   watch: {
     currentDuration() {
