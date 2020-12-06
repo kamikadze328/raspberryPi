@@ -1,19 +1,16 @@
 <template>
   <CurrentTable/>
-  <TableHistory/>
   <Chart/>
 </template>
 
 <script>
 import CurrentTable from "@/components/TableCurrent";
-import TableHistory from "@/components/TableHistory";
 import Chart from "@/components/Chart";
 
 export default {
   name: 'App',
   components: {
     Chart,
-    TableHistory,
     CurrentTable,
   }
 }
@@ -26,6 +23,8 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+.clickable:hover, .clickable:focus {
+  cursor: pointer !important;
 }
 </style>
