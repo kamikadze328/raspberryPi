@@ -1,9 +1,7 @@
 <template>
-  <div ref="graph-wrapper" class="disable-selection-text graph-wrapper">
+  <div ref="graph-wrapper" class="disable-selection-text graph-wrapper" @mousemove="onMouseMove">
     <svg :id="htmlID.svg" class="svg-content">
-<!--      <clipPath :id="htmlID.clip">
-        <rect/>
-      </clipPath>-->
+
       <g :clip-path="'url(#' + htmlID.clip + ')'" class="x axis axisWhite"/>
       <g class="y axis axisWhite"/>
       <g :clip-path="'url(#' + htmlID.clip + ')'" class="lines">
@@ -14,54 +12,37 @@
               d=""
         />
       </g>
+      <g class="tooltip-vertical-line">
+        <line v-show="tooltip.isVisible" :x1="clientCursorOffset.x"
+              :x2="clientCursorOffset.x" :y1="getWrapperHeight() - margin.bottom"
+              :y2="margin.top"/>
+      </g>
     </svg>
+    <Tooltip ref="tooltip" :date="tooltip.date" :is-visible="tooltip.isVisible" :lines="linesForTooltip"
+             :translate="tooltip.translate"/>
   </div>
 </template>
 
 <script>
 import {mapGetters} from "vuex";
+import Tooltip from "@/components/Tooltip";
 
 export default {
   name: "Graph",
-  computed: {
-    ...mapGetters({
-      minMaxData: 'temperatureAvgMinMax',
-      dataById: 'temperatureAvgDataById',
-      data: 'temperaturesAvg',
-      getMinMaxById: 'temperatureAvgMinMaxById'
-    }),
-    ...mapGetters([
-      'currentConfigs',
-      'currentDuration',
-      'currentTags',
-      'isOnlyHighValues',
-        'dates'
-    ]),
-    format() {
-      return {
-        millisecond: this.ruLocale.format(".%L"),
-        second: this.ruLocale.format(":%S"),
-        minute: this.ruLocale.format("%H:%M"),
-        hour: this.ruLocale.format("%H:%M"),
-        day: this.ruLocale.format("%d.%m %a"),
-        week: this.ruLocale.format("%d %b"),
-        month: this.ruLocale.format("%B"),
-        year: this.ruLocale.format("%Y"),
-      }
-    },
-    margin() {
-      const right = 0
-      return {
+  components: {Tooltip},
+  data() {
+    return {
+      margin: {
         top: 15,
-        right: right,
+        right: 0,
         bottom: 10,
         left: 35,
         forClipPath: 0,
-      }
-    }
-  },
-  data() {
-    return {
+        forTooltip: 35
+      },
+      clientCursorOffset: {
+        x: 0, y: 0,
+      },
       htmlID: {
         svg: 'svg',
         clip: 'clip',
@@ -88,24 +69,101 @@ export default {
       svgD3: null
     }
   },
+  computed: {
+    ...mapGetters({
+      minMaxData: 'temperatureAvgMinMax',
+      dataById: 'temperatureAvgDataById',
+      data: 'temperaturesAvg',
+      valueByIdAndDate: 'temperatureAvgValByIdAndDate'
+    }),
+    ...mapGetters([
+      'currentConfigs',
+      'currentDuration',
+      'currentTags',
+      'isOnlyHighValues',
+      'dates',
+    ]),
+    format() {
+      return {
+        millisecond: this.ruLocale.format(".%L"),
+        second: this.ruLocale.format(":%S"),
+        minute: this.ruLocale.format("%H:%M"),
+        hour: this.ruLocale.format("%H:%M"),
+        day: this.ruLocale.format("%d.%m %a"),
+        week: this.ruLocale.format("%d %b"),
+        month: this.ruLocale.format("%B"),
+        year: this.ruLocale.format("%Y"),
+      }
+    },
+    linesForTooltip() {
+      const lines = []
+      for (const c of this.currentConfigs) {
+        lines.push({color: c.color, name: c.name, id: c.id, value: undefined})
+      }
+      return lines
+    },
+    tooltip() {
+      let x = this.clientCursorOffset.x, y = this.clientCursorOffset.y
+      let isVisible =
+          x > this.margin.left
+          && x < this.getWrapperWidth()
+          && y > this.margin.top
+          && y < this.getWrapperHeight()
+      const date = this.xScale ? this.xScale.invert(x) : null
+
+      if (isVisible && date) {
+        let isThereData = false
+        for (const l of this.linesForTooltip) {
+          const value = this.valueByIdAndDate(l.id, date)
+          if (value === undefined) {
+            isThereData ||= false
+          } else {
+            console.log('update ')
+            l.value = value
+            isThereData = true
+          }
+        }
+        if (isThereData) {
+          const tooltipHTML = this.$refs['tooltip'].$el
+          if (x + this.margin.forTooltip + tooltipHTML.clientWidth < this.getWrapperWidth())
+            x = x + this.margin.forTooltip
+          else
+            x = x - this.margin.forTooltip - tooltipHTML.clientWidth
+
+          const offsetToXAxis = 9
+          if (y + tooltipHTML.clientHeight / 2 > this.getWrapperHeight() - offsetToXAxis)
+            y = this.getWrapperHeight() - tooltipHTML.clientHeight - offsetToXAxis
+          else if (y - tooltipHTML.clientHeight / 2 < 0)
+            y = 0
+          else
+            y = y - tooltipHTML.clientHeight / 2
+        } else isVisible = false
+      }
+      return {
+        isVisible,
+        translate: {x, y},
+        date
+      }
+    }
+  },
   watch: {
     currentConfigs() {
-      console.log('update graph (watch currentConfigs)')
       this.$nextTick(this.updateGraph)
     },
     data: {
       handler() {
-        console.log('update graph (watch data)')
         this.updateGraph()
+      },
+      deep: true
+    },
+    lines: {
+      handler() {
+        console.log('update lines')
       },
       deep: true
     }
   },
   methods: {
-    /*minMaxData(){
-      console.log(this.minMaxDataStore)
-      return this.minMaxDataStore
-    },*/
     initGraph() {
       this.xScale = this.d3.scaleTime()
           .domain([this.dates().min, this.dates().max])
@@ -141,10 +199,10 @@ export default {
       this.drawLines()
     },
     getWrapperWidth() {
-      return this.$refs['graph-wrapper'].clientWidth - this.margin.right - this.margin.left
+      return this.$refs['graph-wrapper'] ? this.$refs['graph-wrapper'].clientWidth - this.margin.right - this.margin.left : 0
     },
     getWrapperHeight() {
-      return this.$refs['graph-wrapper'].clientHeight - this.margin.top - this.margin.bottom
+      return this.$refs['graph-wrapper'] ? this.$refs['graph-wrapper'].clientHeight - this.margin.top - this.margin.bottom : 0
     },
     getXRange() {
       return [this.margin.left, this.getWrapperWidth() - this.margin.right]
@@ -188,12 +246,6 @@ export default {
 
       this.svgD3.selectAll(".x.axis .tick text")
           .attr("y", 5)
-
-      /*this.svgD3.select('#' + this.htmlID.clip + '>rect')
-          .attr("y", -this.getWrapperHeight())
-          .attr("x", this.margin.left)
-          .attr("width", this.getWrapperWidth() - this.margin.forClipPath)
-          .attr("height", this.getWrapperHeight() + this.margin.bottom + this.margin.top)*/
     },
     reArrangeChart() {
       this.xScale = this.d3.scaleTime()
@@ -205,6 +257,10 @@ export default {
       this.yAxis = this.d3.axisLeft()
           .scale(this.yScale)
     },
+    onMouseMove(e) {
+      this.clientCursorOffset.x = e.offsetX
+      this.clientCursorOffset.y = e.offsetY
+    }
   },
   mounted() {
     this.initGraph()
@@ -218,6 +274,7 @@ export default {
   background: white;
   flex-grow: 1;
   border-radius: 3px;
+  position: relative;
 }
 
 svg {
@@ -243,5 +300,11 @@ svg {
   fill: #333;
   font-size: 1rem;
   font-weight: bold;
+}
+
+.tooltip-vertical-line ::v-deep(line) {
+  stroke-width: .5;
+  stroke: #2d353c;
+  fill: none;
 }
 </style>

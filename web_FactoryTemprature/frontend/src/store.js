@@ -224,8 +224,23 @@ export const store = createStore({
                     if (minMax.max > max) max = minMax.max
                 }
             })
-            console.log(min, max)
             return {min, max}
+        },
+        temperatureAvgValByIdAndDate: (state, getters) => (id, date) =>{
+            const data = getters.temperatureAvgDataById(id)
+            if(data && data.length) {
+                let value
+                for (let i = 0; i < data.length; i++) {
+                    if (date < data[i].date) {
+                        value = data[i].value === undefined ? null : data[i].value
+                        break
+                    }
+                }
+                if(value === undefined || date < data[0].date) {
+                    value = null
+                }
+                return value
+            } return undefined
         },
         clearConfigs: (state, getters) => {
             let configs = []
@@ -270,7 +285,6 @@ export const store = createStore({
     },
     actions: {
         initData: ({commit, getters}, {newData}) => {
-            console.log(getters.DATA_MAX_LENGTH_GAP_CURRENT)
             for (const tag of newData) {
                 let minValue = +Infinity,
                     maxValue = -Infinity,
