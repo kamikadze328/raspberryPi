@@ -302,10 +302,7 @@ export default {
             if (this.isTooltipVisible) {
 
                 for (const line of this.lines) {
-                    const tagId = line.tagId,
-                        data = this.$store.getters.tagDataById(tagId)
-                    this.lines[this.getIndexLineById(tagId)].value = this.getValueByDate(data, this.tooltipCurrentDate)
-
+                    line.value = this.getValueByDate(this.$store.getters.tagDataById(line.tagId), this.tooltipCurrentDate)
                 }
                 const tooltipHTML = this.$refs['tooltip'].$el
 
