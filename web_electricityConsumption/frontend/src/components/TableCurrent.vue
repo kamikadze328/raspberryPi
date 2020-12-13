@@ -1,66 +1,39 @@
 <template>
   <table>
-    <tr class="group-rows-top green">
-      <th rowspan="3"> P (kVt)</th>
-      <th class="blue">P актив</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="green">
-      <th>P реакт</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="group-rows-bottom green">
-      <th>P сумма</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="green">
-      <th rowspan="4"> U (V)</th>
-      <th>Фаза А</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="green">
-      <th>Фаза B</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="green">
-      <th>Фаза C</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="green">
-      <th>Сумма</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="group-rows-top green">
-      <th rowspan="4"> A (A)</th>
-      <th>Фаза А</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="green">
-      <th>Фаза B</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="green">
-      <th>Фаза C</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
-    <tr class="group-rows-bottom green">
-      <th>Сумма</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
-    </tr>
+    <template v-for="group in tagGroups" :key="group.id">
+      <tr class="green"
+          :class="{'group-rows-top': group.tags.indexOf(tag)===0 ,
+            'group-rows-bottom': tagGroups.indexOf(group)===tagGroups.length-1 && group.tags.indexOf(tag)===group.tags.length-1}"
+          v-for="tag in group.tags" :key="tag.id">
+        <th  :class="{'border-bottom': tagGroups.indexOf(group)===tagGroups.length-1 && group.tags.indexOf(tag)===0}"
+            v-if="group.tags.indexOf(tag)===0" :rowspan="group.tags.length"> {{group.name}}</th>
+        <th>{{ tag.name }}</th>
+        <td v-for="place in places" :key="place.id"> {{currentDataByGroupPlaceIDs(tag.id, place.id)}}</td>
+        <td class="border-left"></td>
+      </tr>
+
+    </template>
+
     <tr class="blue">
       <th class="text-center" colspan="2">{{ currentYear + ' ' + currentMonth }}</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+      <td v-for="place in places" :key="place.id">{{sumByPlace(place.id, currentMonthId)}}</td>
+      <td class="border-left">{{sumAllPlacesByMonth(currentMonthId)}}</td>
     </tr>
-    <tr class="wrapper-text-center group-rows-bottom group-rows-top red border-bold">
+    <tr class="wrapper-text-center group-rows-bottom group-rows-top red border-top-bottom-bold">
       <th colspan="2"></th>
-      <th>ЦЕХ</th><th>ЦЕХ Свет</th><th>АБК</th><th>УНП</th><th>ИТОГО</th>
+      <th v-for="place in places" :key="place.id">{{place.name}}</th>
+      <th class="border-left">ИТОГО</th>
     </tr>
     <tr v-for="ago in monthAgo" :key="ago" class="blue">
       <th colspan="2">{{yearByMonthId(currentMonthId - ago)  + ' ' + month(currentMonthId - ago)}}</th>
-      <td>0</td><td>0</td><td>0</td><td>0</td><td>0</td>
+      <td v-for="place in places" :key="place.id">{{sumByPlace(place.id, currentMonthId - ago)}}</td>
+      <td class="border-left">{{sumAllPlacesByMonth(currentMonthId - ago)}}</td>
     </tr>
-    <tr class="group-rows-bottom ">
-      <td colspan="7" class="clickable" @click="historyMonthNumber += 5">Показать ещё</td>
+    <tr class="group-rows-bottom group-rows-top">
+      <td></td>
+      <td colspan="3" class="clickable" @click="historyMonthNum += historyMonthNumStep">Показать ещё</td>
+      <td colspan="3" :class="{clickable: canDecreaseHistoryMonthNum}" @click="historyMonthNum = historyMonthNumMin">
+        {{ canDecreaseHistoryMonthNum ? 'Свернуть' : '' }}</td>
     </tr>
   </table>
 </template>
@@ -77,19 +50,32 @@ export default {
       'currentYear',
       'currentMonthId',
       'month',
-      'yearByMonthId'
+      'yearByMonthId',
+      'tagGroups',
+      'places',
+        'currentDataByGroupPlaceIDs',
+        'sumByPlace',
+        'sumAllPlacesByMonth'
     ]),
     monthAgo(){
-      let arr = [...Array(this.historyMonthNumber + 1).keys()]
+      let arr = [...Array(this.historyMonthNum + 1).keys()]
       arr.shift()
       return arr
+    },
+    canDecreaseHistoryMonthNum(){
+      return this.historyMonthNum > this.historyMonthNumStep
     }
   },
   data() {
     return {
-      historyMonthNumber: 5
+      historyMonthNum: 5,
+      historyMonthNumMin: 5,
+      historyMonthNumStep: 5
     }
-  }
+  },
+  methods: {
+
+  },
 }
 </script>
 
@@ -125,10 +111,16 @@ table{
   border-left: 1px solid;
   border-right: 1px solid;
 }
-.group-rows-bottom * , .group-rows-top *:first-child{
+.group-rows-bottom *, .border-bottom{
   border-bottom: 1px solid;
 }
-.border-bold *{
-  border-width: 2px !important;
+.border-top-bottom-bold *{
+  border-top-width: 2px !important;
+  border-bottom-width: 2px !important;
 }
+.border-left{
+  border-left: 1px solid;
+
+}
+
 </style>
