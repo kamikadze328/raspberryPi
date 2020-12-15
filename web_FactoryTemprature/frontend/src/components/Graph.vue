@@ -2,20 +2,20 @@
   <div ref="graph-wrapper" class="disable-selection-text graph-wrapper" @mousemove="onMouseMove">
     <svg :id="htmlID.svg" class="svg-content">
 
-      <g :clip-path="'url(#' + htmlID.clip + ')'" class="x axis axisWhite"/>
+      <g class="x axis axisWhite"/>
       <g class="y axis axisWhite"/>
-      <g :clip-path="'url(#' + htmlID.clip + ')'" class="lines">
+      <g class="lines">
         <path v-for="d in currentConfigs"
               :id="htmlID.line(d.id)"
               :key="d.id"
               :stroke="d.color"
-              d=""
-        />
+              d=""/>
       </g>
-      <g class="tooltip-vertical-line">
+      <g>
         <line v-show="tooltip.isVisible" :x1="clientCursorOffset.x"
               :x2="clientCursorOffset.x" :y1="getWrapperHeight() - margin.bottom"
-              :y2="margin.top"/>
+              :y2="margin.top"
+              class="tooltip-vertical-line"/>
       </g>
     </svg>
     <Tooltip ref="tooltip" :date="tooltip.date" :is-visible="tooltip.isVisible" :lines="linesForTooltip"
@@ -45,7 +45,6 @@ export default {
       },
       htmlID: {
         svg: 'svg',
-        clip: 'clip',
         line: (id) => 'line-' + id
       },
       ruLocale: this.d3.timeFormatLocale({
@@ -175,7 +174,6 @@ export default {
           .scale(this.yScale)
 
       this.svgD3 = this.d3.select('#' + this.htmlID.svg)
-      this.updateGraph()
     },
     drawLines() {
       for (const config of this.currentConfigs) {
@@ -194,7 +192,7 @@ export default {
       }
     },
     updateGraph() {
-      this.reArrangeChart()
+      this.initGraph()
       this.resize()
       this.drawLines()
     },
@@ -229,7 +227,7 @@ export default {
                           : this.d3.timeYear(date) < date ? this.format.month
                               : this.format.year)(date);
     },
-    resize: function () {
+    resize () {
       this.xScale.range(this.getXRange())
       this.yScale.range(this.getYRange())
       this.svgD3.select(".x.axis")
@@ -247,23 +245,13 @@ export default {
       this.svgD3.selectAll(".x.axis .tick text")
           .attr("y", 5)
     },
-    reArrangeChart() {
-      this.xScale = this.d3.scaleTime()
-          .domain([this.dates().min, this.dates().max])
-      this.yScale = this.d3.scaleLinear()
-          .domain([this.minMaxData.min, this.minMaxData.max])
-      this.xAxis = this.d3.axisBottom()
-          .scale(this.xScale)
-      this.yAxis = this.d3.axisLeft()
-          .scale(this.yScale)
-    },
     onMouseMove(e) {
       this.clientCursorOffset.x = e.offsetX
       this.clientCursorOffset.y = e.offsetY
     }
   },
   mounted() {
-    this.initGraph()
+    this.updateGraph()
     window.addEventListener("resize", this.updateGraph)
   }
 }
@@ -302,7 +290,7 @@ svg {
   font-weight: bold;
 }
 
-.tooltip-vertical-line ::v-deep(line) {
+.tooltip-vertical-line {
   stroke-width: .5;
   stroke: #2d353c;
   fill: none;
