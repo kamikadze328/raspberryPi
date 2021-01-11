@@ -200,6 +200,7 @@ export const store = createStore({
         currentLastDynDate: (state, getters) => {
             for (const d of getters.temperaturesDyn)
                 if (d) return d.date
+            return undefined
         },
         configColor: (state, getters) => (id) => {
             const tag = getters.configs(id)
@@ -316,10 +317,12 @@ export const store = createStore({
                 commit('setData', {id: tag.id, data, min: minValue, max: maxValue})
             }
         },
-        initDynData: ({commit}, {newData}) => {
+        initDynData: ({commit, getters}, {newData}) => {
             for (const tag of newData) {
-                const date = new Date(tag.date), value = tag.value === null ? undefined : tag.value, id = tag.id
+                const date = new Date(tag.date), id = tag.id,
+                value = tag.value === null ? undefined : ((new Date() - date < getters.updateInterval && getters.currentLastDynDate && getters.currentLastDynDate.getTime() === date.getTime()) ? tag.value : undefined)
                 commit('setDynData', {id, value, date})
+
             }
         },
         tryUpdateData: ({commit, getters}) => {

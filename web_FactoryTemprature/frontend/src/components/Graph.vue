@@ -117,7 +117,6 @@ export default {
           if (value === undefined) {
             isThereData ||= false
           } else {
-            console.log('update ')
             l.value = value
             isThereData = true
           }
