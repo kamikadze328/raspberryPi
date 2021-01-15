@@ -1,4 +1,4 @@
-# factory-temperature
+# factory-temperature (Vue 3)
 
 ## Project setup
 ```
