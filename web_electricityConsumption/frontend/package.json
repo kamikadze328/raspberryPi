@@ -10,6 +10,11 @@
   "dependencies": {
     "axios": "^0.21.0",
     "core-js": "^3.6.5",
+    "d3-axis": "^2.0.0",
+    "d3-scale": "^3.2.3",
+    "d3-selection": "^2.0.0",
+    "d3-shape": "^2.0.0",
+    "d3-time": "^2.0.0",
     "vue": "^3.0.0",
     "vue-axios": "^3.2.0",
     "vuex": "^4.0.0-rc.2"

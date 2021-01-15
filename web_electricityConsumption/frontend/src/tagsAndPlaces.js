@@ -54,21 +54,26 @@ const tagGroups = [
 const places = [
     {
         id: 0,
-        name: 'ЦЕХ'
+        name: 'ЦЕХ',
+        color: '#98abc5'
     },
     {
         id: 1,
-        name: 'ЦЕХ Свет'
+        name: 'ЦЕХ Свет',
+        color: '#8a89a6'
     },
     {
         id: 2,
-        name: 'АБК'
+        name: 'АБК',
+        color: '#7b6888'
     },
     {
         id: 3,
-        name: 'УНП'
+        name: 'УНП',
+        color: '#6b486b'
     }
 ]
+// many to many relationship
 const groupsAndPlaces = [
     //group 0
     {

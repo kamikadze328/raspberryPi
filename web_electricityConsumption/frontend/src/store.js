@@ -1,75 +1,175 @@
 import {createStore} from 'vuex';
 import {tagGroups, places, groupsAndPlaces} from './tagsAndPlaces.js';
 
+const MONTH_NUM_MIN = 6
+const MONTH_NUM_INITED = 6
 export const store = createStore({
     state: {
-        MONTH: [
-            'Январь',
-            'Февраль',
-            'Март',
-            'Апрель',
-            'Май',
-            'Июнь',
-            'Июль',
-            'Август',
-            'Сентябрь',
-            'Октябрь',
-            'Ноябрь',
-            'Декабрь'
-        ],
+        MONTH: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
         tagGroups,
         places,
         groupsAndPlaces,
         currentMonthData: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43],
-        data: [{
-            place: 0,
-            month: 11,
-            data: 100
+        data: [
+            {
+                'ЦЕХ': 102,
+                'ЦЕХ Свет': 102,
+                'АБК': 102,
+                'УНП': 102,
+                date: new Date(2021, 0),
+            },
+            {
+            'ЦЕХ': 110,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 11),
         }, {
-            place: 1,
-            month: 11,
-            data: 100
+            'ЦЕХ': 100,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 10),
         }, {
-            place: 2,
-            month: 11,
-            data: 100
+            'ЦЕХ': 90,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 9),
         }, {
-            place: 3,
-            month: 11,
-            data: 100
+            'ЦЕХ': 80,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 8),
         }, {
-            place: 0,
-            month: 10,
-            data: 200
+            'ЦЕХ': 70,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 7),
         }, {
-            place: 1,
-            month: 10,
-            data: 200
+            'ЦЕХ': 60,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 6),
+        },{
+            'ЦЕХ': 50,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 5),
         }, {
-            place: 2,
-            month: 10,
-            data: 200
+            'ЦЕХ': 40,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 4),
         }, {
-            place: 3,
-            month: 10,
-            data: 200
+            'ЦЕХ': 30,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 3),
         }, {
-            place: 0,
-            month: -1,
-            data: 100
+            'ЦЕХ': 20,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 2),
         }, {
-            place: 1,
-            month: -1,
-            data: 100
+            'ЦЕХ': 10,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 1),
         }, {
-            place: 2,
-            month: -1,
-            data: 100
-        }, {
-            place: 3,
-            month: -1,
-            data: 100
-        }]
+            'ЦЕХ': 0,
+            'ЦЕХ Свет': 100,
+            'АБК': 100,
+            'УНП': 100,
+            date: new Date(2020, 0),
+        },
+            {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 110,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -1),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 100,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -2),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 90,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -3),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 80,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -4),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 70,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -5),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 60,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -6),
+            },{
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 50,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -7),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 40,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -8),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 30,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -9),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 20,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -10),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 10,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -11),
+            }, {
+                'ЦЕХ': 100,
+                'ЦЕХ Свет': 0,
+                'АБК': 100,
+                'УНП': 100,
+                date: new Date(2020, -12),
+            }],
+        monthCurrId: new Date().getMonth(),
+        yearCurr: new Date().getFullYear(),
+        MONTH_NUM_MIN,
+        MONTH_NUM_INITED,
+        MONTH_NUM_STEP: 6,
+        month_num: MONTH_NUM_INITED,
     },
     getters: {
         currentData: state => {
@@ -88,21 +188,34 @@ export const store = createStore({
         currentDataByGroupPlaceIDs: (state, getters) => (groupId, placeId) => {
             return getters.currentDataById(getters.tagIdByGroupPlaceIDs(groupId, placeId))
         },
-        sumByPlace: (state, getters) => (placeId, monthId) => {
-            const d = getters.sumData.find(d => d.place === placeId && d.month === monthId)
-            return d === undefined ? d : d.data
+        sumByPlace: (state, getters) => (placeId, date) => {
+            const place = state.places.find(place => place.id === placeId)
+            if (place) {
+                const d = getters.sumData.find(d => d.date.getTime() === date.getTime())
+                return d === undefined ? d : d[place.name]
+            } else return undefined
         },
-        sumAllPlacesByMonth: (state, getters) => (monthId) => {
+        sumAllPlacesByDate: (state, getters) => (date) => {
             let sum = 0
             getters.places.forEach(p => {
-                const sumByPlace = getters.sumByPlace(p.id, monthId)
-                if(sumByPlace)
+                const sumByPlace = getters.sumByPlace(p.id, date)
+                if (sumByPlace)
                     sum += sumByPlace
             })
             return sum
         },
         sumCurrByPlace: (state, getters) => (placeId) => {
-            getters.sumByPlace(placeId, getters.currentMonthId)
+            return getters.sumByPlace(placeId, getters.monthCurrDate)
+        },
+        sumByGroup: (state, getters) => (groupId) => {
+            let sum = 0
+            state.groupsAndPlaces.forEach(d => {
+                if (d.group === groupId) {
+                    const value = getters.currentDataById(d.tag)
+                    sum += value ? value : 0
+                }
+            })
+            return sum
         },
         tagGroups: state => {
             return state.tagGroups
@@ -110,33 +223,42 @@ export const store = createStore({
         places: state => {
             return state.places
         },
-
-        month: (state, getters) => id => {
-            return state.MONTH[getters.monthId(id)]
+        month: (state) => monthId => {
+            return state.MONTH[monthId]
         },
-        monthId: () => id => {
-            while (id < 0) id += 12
-            return id
+        monthDate: (state) => monthAgo => {
+            return new Date(state.yearCurr, state.monthCurrId - monthAgo)
         },
-        currentMonth: (state, getters) => {
-            return getters.month(getters.currentMonthId)
+        monthCurrDate: (state) => {
+            return new Date(state.yearCurr, state.monthCurrId)
         },
-        currentMonthId: () => {
-            return new Date().getMonth()
+        monthCurrName: (state, getters) => {
+            return getters.month(state.monthCurrId)
         },
-        currentYear: () => {
-            return new Date().getFullYear()
+        monthCurrDateStr: (state, getters) => {
+            return state.yearCurr + ' ' + getters.monthCurrName
         },
-        yearByMonthId: (state, getters) => id => {
-            id = Number(id)
-            let count = 0
-            while (id < 0) {
-                id += 12
-                count++
+        monthCurrDateStrByDate: (state, getters) => (date) => {
+            return date.getFullYear() + ' ' + getters.month(date.getMonth())
+        },
+        isPossibleToToResetMonthNum: state => {
+            return state.month_num !== state.MONTH_NUM_INITED
+        },
+        months: (state, getters) => {
+            const months = []
+            for (let i = 0; i < state.month_num; i++) {
+                months.push(getters.monthDate(i))
             }
-            return getters.currentYear - count
+            return months
+        },
+    },
+    mutations: {
+        increaseMonthNum(state) {
+            state.month_num += state.MONTH_NUM_STEP
+        },
+        resetMonthNum(state) {
+            state.month_num = state.MONTH_NUM_INITED
         }
     },
-    mutations: {},
     actions: {},
 })
