@@ -1,5 +1,3 @@
-# lab4
-
 ## Project setup
 ```
 npm install
