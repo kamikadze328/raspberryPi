@@ -20,6 +20,9 @@
         <a class="href my-button" href="/unp/info_dev_err.html">
           <div class="href-text">Ошибки устройств</div>
         </a>
+        <a class="href my-button" href="/factory_temperatures/">
+          <div class="href-text">Температуры</div>
+        </a>
       </section>
     </div>
   </div>
