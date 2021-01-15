@@ -1,4 +1,4 @@
-# frontend
+# ONLY FRONTEND. Backend даже не начат. Фронт на Vue 3
 
 ## Project setup
 ```
